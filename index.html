@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>פתיחת חשבון | Altrix</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #0a0f1e 0%, #0d1b3e 50%, #0a1628 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 50px 45px;
+      width: 100%;
+      max-width: 520px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    }
+
+    .logo { text-align: center; margin-bottom: 10px; }
+    .logo h1 {
+      font-size: 2.4rem; font-weight: 800; letter-spacing: 3px;
+      background: linear-gradient(90deg, #4fc3f7, #81d4fa, #e1f5fe);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      text-align: center; color: rgba(255,255,255,0.45);
+      font-size: 0.9rem; margin-bottom: 38px; letter-spacing: 1px;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(79,195,247,0.4), transparent);
+      margin-bottom: 38px;
+    }
+
+    .form-group { margin-bottom: 22px; }
+
+    label {
+      display: block; color: rgba(255,255,255,0.7);
+      font-size: 0.85rem; font-weight: 600; margin-bottom: 8px;
+    }
+
+    input, select {
+      width: 100%; padding: 13px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px; color: #fff; font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+      outline: none; direction: rtl;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.25); }
+
+    input:focus, select:focus {
+      border-color: #4fc3f7;
+      background: rgba(79,195,247,0.08);
+      box-shadow: 0 0 0 3px rgba(79,195,247,0.12);
+    }
+
+    select {
+      cursor: pointer; appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234fc3f7' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: left 14px center; padding-left: 36px;
+    }
+
+    select option { background: #0d1b3e; color: #fff; }
+    select option:disabled { color: rgba(255,255,255,0.3); }
+
+    .btn {
+      width: 100%; padding: 15px; margin-top: 10px;
+      background: linear-gradient(135deg, #1565c0, #1976d2, #42a5f5);
+      border: none; border-radius: 12px; color: #fff;
+      font-size: 1rem; font-weight: 700; font-family: inherit;
+      letter-spacing: 1px; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.25s, opacity 0.2s;
+      box-shadow: 0 6px 20px rgba(21,101,192,0.4);
+    }
+
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(21,101,192,0.55); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    #toast {
+      position: fixed; bottom: 30px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      padding: 14px 28px; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transition: transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.35s;
+      opacity: 0; z-index: 9999; white-space: nowrap;
+      background: #1b5e20; border: 1px solid #2e7d32; color: #a5d6a7;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #toast.error { background: #b71c1c; border-color: #c62828; color: #ef9a9a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo"><h1>ALTRIX</h1></div>
+    <p class="subtitle">פתיחת חשבון חדש</p>
+    <div class="divider"></div>
+
+    <form id="registrationForm">
+      <div class="form-group">
+        <label>שם מלא</label>
+        <input type="text" id="fullName" placeholder="הזן שם מלא" required />
+      </div>
+      <div class="form-group">
+        <label>מס' טלפון</label>
+        <input type="tel" id="phone" placeholder="05X-XXXXXXX" required />
+      </div>
+      <div class="form-group">
+        <label>אימייל</label>
+        <input type="email" id="email" placeholder="example@email.com" required />
+      </div>
+      <div class="form-group">
+        <label>סוג החשבון</label>
+        <select id="accountType" required>
+          <option value="" disabled selected>בחר סוג חשבון</option>
+          <option value="תיק נוסטרו">תיק נוסטרו</option>
+          <option value="תיק דמו">תיק דמו</option>
+          <option value="STRIKE BOT">STRIKE BOT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>מס' חשבון מסחר</label>
+        <input type="text" id="tradingAccount" placeholder="הזן מספר חשבון מסחר" required />
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">שלח רישום</button>
+    </form>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg, err = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'show' + (err ? ' error' : '');
+      setTimeout(() => t.className = '', 3200);
+    }
+
+    document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'שולח...';
+
+      const data = {
+        fullName:       document.getElementById('fullName').value.trim(),
+        phone:          document.getElementById('phone').value.trim(),
+        email:          document.getElementById('email').value.trim(),
+        accountType:    document.getElementById('accountType').value,
+        tradingAccount: document.getElementById('tradingAccount').value.trim()
+      };
+
+      try {
+        const res = await fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          showToast('הרישום נשמר בהצלחה באקסל!');
+          this.reset();
+        } else {
+          const r = await res.json();
+          showToast(r.error || 'שגיאה בשמירה', true);
+        }
+      } catch {
+        showToast('לא ניתן להתחבר לשרת', true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'שלח רישום';
+      }
+    });
+  </script>
+</body>
+</html>
