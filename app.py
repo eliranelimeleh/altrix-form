@@ -104,8 +104,10 @@ def open_browser():
     webbrowser.open("http://localhost:5000")
 
 
+# called on every gunicorn worker startup too
+init_db()
+
 if __name__ == "__main__":
-    init_db()
     port = int(os.environ.get("PORT", 5000))
     if port == 5000:
         threading.Timer(1.2, open_browser).start()
