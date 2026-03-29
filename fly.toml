@@ -1,0 +1,24 @@
+app = 'altrix-form'
+primary_region = 'ams'
+
+[build]
+
+[env]
+  PORT = "8080"
+  DOWNLOAD_KEY = "altrix2024"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[mounts]]
+  source = 'altrix_data'
+  destination = '/data'
+
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
