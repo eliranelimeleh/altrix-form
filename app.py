@@ -4,6 +4,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from datetime import datetime
 import os, sqlite3, io, threading, webbrowser
+from zoneinfo import ZoneInfo
+
+ISRAEL_TZ = ZoneInfo("Asia/Jerusalem")
 
 app = Flask(__name__)
 CORS(app)
@@ -76,7 +79,7 @@ def submit():
     for f in ["fullName", "phone", "email", "accountType", "tradingAccount"]:
         if not str(data.get(f, "")).strip():
             return jsonify({"error": f"missing: {f}"}), 400
-    ts = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
     with get_db() as conn:
         conn.execute(
             "INSERT INTO registrations (full_name,phone,email,account_type,trading_acct,created_at) VALUES (?,?,?,?,?,?)",
