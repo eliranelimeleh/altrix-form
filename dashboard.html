@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Altrix</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080e1e;--card:#0e1830;--border:rgba(255,255,255,0.08);
+      --blue:#4fc3f7;--blue2:#1976d2;--green:#66bb6a;--orange:#ffa726;
+      --purple:#ab47bc;--red:#ef5350;--text:#e8eaf6;--muted:rgba(255,255,255,0.45);
+    }
+    body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:28px 24px;}
+
+    /* Header */
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:16px;}
+    .header-left h1{font-size:1.7rem;font-weight:800;letter-spacing:2px;
+      background:linear-gradient(90deg,#4fc3f7,#81d4fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .header-left p{color:var(--muted);font-size:.85rem;margin-top:4px;}
+    .header-right{display:flex;gap:10px;flex-wrap:wrap;}
+
+    .btn{padding:10px 20px;border-radius:10px;border:none;font-family:inherit;font-size:.85rem;
+      font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+    .btn-primary{background:linear-gradient(135deg,var(--blue2),#42a5f5);color:#fff;
+      box-shadow:0 4px 14px rgba(25,118,210,.35);}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(25,118,210,.5);}
+    .btn-outline{background:transparent;border:1px solid rgba(79,195,247,.35);color:var(--blue);}
+    .btn-outline:hover{background:rgba(79,195,247,.08);}
+    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+
+    /* Stat cards */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 24px;
+      position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;}
+    .stat-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.4);}
+    .stat-card::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;
+      border-radius:50%;opacity:.07;transform:translate(20px,-20px);}
+    .stat-card.blue::before{background:#4fc3f7;}
+    .stat-card.green::before{background:#66bb6a;}
+    .stat-card.orange::before{background:#ffa726;}
+    .stat-card.purple::before{background:#ab47bc;}
+    .stat-label{font-size:.78rem;color:var(--muted);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;}
+    .stat-value{font-size:2.4rem;font-weight:800;line-height:1;}
+    .stat-card.blue .stat-value{color:var(--blue);}
+    .stat-card.green .stat-value{color:var(--green);}
+    .stat-card.orange .stat-value{color:var(--orange);}
+    .stat-card.purple .stat-value{color:var(--purple);}
+    .stat-sub{font-size:.78rem;color:var(--muted);margin-top:8px;}
+
+    /* Charts row */
+    .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+    @media(max-width:800px){.charts-grid{grid-template-columns:1fr;}}
+    .chart-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;}
+    .chart-title{font-size:.95rem;font-weight:700;margin-bottom:20px;color:var(--text);}
+    .chart-wrap{position:relative;height:240px;}
+
+    /* Table */
+    .table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;}
+    .table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+    .table-title{font-size:.95rem;font-weight:700;}
+    .search-input{padding:8px 14px;background:rgba(255,255,255,.05);border:1px solid var(--border);
+      border-radius:8px;color:#fff;font-family:inherit;font-size:.85rem;outline:none;width:220px;direction:rtl;}
+    .search-input:focus{border-color:var(--blue);}
+    .search-input::placeholder{color:var(--muted);}
+    table{width:100%;border-collapse:collapse;font-size:.85rem;}
+    th{text-align:right;padding:10px 14px;color:var(--muted);font-weight:600;font-size:.78rem;
+      letter-spacing:.5px;border-bottom:1px solid var(--border);}
+    td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(255,255,255,.02);}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;}
+    .badge-nostro{background:rgba(79,195,247,.15);color:#4fc3f7;}
+    .badge-demo{background:rgba(102,187,106,.15);color:#66bb6a;}
+    .badge-strike{background:rgba(171,71,188,.15);color:#ab47bc;}
+
+    /* Suggestions */
+    .suggestions-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;}
+    .suggestions-title{font-size:.95rem;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+    .suggestions-title span{font-size:1.1rem;}
+    .suggestion-item{display:flex;align-items:flex-start;gap:14px;padding:14px;
+      border-radius:12px;margin-bottom:10px;transition:background .2s;}
+    .suggestion-item:hover{background:rgba(255,255,255,.03);}
+    .suggestion-item:last-child{margin-bottom:0;}
+    .sug-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+      font-size:1rem;flex-shrink:0;}
+    .sug-blue{background:rgba(79,195,247,.12);color:var(--blue);}
+    .sug-green{background:rgba(102,187,106,.12);color:var(--green);}
+    .sug-orange{background:rgba(255,167,38,.12);color:var(--orange);}
+    .sug-purple{background:rgba(171,71,188,.12);color:var(--purple);}
+    .sug-text strong{font-size:.88rem;display:block;margin-bottom:3px;}
+    .sug-text p{font-size:.8rem;color:var(--muted);line-height:1.5;}
+
+    /* Toast */
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
+      padding:12px 24px;border-radius:10px;font-size:.9rem;font-weight:600;
+      box-shadow:0 8px 24px rgba(0,0,0,.4);transition:transform .3s,opacity .3s;
+      opacity:0;z-index:999;white-space:nowrap;}
+    #toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+    #toast.ok{background:#1b5e20;border:1px solid #2e7d32;color:#a5d6a7;}
+    #toast.err{background:#b71c1c;border:1px solid #c62828;color:#ef9a9a;}
+
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;
+      align-items:center;justify-content:center;z-index:1000;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:#0e1830;border:1px solid rgba(255,255,255,.12);border-radius:18px;
+      padding:36px;width:100%;max-width:420px;}
+    .modal h3{font-size:1.1rem;font-weight:700;margin-bottom:20px;}
+    .modal input{width:100%;padding:12px 16px;background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;
+      font-size:.95rem;font-family:inherit;outline:none;margin-bottom:16px;direction:ltr;}
+    .modal input:focus{border-color:var(--blue);}
+    .modal-btns{display:flex;gap:10px;justify-content:flex-end;}
+
+    .empty{text-align:center;color:var(--muted);padding:40px;font-size:.9rem;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>ALTRIX DASHBOARD</h1>
+    <p id="lastUpdate">טוען נתונים...</p>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-outline" onclick="loadData()">רענן</button>
+    <button class="btn btn-outline" id="downloadBtn" onclick="downloadExcel()">הורד אקסל</button>
+    <button class="btn btn-primary" onclick="openEmailModal()">שלח סיכום למייל</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-label">סה"כ רישומים</div>
+    <div class="stat-value" id="statTotal">—</div>
+    <div class="stat-sub">מאז ההשקה</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">היום</div>
+    <div class="stat-value" id="statToday">—</div>
+    <div class="stat-sub" id="statTodayDate">—</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-label">השבוע</div>
+    <div class="stat-value" id="statWeek">—</div>
+    <div class="stat-sub">7 ימים אחרונים</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-label">החודש</div>
+    <div class="stat-value" id="statMonth">—</div>
+    <div class="stat-sub" id="statMonthName">—</div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="charts-grid">
+  <div class="chart-card">
+    <div class="chart-title">התפלגות סוג חשבון</div>
+    <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">רישומים — 14 ימים אחרונים</div>
+    <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="table-card">
+  <div class="table-header">
+    <div class="table-title">רישומים אחרונים</div>
+    <input class="search-input" id="searchInput" placeholder="חיפוש..." oninput="filterTable()"/>
+  </div>
+  <div style="overflow-x:auto;">
+    <table id="regTable">
+      <thead>
+        <tr>
+          <th>#</th><th>שם מלא</th><th>טלפון</th><th>אימייל</th>
+          <th>סוג חשבון</th><th>מס' חשבון</th><th>תאריך ושעה</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Suggestions -->
+<div class="suggestions-card">
+  <div class="suggestions-title"><span>💡</span> הצעות לשיפור וייעול</div>
+  <div id="suggestionsContainer"></div>
+</div>
+
+<!-- Email Modal -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal">
+    <h3>שלח סיכום למייל</h3>
+    <input type="email" id="emailInput" placeholder="הזן כתובת מייל" dir="ltr"/>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeEmailModal()">ביטול</button>
+      <button class="btn btn-primary" id="sendEmailBtn" onclick="sendEmail()">שלח</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const KEY = new URLSearchParams(location.search).get('key') || '';
+let allRows = [];
+let pieChart, barChart;
+
+const BADGE = {
+  'תיק נוסטרו': 'badge-nostro',
+  'תיק דמו':    'badge-demo',
+  'STRIKE BOT': 'badge-strike'
+};
+
+const HE_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+function showToast(msg, ok=true){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show '+(ok?'ok':'err');
+  setTimeout(()=>t.className='', 3200);
+}
+
+function parseDate(str){
+  // format: dd/mm/yyyy hh:mm:ss
+  const [d,m,y,h,min,s] = str.replace(' ','/').replace(/:/g,'/').split('/');
+  return new Date(y,m-1,d,h,min,s);
+}
+
+function today(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+
+function loadData(){
+  if(!KEY){document.body.innerHTML='<div style="color:#ef9a9a;text-align:center;padding:80px;font-size:1.1rem">גישה נדחתה — חסר מפתח</div>';return;}
+  fetch('/api/stats?key='+KEY)
+    .then(r=>r.ok?r.json():Promise.reject(r.status))
+    .then(data=>render(data))
+    .catch(()=>showToast('שגיאה בטעינת נתונים',false));
+}
+
+function render(data){
+  const rows = data.rows || [];
+  allRows = rows;
+
+  const now = new Date();
+  const todayStr = today();
+  const weekAgo = new Date(now - 7*864e5);
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const todayCount = rows.filter(r=>r.created_at.startsWith(todayStr.split('/').join('/'))||parseDate(r.created_at)>=new Date(now.getFullYear(),now.getMonth(),now.getDate())).length;
+  const weekCount  = rows.filter(r=>parseDate(r.created_at)>=weekAgo).length;
+  const monthCount = rows.filter(r=>parseDate(r.created_at)>=monthStart).length;
+
+  document.getElementById('statTotal').textContent = rows.length;
+  document.getElementById('statToday').textContent = todayCount;
+  document.getElementById('statTodayDate').textContent = todayStr;
+  document.getElementById('statWeek').textContent  = weekCount;
+  document.getElementById('statMonth').textContent = monthCount;
+  document.getElementById('statMonthName').textContent = HE_MONTHS[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('lastUpdate').textContent = 'עדכון אחרון: '+new Date().toLocaleTimeString('he-IL');
+
+  renderPie(rows);
+  renderBar(rows);
+  renderTable(rows);
+  renderSuggestions(rows, todayCount, weekCount, monthCount);
+}
+
+function renderPie(rows){
+  const counts = {};
+  rows.forEach(r=>counts[r.account_type]=(counts[r.account_type]||0)+1);
+  const labels = Object.keys(counts);
+  const values = Object.values(counts);
+  const colors = ['#4fc3f7','#66bb6a','#ab47bc','#ffa726','#ef5350'];
+
+  if(pieChart) pieChart.destroy();
+  pieChart = new Chart(document.getElementById('pieChart'),{
+    type:'doughnut',
+    data:{labels, datasets:[{data:values, backgroundColor:colors.slice(0,labels.length),
+      borderColor:'#080e1e', borderWidth:3, hoverOffset:6}]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:'rgba(255,255,255,.7)',padding:16,font:{size:12}}},
+               tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/rows.length*100)}%)`}}},
+      cutout:'62%'
+    }
+  });
+}
+
+function renderBar(rows){
+  const days=14, labels=[], counts=[];
+  for(let i=days-1;i>=0;i--){
+    const d=new Date(Date.now()-i*864e5);
+    const label=`${d.getDate()}/${d.getMonth()+1}`;
+    const dStr=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    labels.push(label);
+    counts.push(rows.filter(r=>r.created_at.startsWith(dStr)).length);
+  }
+  if(barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{labels, datasets:[{label:'רישומים', data:counts,
+      backgroundColor:'rgba(79,195,247,.25)', borderColor:'#4fc3f7',
+      borderWidth:2, borderRadius:6, borderSkipped:false}]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'rgba(255,255,255,.5)',font:{size:11}}},
+        y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'rgba(255,255,255,.5)',stepSize:1},beginAtZero:true}
+      }
+    }
+  });
+}
+
+function renderTable(rows){
+  const tbody = document.getElementById('tableBody');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty">אין רישומים עדיין</div></td></tr>';return;}
+  tbody.innerHTML = [...rows].reverse().slice(0,50).map((r,i)=>`
+    <tr>
+      <td style="color:var(--muted)">${rows.length-i}</td>
+      <td><strong>${esc(r.full_name)}</strong></td>
+      <td style="direction:ltr">${esc(r.phone)}</td>
+      <td style="direction:ltr;font-size:.8rem">${esc(r.email)}</td>
+      <td><span class="badge ${BADGE[r.account_type]||''}">${esc(r.account_type)}</span></td>
+      <td>${esc(r.trading_acct)}</td>
+      <td style="color:var(--muted);font-size:.8rem;direction:ltr">${esc(r.created_at)}</td>
+    </tr>`).join('');
+}
+
+function filterTable(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = allRows.filter(r=>
+    r.full_name.toLowerCase().includes(q)||r.email.toLowerCase().includes(q)||
+    r.phone.includes(q)||r.account_type.toLowerCase().includes(q)||r.trading_acct.includes(q)
+  );
+  renderTable(filtered);
+}
+
+function renderSuggestions(rows, todayCount, weekCount, monthCount){
+  const s = [];
+  const types = {};
+  rows.forEach(r=>types[r.account_type]=(types[r.account_type]||0)+1);
+  const topType = Object.entries(types).sort((a,b)=>b[1]-a[1])[0];
+
+  if(rows.length===0){
+    s.push({icon:'📣',cls:'sug-blue',title:'התחל לשווק',body:'עדיין לא נרשמו לקוחות. שלח את הלינק לקהל הלקוחות שלך ב-WhatsApp, אינסטגרם או בדוא"ל.'});
+  } else {
+    if(topType) s.push({icon:'⭐',cls:'sug-blue',title:`סוג החשבון המבוקש: ${topType[0]}`,body:`${topType[1]} מתוך ${rows.length} לקוחות (${Math.round(topType[1]/rows.length*100)}%) בחרו ב-${topType[0]}. שקול להבליט אפשרות זו בדף הנחיתה.`});
+    if(weekCount===0) s.push({icon:'📉',cls:'sug-orange',title:'לא נרשמו לקוחות השבוע',body:'נסה לשלוח תזכורת ללקוחות קיימים או לפרסם מחדש את הקישור.'});
+    if(monthCount>=10) s.push({icon:'🚀',cls:'sug-green',title:'חודש חזק!',body:`${monthCount} רישומים החודש. שקול להוסיף תודה אוטומטית למייל לכל לקוח חדש לחיזוק הקשר.`});
+    if(rows.length>=5){
+      const emails=rows.map(r=>r.email.split('@')[1]);
+      const domainCounts={};emails.forEach(d=>domainCounts[d]=(domainCounts[d]||0)+1);
+      const topDomain=Object.entries(domainCounts).sort((a,b)=>b[1]-a[1])[0];
+      if(topDomain&&topDomain[1]>1) s.push({icon:'📧',cls:'sug-purple',title:'קהל יעד',body:`רוב הלקוחות משתמשים ב-${topDomain[0]}. שקול מסע פרסום ממוקד לאותה פלטפורמה.`});
+    }
+    s.push({icon:'📊',cls:'sug-blue',title:'הורד אקסל שבועי',body:'הורד את הנתונים מדי שבוע לגיבוי ומעקב, גם אם אין שינויים גדולים.'});
+    s.push({icon:'🔒',cls:'sug-orange',title:'אבטח את הדשבורד',body:'שנה את מפתח הגישה (altrix2024) לסיסמה חזקה יותר דרך הגדרות הסביבה ב-Fly.io.'});
+  }
+
+  document.getElementById('suggestionsContainer').innerHTML = s.map(sg=>`
+    <div class="suggestion-item">
+      <div class="sug-icon ${sg.cls}">${sg.icon}</div>
+      <div class="sug-text"><strong>${sg.title}</strong><p>${sg.body}</p></div>
+    </div>`).join('');
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function downloadExcel(){
+  window.open('/download?key='+KEY);
+}
+
+function openEmailModal(){
+  document.getElementById('emailModal').classList.add('open');
+}
+function closeEmailModal(){
+  document.getElementById('emailModal').classList.remove('open');
+}
+
+async function sendEmail(){
+  const email = document.getElementById('emailInput').value.trim();
+  if(!email){showToast('הזן כתובת מייל',false);return;}
+  const btn = document.getElementById('sendEmailBtn');
+  btn.disabled=true; btn.textContent='שולח...';
+  try{
+    const res = await fetch('/send-report',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,key:KEY})});
+    const r = await res.json();
+    if(res.ok){showToast('הסיכום נשלח בהצלחה!');closeEmailModal();}
+    else showToast(r.error||'שגיאה בשליחה',false);
+  }catch{showToast('שגיאת רשת',false);}
+  finally{btn.disabled=false;btn.textContent='שלח';}
+}
+
+document.getElementById('emailModal').addEventListener('click',function(e){
+  if(e.target===this)closeEmailModal();
+});
+
+loadData();
+</script>
+</body>
+</html>
