@@ -1,0 +1,9 @@
+New folder/
+WhatsApp-Bot/
+*.db
+*.xlsx
+__pycache__/
+*.pyc
+.git/
+START.bat
+registrations.db
