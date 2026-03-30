@@ -115,6 +115,27 @@
     .modal-btns{display:flex;gap:10px;justify-content:flex-end;}
 
     .empty{text-align:center;color:var(--muted);padding:40px;font-size:.9rem;}
+
+    /* Tabs */
+    .tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+      border-radius:12px;padding:4px;margin-bottom:20px;width:fit-content;}
+    .tab{padding:9px 22px;border-radius:9px;font-size:.85rem;font-weight:600;cursor:pointer;
+      border:none;background:transparent;color:var(--muted);font-family:inherit;
+      transition:all .2s;display:flex;align-items:center;gap:7px;}
+    .tab.active{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+    .tab .count-pill{background:var(--blue2);color:#fff;font-size:.7rem;padding:1px 7px;
+      border-radius:10px;font-weight:700;}
+    .tab.active .count-pill{background:var(--blue);}
+
+    /* Status badge */
+    .status-new{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;
+      background:rgba(255,167,38,.15);color:#ffa726;}
+    .action-license{background:rgba(79,195,247,.15);color:#4fc3f7;}
+    .action-change{background:rgba(171,71,188,.15);color:#ab47bc;}
+
+    /* Client tag */
+    .client-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;
+      border-radius:6px;font-size:.72rem;font-weight:600;background:rgba(102,187,106,.1);color:#66bb6a;}
   </style>
 </head>
 <body>
@@ -149,9 +170,9 @@
     <div class="stat-sub">7 ימים אחרונים</div>
   </div>
   <div class="stat-card purple">
-    <div class="stat-label">החודש</div>
-    <div class="stat-value" id="statMonth">—</div>
-    <div class="stat-sub" id="statMonthName">—</div>
+    <div class="stat-label">בקשות עדכון</div>
+    <div class="stat-value" id="statUpdates">—</div>
+    <div class="stat-sub">לקוחות קיימים</div>
   </div>
 </div>
 
@@ -170,11 +191,22 @@
 <!-- Table -->
 <div class="table-card">
   <div class="table-header">
-    <div class="table-title">רישומים אחרונים</div>
+    <div>
+      <div class="tabs">
+        <button class="tab active" id="tab1" onclick="switchTab('registrations')">
+          רישומים חדשים <span class="count-pill" id="pillReg">0</span>
+        </button>
+        <button class="tab" id="tab2" onclick="switchTab('updates')">
+          בקשות עדכון <span class="count-pill" id="pillUpd">0</span>
+        </button>
+      </div>
+    </div>
     <input class="search-input" id="searchInput" placeholder="חיפוש..." oninput="filterTable()"/>
   </div>
-  <div style="overflow-x:auto;">
-    <table id="regTable">
+
+  <!-- Registrations table -->
+  <div id="tableReg" style="overflow-x:auto;">
+    <table>
       <thead>
         <tr>
           <th>#</th><th>שם מלא</th><th>טלפון</th><th>אימייל</th>
@@ -182,6 +214,19 @@
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Updates table -->
+  <div id="tableUpd" style="overflow-x:auto;display:none;">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>שם מלא</th><th>טלפון</th><th>אימייל</th>
+          <th>פעולה</th><th>סוג חשבון</th><th>מס' חשבון חדש</th><th>תאריך ושעה</th>
+        </tr>
+      </thead>
+      <tbody id="tableBodyUpd"></tbody>
     </table>
   </div>
 </div>
@@ -208,7 +253,8 @@
 
 <script>
 const KEY = new URLSearchParams(location.search).get('key') || '';
-let allRows = [];
+let allRows = [], allUpdates = [];
+let currentTab = 'registrations';
 let pieChart, barChart;
 
 const BADGE = {
@@ -235,37 +281,69 @@ function today(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')
 
 function loadData(){
   if(!KEY){document.body.innerHTML='<div style="color:#ef9a9a;text-align:center;padding:80px;font-size:1.1rem">גישה נדחתה — חסר מפתח</div>';return;}
-  fetch('/api/stats?key='+KEY)
-    .then(r=>r.ok?r.json():Promise.reject(r.status))
-    .then(data=>render(data))
-    .catch(()=>showToast('שגיאה בטעינת נתונים',false));
+  Promise.all([
+    fetch('/api/stats?key='+KEY).then(r=>r.ok?r.json():Promise.reject()),
+    fetch('/api/updates?key='+KEY).then(r=>r.ok?r.json():Promise.reject())
+  ])
+  .then(([stats, updates])=>render(stats, updates))
+  .catch(()=>showToast('שגיאה בטעינת נתונים',false));
 }
 
-function render(data){
+function render(data, updatesData){
   const rows = data.rows || [];
+  const updates = updatesData.rows || [];
   allRows = rows;
+  allUpdates = updates;
 
   const now = new Date();
   const todayStr = today();
   const weekAgo = new Date(now - 7*864e5);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const todayCount = rows.filter(r=>r.created_at.startsWith(todayStr.split('/').join('/'))||parseDate(r.created_at)>=new Date(now.getFullYear(),now.getMonth(),now.getDate())).length;
+  const todayCount = rows.filter(r=>parseDate(r.created_at)>=new Date(now.getFullYear(),now.getMonth(),now.getDate())).length;
   const weekCount  = rows.filter(r=>parseDate(r.created_at)>=weekAgo).length;
-  const monthCount = rows.filter(r=>parseDate(r.created_at)>=monthStart).length;
 
   document.getElementById('statTotal').textContent = rows.length;
   document.getElementById('statToday').textContent = todayCount;
   document.getElementById('statTodayDate').textContent = todayStr;
   document.getElementById('statWeek').textContent  = weekCount;
-  document.getElementById('statMonth').textContent = monthCount;
-  document.getElementById('statMonthName').textContent = HE_MONTHS[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('statUpdates').textContent = updates.length;
   document.getElementById('lastUpdate').textContent = 'עדכון אחרון: '+new Date().toLocaleTimeString('he-IL');
+  document.getElementById('pillReg').textContent = rows.length;
+  document.getElementById('pillUpd').textContent = updates.length;
 
   renderPie(rows);
   renderBar(rows);
   renderTable(rows);
-  renderSuggestions(rows, todayCount, weekCount, monthCount);
+  renderUpdatesTable(updates);
+  renderSuggestions(rows, todayCount, weekCount, rows.filter(r=>parseDate(r.created_at)>=monthStart).length);
+}
+
+function switchTab(tab){
+  currentTab = tab;
+  document.getElementById('tab1').classList.toggle('active', tab==='registrations');
+  document.getElementById('tab2').classList.toggle('active', tab==='updates');
+  document.getElementById('tableReg').style.display = tab==='registrations'?'':'none';
+  document.getElementById('tableUpd').style.display = tab==='updates'?'':'none';
+  document.getElementById('searchInput').value = '';
+  if(tab==='registrations') renderTable(allRows);
+  else renderUpdatesTable(allUpdates);
+}
+
+function renderUpdatesTable(rows){
+  const tbody = document.getElementById('tableBodyUpd');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty">אין בקשות עדכון עדיין</div></td></tr>';return;}
+  tbody.innerHTML = [...rows].reverse().map((r,i)=>`
+    <tr>
+      <td style="color:var(--muted)">${rows.length-i}</td>
+      <td><strong>${esc(r.full_name)}</strong> <span class="client-tag">לקוח קיים</span></td>
+      <td style="direction:ltr">${esc(r.phone)}</td>
+      <td style="direction:ltr;font-size:.8rem">${esc(r.email)}</td>
+      <td><span class="badge ${r.action_type==='הוספת רישיון'?'action-license':'action-change'}">${esc(r.action_type)}</span></td>
+      <td><span class="badge ${BADGE[r.account_type]||''}">${esc(r.account_type)}</span></td>
+      <td><strong>${esc(r.new_account)}</strong></td>
+      <td style="color:var(--muted);font-size:.8rem;direction:ltr">${esc(r.created_at)}</td>
+    </tr>`).join('');
 }
 
 function renderPie(rows){
@@ -332,11 +410,17 @@ function renderTable(rows){
 
 function filterTable(){
   const q = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = allRows.filter(r=>
-    r.full_name.toLowerCase().includes(q)||r.email.toLowerCase().includes(q)||
-    r.phone.includes(q)||r.account_type.toLowerCase().includes(q)||r.trading_acct.includes(q)
-  );
-  renderTable(filtered);
+  if(currentTab==='registrations'){
+    renderTable(allRows.filter(r=>
+      r.full_name.toLowerCase().includes(q)||r.email.toLowerCase().includes(q)||
+      r.phone.includes(q)||r.account_type.toLowerCase().includes(q)||r.trading_acct.includes(q)
+    ));
+  } else {
+    renderUpdatesTable(allUpdates.filter(r=>
+      r.full_name.toLowerCase().includes(q)||r.email.toLowerCase().includes(q)||
+      r.phone.includes(q)||r.account_type.toLowerCase().includes(q)||r.new_account.includes(q)
+    ));
+  }
 }
 
 function renderSuggestions(rows, todayCount, weekCount, monthCount){

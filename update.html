@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>עדכון חשבון | Altrix</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Segoe UI',Arial,sans-serif;
+      background:linear-gradient(135deg,#0a0f1e 0%,#0d1b3e 50%,#0a1628 100%);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;
+    }
+    .card{
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+      border-radius:20px;padding:50px 45px;width:100%;max-width:540px;
+      backdrop-filter:blur(12px);box-shadow:0 25px 60px rgba(0,0,0,.5);
+    }
+    .logo{text-align:center;margin-bottom:6px;}
+    .logo h1{
+      font-size:2.4rem;font-weight:800;letter-spacing:3px;
+      background:linear-gradient(90deg,#4fc3f7,#81d4fa,#e1f5fe);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    .badge{
+      display:inline-block;background:rgba(79,195,247,.12);border:1px solid rgba(79,195,247,.25);
+      color:#4fc3f7;font-size:.75rem;font-weight:700;letter-spacing:1.5px;padding:4px 12px;
+      border-radius:20px;margin-bottom:8px;
+    }
+    .subtitle{text-align:center;color:rgba(255,255,255,.45);font-size:.88rem;margin-bottom:36px;}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(79,195,247,.4),transparent);margin-bottom:36px;}
+
+    .section-label{
+      font-size:.7rem;font-weight:700;letter-spacing:2px;color:rgba(79,195,247,.7);
+      text-transform:uppercase;margin-bottom:16px;padding-bottom:8px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .form-group{margin-bottom:20px;}
+    label{display:block;color:rgba(255,255,255,.7);font-size:.83rem;font-weight:600;margin-bottom:7px;}
+
+    input,select{
+      width:100%;padding:12px 16px;background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;
+      font-size:.93rem;font-family:inherit;outline:none;direction:rtl;
+      transition:border-color .25s,background .25s,box-shadow .25s;
+    }
+    input::placeholder{color:rgba(255,255,255,.22);}
+    input:focus,select:focus{border-color:#4fc3f7;background:rgba(79,195,247,.07);box-shadow:0 0 0 3px rgba(79,195,247,.1);}
+    select{cursor:pointer;appearance:none;-webkit-appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234fc3f7' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:left 14px center;padding-left:36px;
+    }
+    select option{background:#0d1b3e;color:#fff;}
+    select option:disabled{color:rgba(255,255,255,.3);}
+
+    /* Action cards */
+    .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;}
+    .action-card{
+      border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 14px;
+      cursor:pointer;transition:all .2s;background:rgba(255,255,255,.03);text-align:center;
+    }
+    .action-card:hover{border-color:rgba(79,195,247,.4);background:rgba(79,195,247,.06);}
+    .action-card.selected{border-color:#4fc3f7;background:rgba(79,195,247,.1);box-shadow:0 0 0 2px rgba(79,195,247,.15);}
+    .action-card input[type=radio]{display:none;}
+    .action-icon{font-size:1.5rem;margin-bottom:8px;}
+    .action-title{font-size:.82rem;font-weight:700;color:#fff;}
+    .action-desc{font-size:.73rem;color:rgba(255,255,255,.4);margin-top:3px;}
+
+    /* Collapsible section */
+    .extra-section{
+      overflow:hidden;max-height:0;opacity:0;
+      transition:max-height .4s ease,opacity .3s ease,margin .3s ease;
+    }
+    .extra-section.open{max-height:400px;opacity:1;margin-top:4px;}
+
+    .btn{
+      width:100%;padding:15px;margin-top:8px;
+      background:linear-gradient(135deg,#1565c0,#1976d2,#42a5f5);
+      border:none;border-radius:12px;color:#fff;font-size:1rem;font-weight:700;
+      font-family:inherit;letter-spacing:1px;cursor:pointer;
+      transition:transform .15s,box-shadow .25s,opacity .2s;
+      box-shadow:0 6px 20px rgba(21,101,192,.4);
+    }
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(21,101,192,.55);}
+    .btn:active{transform:translateY(0);}
+    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+    #toast{
+      position:fixed;bottom:28px;left:50%;
+      transform:translateX(-50%) translateY(70px);
+      padding:13px 26px;border-radius:10px;font-size:.92rem;font-weight:600;
+      box-shadow:0 8px 24px rgba(0,0,0,.4);
+      transition:transform .35s cubic-bezier(.175,.885,.32,1.275),opacity .35s;
+      opacity:0;z-index:9999;white-space:nowrap;
+      background:#1b5e20;border:1px solid #2e7d32;color:#a5d6a7;
+    }
+    #toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+    #toast.error{background:#b71c1c;border-color:#c62828;color:#ef9a9a;}
+
+    .success-screen{display:none;text-align:center;padding:20px 0;}
+    .success-screen .check{font-size:3.5rem;margin-bottom:16px;}
+    .success-screen h2{font-size:1.3rem;font-weight:700;color:#66bb6a;margin-bottom:8px;}
+    .success-screen p{color:rgba(255,255,255,.5);font-size:.9rem;}
+    .success-screen .back-btn{
+      margin-top:24px;display:inline-block;padding:10px 24px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
+      border-radius:10px;color:rgba(255,255,255,.7);font-size:.85rem;cursor:pointer;
+      transition:background .2s;font-family:inherit;
+    }
+    .success-screen .back-btn:hover{background:rgba(255,255,255,.1);}
+  </style>
+</head>
+<body>
+<div class="card">
+  <!-- Success screen -->
+  <div class="success-screen" id="successScreen">
+    <div class="check">✅</div>
+    <h2>הבקשה התקבלה!</h2>
+    <p>הצוות שלנו יטפל בבקשתך בהקדם.<br/>תודה שבחרת ב-Altrix.</p>
+    <button class="back-btn" onclick="resetForm()">שלח בקשה נוספת</button>
+  </div>
+
+  <!-- Form -->
+  <div id="formContent">
+    <div class="logo">
+      <div style="text-align:center;margin-bottom:6px"><span class="badge">לקוח קיים</span></div>
+      <h1>ALTRIX</h1>
+    </div>
+    <p class="subtitle">עדכון חשבון קיים</p>
+    <div class="divider"></div>
+
+    <form id="updateForm">
+
+      <!-- Personal details -->
+      <div class="section-label">פרטים אישיים</div>
+
+      <div class="form-group">
+        <label>שם מלא</label>
+        <input type="text" id="fullName" placeholder="הזן שם מלא" required/>
+      </div>
+      <div class="form-group">
+        <label>מספר טלפון</label>
+        <input type="tel" id="phone" placeholder="05X-XXXXXXX" required/>
+      </div>
+      <div class="form-group" style="margin-bottom:28px">
+        <label>אימייל</label>
+        <input type="email" id="email" placeholder="example@email.com" required/>
+      </div>
+
+      <!-- Action -->
+      <div class="section-label">מה ברצונך לעשות?</div>
+      <div class="form-group">
+        <div class="action-grid">
+          <label class="action-card" id="card1" onclick="selectAction('license')">
+            <input type="radio" name="action" value="הוספת רישיון"/>
+            <div class="action-icon">📋</div>
+            <div class="action-title">הוספת רישיון</div>
+            <div class="action-desc">הוסף רישיון לחשבון קיים</div>
+          </label>
+          <label class="action-card" id="card2" onclick="selectAction('change')">
+            <input type="radio" name="action" value="החלפת מספר חשבון"/>
+            <div class="action-icon">🔄</div>
+            <div class="action-title">החלפת מספר חשבון</div>
+            <div class="action-desc">עדכן מספר חשבון מסחר</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Extra fields (shown after action selected) -->
+      <div class="extra-section" id="extraSection">
+        <div class="section-label">פרטי העדכון</div>
+
+        <div class="form-group">
+          <label>סוג החשבון</label>
+          <select id="accountType" required>
+            <option value="" disabled selected>בחר סוג חשבון</option>
+            <option value="תיק נוסטרו">תיק נוסטרו</option>
+            <option value="תיק LIVE">תיק LIVE</option>
+            <option value="STRIKE BOT">STRIKE BOT</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="newAccountGroup">
+          <label id="newAccountLabel">מספר חשבון חדש</label>
+          <input type="text" id="newAccount" placeholder="הזן מספר חשבון"/>
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">שלח בקשה</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let selectedAction = '';
+
+  function selectAction(type) {
+    selectedAction = type;
+    document.getElementById('card1').classList.toggle('selected', type==='license');
+    document.getElementById('card2').classList.toggle('selected', type==='change');
+    document.getElementById('extraSection').classList.add('open');
+
+    if(type==='license'){
+      document.getElementById('newAccountLabel').textContent = 'מספר חשבון לרישיון';
+      document.getElementById('newAccount').placeholder = 'הזן מספר חשבון';
+    } else {
+      document.getElementById('newAccountLabel').textContent = 'מספר חשבון חדש';
+      document.getElementById('newAccount').placeholder = 'הזן את מספר החשבון החדש';
+    }
+  }
+
+  function showToast(msg, err=false){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'show'+(err?' error':'');
+    setTimeout(()=>t.className='', 3200);
+  }
+
+  function resetForm(){
+    document.getElementById('successScreen').style.display = 'none';
+    document.getElementById('formContent').style.display = 'block';
+    document.getElementById('updateForm').reset();
+    document.getElementById('card1').classList.remove('selected');
+    document.getElementById('card2').classList.remove('selected');
+    document.getElementById('extraSection').classList.remove('open');
+    selectedAction = '';
+  }
+
+  document.getElementById('updateForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    if(!selectedAction){ showToast('יש לבחור פעולה',true); return; }
+
+    const accountType = document.getElementById('accountType').value;
+    const newAccount  = document.getElementById('newAccount').value.trim();
+    if(!accountType){ showToast('יש לבחור סוג חשבון',true); return; }
+    if(!newAccount){  showToast('יש להזין מספר חשבון',true); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'שולח...';
+
+    const data = {
+      fullName:    document.getElementById('fullName').value.trim(),
+      phone:       document.getElementById('phone').value.trim(),
+      email:       document.getElementById('email').value.trim(),
+      actionType:  selectedAction==='license' ? 'הוספת רישיון' : 'החלפת מספר חשבון',
+      accountType, newAccount
+    };
+
+    try{
+      const res = await fetch('/update', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      if(res.ok){
+        document.getElementById('formContent').style.display = 'none';
+        document.getElementById('successScreen').style.display = 'block';
+      } else {
+        const r = await res.json();
+        showToast(r.error||'שגיאה בשליחה',true);
+      }
+    } catch {
+      showToast('לא ניתן להתחבר לשרת',true);
+    } finally {
+      btn.disabled = false; btn.textContent = 'שלח בקשה';
+    }
+  });
+</script>
+</body>
+</html>

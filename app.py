@@ -39,6 +39,18 @@ def init_db():
                 created_at    TEXT NOT NULL
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS client_updates (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                full_name     TEXT NOT NULL,
+                phone         TEXT NOT NULL,
+                email         TEXT NOT NULL,
+                action_type   TEXT NOT NULL,
+                account_type  TEXT NOT NULL,
+                new_account   TEXT NOT NULL,
+                created_at    TEXT NOT NULL
+            )
+        """)
 
 
 def build_excel(rows):
@@ -166,6 +178,48 @@ def index():
     return send_from_directory(BASE_DIR, "index.html")
 
 
+@app.route("/update-form")
+def update_form():
+    return send_from_directory(BASE_DIR, "update.html")
+
+
+@app.route("/update", methods=["POST"])
+def update():
+    data = request.get_json(force=True)
+    for f in ["fullName", "phone", "email", "actionType", "accountType", "newAccount"]:
+        if not str(data.get(f, "")).strip():
+            return jsonify({"error": f"missing: {f}"}), 400
+    ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO client_updates (full_name,phone,email,action_type,account_type,new_account,created_at) VALUES (?,?,?,?,?,?,?)",
+            (data["fullName"], data["phone"], data["email"],
+             data["actionType"], data["accountType"], data["newAccount"], ts)
+        )
+    # WhatsApp notification for updates
+    wa_phone  = os.environ.get("WA_PHONE", "")
+    wa_apikey = os.environ.get("WA_APIKEY", "")
+    if wa_phone and wa_apikey:
+        try:
+            msg = f"Altrix - בקשת עדכון חדשה!\n{data['actionType']}\nשם: {data['fullName']}\nטל: {data['phone']}\nסוג: {data['accountType']}\nחשבון: {data['newAccount']}"
+            import urllib.request, urllib.parse
+            url = f"https://api.callmebot.com/whatsapp.php?phone={wa_phone}&text={urllib.parse.quote(msg)}&apikey={wa_apikey}"
+            urllib.request.urlopen(url, timeout=5)
+        except:
+            pass
+    return jsonify({"ok": True}), 200
+
+
+@app.route("/api/updates")
+def api_updates():
+    key = request.args.get("key", "")
+    if key != os.environ.get("DOWNLOAD_KEY", "altrix2024"):
+        return jsonify({"error": "unauthorized"}), 401
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM client_updates ORDER BY id").fetchall()
+    return jsonify({"rows": [dict(r) for r in rows]})
+
+
 @app.route("/dashboard")
 def dashboard():
     key = request.args.get("key", "")
@@ -197,6 +251,17 @@ def submit():
             (data["fullName"], data["phone"], data["email"],
              data["accountType"], data["tradingAccount"], ts)
         )
+    # WhatsApp notification for new registration
+    wa_phone  = os.environ.get("WA_PHONE", "")
+    wa_apikey = os.environ.get("WA_APIKEY", "")
+    if wa_phone and wa_apikey:
+        try:
+            msg = f"Altrix - רישום חדש!\nשם: {data['fullName']}\nטל: {data['phone']}\nסוג: {data['accountType']}\nחשבון: {data['tradingAccount']}"
+            import urllib.request, urllib.parse
+            url = f"https://api.callmebot.com/whatsapp.php?phone={wa_phone}&text={urllib.parse.quote(msg)}&apikey={wa_apikey}"
+            urllib.request.urlopen(url, timeout=5)
+        except:
+            pass
     return jsonify({"ok": True}), 200
 
 
