@@ -1,0 +1,2516 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ALTRIX — MANAGER</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:       #05091a;
+  --bg2:      #080e1e;
+  --card:     #0d1530;
+  --card2:    #111a38;
+  --border:   rgba(255,255,255,0.07);
+  --text:     #e8eaf6;
+  --muted:    rgba(255,255,255,0.42);
+  --accent:   #ffd54f;
+  --accent2:  #ffc107;
+  --accent3:  #e65100;
+  --glow:     rgba(255,193,7,0.28);
+  --green:    #66bb6a;
+  --orange:   #ffa726;
+  --red:      #ef5350;
+  --blue:     #4fc3f7;
+  --gold:     #ffd54f;
+  --radius:   14px;
+  --shadow:   0 4px 24px rgba(0,0,0,0.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  font-size:14px;
+}
+
+/* ── HEADER ─────────────────────────────────────── */
+.header{
+  background:linear-gradient(135deg,#0a0f28 0%,#181000 60%,#2d1500 100%);
+  border-bottom:1px solid rgba(255,193,7,0.3);
+  padding:0 28px;
+  height:68px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 20px rgba(0,0,0,0.5);
+}
+.header-brand{display:flex;align-items:center;gap:14px;flex:1}
+.logo-mark{
+  width:38px;height:38px;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+  clip-path:polygon(50% 0%,100% 100%,0% 100%);
+  flex-shrink:0;
+  filter:drop-shadow(0 0 8px var(--glow));
+}
+.logo-text{
+  font-size:1.5rem;font-weight:900;
+  letter-spacing:4px;
+  background:linear-gradient(90deg,#fff8e1,#ffd54f,#ffc107);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.page-badge{
+  background:rgba(255,193,7,0.15);
+  border:1px solid rgba(255,193,7,0.35);
+  border-radius:20px;
+  padding:3px 12px;
+  font-size:.78rem;
+  color:var(--accent);
+  letter-spacing:.5px;
+}
+.header-clock{
+  text-align:center;
+  color:var(--muted);
+  font-size:.82rem;
+  line-height:1.6;
+}
+.header-clock .time{
+  font-size:1.1rem;font-weight:700;
+  color:var(--accent);
+  font-variant-numeric:tabular-nums;
+}
+.header-actions{display:flex;gap:10px;align-items:center}
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn{
+  padding:8px 18px;border-radius:8px;border:none;cursor:pointer;
+  font-size:.84rem;font-weight:600;font-family:inherit;
+  transition:all .18s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+  color:#1a1000;
+  box-shadow:0 2px 12px var(--glow);
+}
+.btn-primary:hover{filter:brightness(1.10);transform:translateY(-1px)}
+.btn-outline{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.12);
+  color:var(--text);
+}
+.btn-outline:hover{background:rgba(255,255,255,0.1)}
+.btn-danger{background:#c62828;color:#fff}
+.btn-danger:hover{background:#d32f2f}
+.btn-sm{padding:5px 12px;font-size:.78rem}
+.btn-icon{
+  background:none;border:none;cursor:pointer;
+  font-size:1rem;padding:4px 6px;border-radius:6px;
+  transition:background .15s;color:var(--text);
+}
+.btn-icon:hover{background:rgba(255,255,255,0.1)}
+
+/* ── MAIN LAYOUT ─────────────────────────────────── */
+.main{padding:24px 28px;max-width:1600px;margin:0 auto}
+
+/* ── KPI GRID ────────────────────────────────────── */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:14px;
+  margin-bottom:22px;
+}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+
+.kpi-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px 20px;
+  position:relative;overflow:hidden;
+  transition:transform .18s,box-shadow .18s;
+}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.kpi-card::before{
+  content:'';
+  position:absolute;top:0;right:0;
+  width:3px;height:100%;
+  background:var(--kpi-color,var(--accent));
+}
+.kpi-icon{font-size:1.6rem;margin-bottom:8px}
+.kpi-label{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.kpi-value{
+  font-size:1.75rem;font-weight:800;
+  color:var(--kpi-color,var(--accent));
+  font-variant-numeric:tabular-nums;
+  line-height:1;
+}
+.kpi-sub{font-size:.72rem;color:var(--muted);margin-top:4px}
+
+/* ── CHARTS GRID ──────────────────────────────────── */
+.charts-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 2fr;
+  gap:14px;
+  margin-bottom:22px;
+}
+@media(max-width:1100px){.charts-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.charts-grid{grid-template-columns:1fr}}
+
+.chart-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+}
+.chart-title{
+  font-size:.85rem;font-weight:700;
+  color:var(--accent);
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.chart-title::before{
+  content:'';width:3px;height:14px;
+  background:var(--accent2);border-radius:2px;
+}
+.chart-wrap{position:relative;height:200px}
+.chart-wrap-sm{position:relative;height:180px}
+
+/* ── SECTION TABS ─────────────────────────────────── */
+.section-tabs{
+  display:flex;gap:4px;
+  margin-bottom:16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:5px;
+  width:fit-content;
+}
+.stab{
+  background:none;border:none;cursor:pointer;
+  padding:8px 20px;border-radius:7px;
+  font-size:.85rem;font-weight:600;
+  color:var(--muted);font-family:inherit;
+  transition:all .18s;
+}
+.stab.active{
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+  color:#1a1000;
+  box-shadow:0 2px 10px var(--glow);
+}
+.stab:not(.active):hover{background:rgba(255,255,255,0.06);color:var(--text)}
+
+.section-panel{display:none}
+.section-panel.active{display:block}
+
+/* ── TIPS CARD ───────────────────────────────────── */
+.tips-card{
+  background:linear-gradient(135deg,rgba(255,193,7,0.08),rgba(230,81,0,0.06));
+  border:1px solid rgba(255,193,7,0.2);
+  border-radius:var(--radius);
+  padding:14px 22px;
+  margin-bottom:20px;
+  display:flex;align-items:center;gap:14px;
+}
+.tips-icon{font-size:1.6rem;flex-shrink:0}
+.tips-body{flex:1;min-width:0}
+.tips-label{font-size:.68rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.tips-text{font-size:.88rem;color:var(--text);line-height:1.5;font-style:italic}
+
+/* ── REP CARDS ───────────────────────────────────── */
+.reps-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.reps-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:14px;
+  margin-bottom:24px;
+}
+.rep-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px 20px;
+  cursor:pointer;
+  transition:border-color .18s,transform .18s;
+  position:relative;
+}
+.rep-card:hover{border-color:var(--accent2);transform:translateY(-2px)}
+.rep-card.selected{border-color:var(--accent);background:rgba(255,193,7,0.06)}
+.rep-card-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.rep-avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;font-weight:800;color:#1a1000;flex-shrink:0;
+}
+.rep-name{font-weight:700;font-size:.92rem;color:var(--text)}
+.rep-email{font-size:.72rem;color:var(--muted);margin-top:2px}
+.rep-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.rep-stat{background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 10px;text-align:center}
+.rep-stat-val{font-size:1.1rem;font-weight:800;color:var(--accent);line-height:1}
+.rep-stat-lbl{font-size:.65rem;color:var(--muted);margin-top:3px}
+.rep-actions{display:flex;gap:6px;margin-top:12px}
+.rep-del-btn{background:rgba(239,83,80,0.12);color:#ef5350;border:1px solid rgba(239,83,80,0.2);border-radius:7px;padding:4px 10px;font-size:.74rem;cursor:pointer;font-family:inherit;transition:filter .15s}
+.rep-del-btn:hover{filter:brightness(1.3)}
+
+/* ── STATS TABLE ─────────────────────────────────── */
+.stats-section{margin-top:24px}
+.stats-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.date-input{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,193,7,0.22);
+  border-radius:8px;padding:7px 12px;
+  color:var(--text);font-family:inherit;font-size:.84rem;
+  outline:none;direction:ltr;
+}
+.date-input:focus{border-color:var(--accent)}
+.stats-table-wrap{overflow-x:auto}
+.stats-table{width:100%;border-collapse:collapse}
+.stats-table th,.stats-table td{padding:10px 14px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.05)}
+.stats-table th{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;background:rgba(255,255,255,0.03)}
+.stats-table tbody tr:hover{background:rgba(255,193,7,0.03)}
+.stats-table td:first-child{text-align:right;font-weight:700;color:var(--text)}
+
+/* ── TRANSFER SELECT ─────────────────────────────── */
+.assign-select{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:6px;padding:4px 8px;
+  color:var(--text);font-family:inherit;font-size:.75rem;
+  cursor:pointer;outline:none;max-width:130px;
+}
+.assign-select:focus{border-color:var(--accent)}
+
+/* ── PANEL TOOLBAR ───────────────────────────────── */
+.panel-toolbar{
+  display:flex;gap:10px;align-items:center;
+  margin-bottom:14px;flex-wrap:wrap;
+}
+.search-input{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 14px;
+  color:var(--text);
+  font-size:.84rem;
+  font-family:inherit;
+  width:240px;
+  transition:border-color .18s;
+}
+.search-input:focus{outline:none;border-color:var(--accent2)}
+.search-input::placeholder{color:var(--muted)}
+.filter-select{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 12px;
+  color:var(--text);
+  font-size:.84rem;
+  font-family:inherit;
+  cursor:pointer;
+}
+.filter-select:focus{outline:none;border-color:var(--accent2)}
+
+/* ── TABLE ───────────────────────────────────────── */
+.table-wrap{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1300px}
+thead tr{
+  background:linear-gradient(90deg,#1a1200,#2d1800);
+  border-bottom:1px solid rgba(255,193,7,0.25);
+}
+th{
+  padding:12px 14px;
+  font-size:.75rem;font-weight:700;
+  color:var(--accent);
+  text-align:right;
+  white-space:nowrap;
+  letter-spacing:.3px;
+}
+td{
+  padding:11px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:.83rem;
+  vertical-align:middle;
+}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:rgba(255,193,7,0.06)}
+tbody tr:last-child td{border-bottom:none}
+.notes-cell{
+  max-width:160px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--muted);
+}
+.action-cell{white-space:nowrap;text-align:center}
+.empty-row td{text-align:center;padding:40px;color:var(--muted);font-size:.9rem}
+
+/* ── BADGES ──────────────────────────────────────── */
+.badge{
+  display:inline-block;
+  padding:3px 9px;border-radius:20px;
+  font-size:.72rem;font-weight:700;
+  white-space:nowrap;
+}
+.b-no1{background:rgba(255,167,38,.14);color:#ffa726}
+.b-no2{background:rgba(239,83,80,.14);color:#ef5350}
+.b-called{background:rgba(102,187,106,.14);color:#66bb6a}
+.b-followup{background:rgba(79,195,247,.14);color:#4fc3f7}
+.b-irrelevant{background:rgba(255,255,255,.07);color:var(--muted)}
+.b-before{background:rgba(255,167,38,.12);color:#ffa726}
+.b-during{background:rgba(79,195,247,.12);color:#4fc3f7}
+.b-done{background:rgba(102,187,106,.12);color:#66bb6a}
+.b-closed{background:rgba(102,187,106,.14);color:#66bb6a;font-size:.7rem}
+.b-open{background:rgba(255,255,255,.05);color:var(--muted);font-size:.7rem}
+.b-new{background:rgba(255,213,79,.15);color:#ffd54f;border:1px solid rgba(255,213,79,.3)}
+.b-credit{background:rgba(255,213,79,.12);color:#ffd54f}
+.b-transfer{background:rgba(255,193,7,.15);color:#ffc107}
+
+/* ── CLIENTS SUMMARY ─────────────────────────────── */
+.clients-summary{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:14px;margin-bottom:18px;
+}
+@media(max-width:700px){.clients-summary{grid-template-columns:1fr}}
+.summary-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px 20px;
+  text-align:center;
+}
+.summary-card .s-val{
+  font-size:1.6rem;font-weight:800;margin-bottom:4px;
+}
+.summary-card .s-lbl{font-size:.75rem;color:var(--muted)}
+
+/* ── FOLLOW-UPS ──────────────────────────────────── */
+.followups-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:14px;
+}
+.fu-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+  display:flex;flex-direction:column;gap:10px;
+  transition:border-color .18s;
+}
+.fu-card.overdue{
+  border-color:rgba(239,83,80,0.45);
+  background:rgba(239,83,80,0.05);
+}
+.fu-card.urgent{
+  border-color:rgba(255,167,38,0.45);
+  background:rgba(255,167,38,0.04);
+}
+.fu-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.fu-name{font-weight:700;font-size:.95rem}
+.fu-time{
+  font-size:.78rem;color:var(--muted);
+  background:rgba(255,255,255,0.05);
+  border-radius:6px;padding:3px 8px;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.fu-time.overdue{color:#ef5350;background:rgba(239,83,80,0.12)}
+.fu-time.urgent{color:#ffa726;background:rgba(255,167,38,0.12)}
+.fu-phone{font-size:.8rem;color:var(--muted);direction:ltr;display:inline-block}
+.fu-task{font-size:.82rem;color:var(--text);border-right:2px solid var(--accent2);padding-right:8px}
+.fu-footer{display:flex;justify-content:space-between;align-items:center}
+
+/* ── MODAL ───────────────────────────────────────── */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px);
+  z-index:200;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.overlay.open{display:flex}
+.modal{
+  background:linear-gradient(135deg,#0d1530,#111a38);
+  border:1px solid rgba(255,193,7,0.25);
+  border-radius:18px;
+  width:100%;max-width:720px;
+  max-height:90vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);
+}
+.modal-sm{max-width:420px}
+.modal-head{
+  padding:22px 24px 0;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;
+}
+.modal-head h3{font-size:1.05rem;font-weight:800;color:var(--accent)}
+.modal-close{
+  background:rgba(255,255,255,0.07);
+  border:none;width:30px;height:30px;border-radius:50%;
+  cursor:pointer;color:var(--muted);font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.modal-close:hover{background:rgba(255,255,255,0.15);color:var(--text)}
+.modal-body{padding:0 24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:.3px}
+.form-group input,
+.form-group select,
+.form-group textarea{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  padding:9px 12px;
+  color:var(--text);
+  font-size:.85rem;
+  font-family:inherit;
+  transition:border-color .15s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+  outline:none;border-color:var(--accent2);
+  background:rgba(255,193,7,0.05);
+}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-group select option{background:#1a1000}
+.modal-foot{
+  padding:18px 24px 22px;
+  display:flex;justify-content:flex-end;gap:10px;
+  margin-top:18px;
+  border-top:1px solid var(--border);
+}
+
+/* Toggle checkbox */
+.toggle-wrap{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  cursor:pointer;
+  user-select:none;
+}
+.toggle-wrap input[type=checkbox]{display:none}
+.toggle-slider{
+  position:relative;
+  width:38px;height:20px;
+  background:rgba(255,255,255,0.15);
+  border-radius:10px;
+  flex-shrink:0;
+  transition:background .2s;
+}
+.toggle-slider::after{
+  content:'';
+  position:absolute;left:2px;top:2px;
+  width:16px;height:16px;border-radius:50%;
+  background:#fff;
+  transition:transform .2s;
+}
+input[type=checkbox]:checked + .toggle-slider{background:var(--green)}
+input[type=checkbox]:checked + .toggle-slider::after{transform:translateX(18px)}
+
+/* ── TOAST ───────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  padding:12px 24px;border-radius:10px;
+  font-size:.88rem;font-weight:600;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;z-index:999;
+  white-space:nowrap;
+}
+#toast.show{opacity:1}
+#toast.ok{background:#2e7d32;color:#fff;box-shadow:0 4px 20px rgba(46,125,50,0.4)}
+#toast.err{background:#c62828;color:#fff;box-shadow:0 4px 20px rgba(198,40,40,0.4)}
+
+/* ── MISC ────────────────────────────────────────── */
+.divider{height:1px;background:var(--border);margin:4px 0}
+.empty-state{
+  text-align:center;padding:60px 20px;color:var(--muted);
+}
+.empty-state .es-icon{font-size:2.5rem;margin-bottom:12px}
+.empty-state p{font-size:.9rem}
+.count-badge{
+  background:rgba(255,193,7,0.18);
+  color:var(--accent);
+  border-radius:20px;
+  padding:2px 8px;
+  font-size:.72rem;font-weight:700;
+  margin-right:6px;
+}
+
+/* ── INLINE EDIT ─────────────────────────────────── */
+td.editable{cursor:pointer;position:relative}
+td.editable:hover::after{
+  content:'✎';position:absolute;top:6px;left:4px;
+  font-size:.65rem;color:var(--accent2);opacity:.6;
+}
+td.editable.editing{padding:4px 6px}
+.inline-input,.inline-select,.inline-textarea{
+  width:100%;background:rgba(255,193,7,0.08);
+  border:1px solid var(--accent2);border-radius:6px;
+  color:var(--text);font-size:.83rem;font-family:inherit;
+  padding:5px 8px;outline:none;
+}
+.inline-select{cursor:pointer}
+.inline-select option{background:#1a1000}
+.inline-textarea{resize:vertical;min-height:70px}
+.inline-number{width:100px}
+.cell-hint{font-size:.7rem;color:var(--muted);margin-top:2px;display:none}
+td.editable:hover .cell-hint{display:block}
+
+/* ── INFO SECTION ────────────────────────────────── */
+.info-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+}
+@media(max-width:900px){.info-grid{grid-template-columns:1fr}}
+
+.info-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:26px;
+  display:flex;flex-direction:column;gap:20px;
+}
+.info-card-wide{grid-column:1/-1}
+.info-card-head{display:flex;align-items:center;gap:14px}
+.info-card-icon{font-size:2rem}
+.info-card-title{font-size:1.05rem;font-weight:800;color:var(--text)}
+.info-card-sub{font-size:.75rem;color:var(--muted);margin-top:2px}
+.quick-links-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.quick-link-item{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.quick-link-label{font-size:.9rem;font-weight:600;color:var(--text)}
+
+/* Bank fields */
+.bank-fields{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+}
+.bank-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:11px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.bank-row:last-child{border-bottom:none}
+.bank-label{font-size:.78rem;color:var(--muted);font-weight:600}
+.bank-val{font-size:.88rem;font-weight:700;color:var(--text);letter-spacing:.3px}
+.bank-row-amount{flex-direction:column;align-items:flex-start;gap:8px;padding:14px 16px}
+.bank-amount-input{
+  width:100%;background:rgba(255,193,7,0.06);
+  border:1px solid rgba(255,193,7,0.25);border-radius:7px;
+  padding:8px 12px;color:var(--text);font-size:.9rem;
+  font-family:inherit;outline:none;direction:ltr;
+  transition:border-color .15s;
+}
+.bank-amount-input:focus{border-color:var(--accent2)}
+.bank-amount-input::placeholder{color:var(--muted);font-size:.8rem}
+
+.btn-copy-bank{
+  width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+  color:#1a1000;font-size:.9rem;font-weight:700;font-family:inherit;
+  transition:filter .18s,transform .15s;
+  box-shadow:0 3px 14px var(--glow);
+}
+.btn-copy-bank:hover{filter:brightness(1.10);transform:translateY(-1px)}
+.btn-copy-bank.copied{background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff}
+
+/* Payment link cards */
+.pay-link-card{
+  border-radius:12px;padding:18px 20px;
+  border:1px solid rgba(255,255,255,0.07);
+  display:flex;flex-direction:column;gap:10px;
+  transition:border-color .2s;
+}
+.pay-link-card:hover{border-color:rgba(255,193,7,0.3)}
+.pay-link-card.lifetime{background:rgba(255,213,79,0.05)}
+.pay-link-card.annual{background:rgba(79,195,247,0.05)}
+
+.pay-link-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:.72rem;font-weight:700;letter-spacing:.5px;
+  color:var(--accent);
+  background:rgba(255,213,79,0.15);
+  border-radius:20px;padding:3px 10px;
+  width:fit-content;
+}
+.annual .pay-link-badge{color:var(--blue);background:rgba(79,195,247,0.12)}
+.pay-link-price{font-size:1.6rem;font-weight:900;color:var(--gold)}
+.pay-link-desc{font-size:.8rem;color:var(--muted)}
+.pay-link-actions{display:flex;gap:10px;margin-top:4px}
+
+.btn-pay-link{
+  flex:1;padding:9px 12px;border-radius:8px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+  color:#1a1000;font-size:.82rem;font-weight:700;
+  text-decoration:none;text-align:center;
+  transition:filter .15s;display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.btn-pay-link:hover{filter:brightness(1.10)}
+.btn-copy-link{
+  padding:9px 14px;border-radius:8px;border:1px solid var(--border);
+  background:rgba(255,255,255,0.05);color:var(--text);
+  font-size:.82rem;font-weight:700;font-family:inherit;cursor:pointer;
+  transition:background .15s,color .15s;white-space:nowrap;
+}
+.btn-copy-link:hover{background:rgba(255,193,7,0.12);color:var(--accent)}
+.btn-copy-link.copied{background:rgba(46,125,50,0.2);color:var(--green);border-color:rgba(102,187,106,0.3)}
+
+/* ── NOTIFICATIONS ───────────────────────────────── */
+.notif-wrap{position:relative}
+.notif-bell{
+  position:relative;width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.10);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:1.05rem;
+  transition:background .15s,border-color .15s;
+  color:var(--text);
+}
+.notif-bell:hover{background:rgba(255,255,255,0.12)}
+.notif-bell.has-notif{
+  border-color:rgba(255,193,7,0.6);
+  background:rgba(255,193,7,0.12);
+  animation:bell-ring .9s ease-in-out;
+}
+@keyframes bell-ring{
+  0%,100%{transform:rotate(0)}
+  15%,45%,75%{transform:rotate(-14deg)}
+  30%,60%{transform:rotate(14deg)}
+}
+.notif-badge{
+  position:absolute;top:-5px;left:-5px;
+  min-width:17px;height:17px;
+  background:#ef5350;border-radius:20px;
+  font-size:.62rem;font-weight:800;
+  display:none;align-items:center;justify-content:center;
+  color:#fff;padding:0 3px;
+}
+.notif-badge.show{display:flex}
+.notif-panel{
+  position:absolute;top:calc(100% + 12px);left:0;
+  width:370px;max-height:480px;overflow-y:auto;
+  background:#0e1420;
+  border:1px solid rgba(255,193,7,0.18);
+  border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.65);
+  z-index:600;display:none;
+}
+.notif-panel.open{display:block}
+@media(max-width:700px){.notif-panel{width:90vw;left:auto;right:-10px}}
+.notif-head{
+  padding:13px 18px 10px;
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid rgba(255,193,7,0.10);
+  font-weight:700;font-size:.88rem;color:var(--accent);
+  position:sticky;top:0;background:#0e1420;z-index:1;
+}
+.notif-close-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-size:.9rem;padding:3px 6px;
+  border-radius:6px;transition:background .15s;font-family:inherit;
+}
+.notif-close-btn:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+.notif-item{
+  padding:13px 18px;border-bottom:1px solid rgba(255,255,255,0.04);
+  border-right:3px solid transparent;
+}
+.notif-item:last-child{border-bottom:none}
+.notif-item.overdue{background:rgba(239,83,80,0.05);border-right-color:#ef5350}
+.notif-item.upcoming{background:rgba(255,193,7,0.04);border-right-color:#ffc107}
+.notif-item-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
+.notif-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+.notif-name{font-weight:700;font-size:.88rem;color:var(--text)}
+.notif-time{font-size:.73rem;color:var(--muted);margin-top:2px}
+.notif-status{font-size:.73rem;margin-top:3px;font-weight:700}
+.notif-status.late{color:#ef5350}.notif-status.soon{color:#ffa726}
+.notif-task-line{
+  font-size:.79rem;color:var(--text);
+  background:rgba(255,255,255,0.04);border-radius:6px;
+  padding:6px 10px;margin-bottom:9px;
+  border-right:2px solid var(--accent2);
+}
+.notif-actions{display:flex;gap:6px}
+.notif-btn{
+  flex:1;padding:5px 8px;border-radius:7px;border:none;
+  font-size:.74rem;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:filter .15s;white-space:nowrap;
+}
+.notif-btn.handled{background:rgba(102,187,106,0.18);color:#66bb6a}
+.notif-btn.handled:hover{filter:brightness(1.3)}
+.notif-btn.snooze{background:rgba(255,193,7,0.14);color:#ffc107}
+.notif-btn.snooze:hover{filter:brightness(1.3)}
+.notif-btn.edit-lead{background:rgba(79,195,247,0.12);color:#4fc3f7}
+.notif-btn.edit-lead:hover{filter:brightness(1.3)}
+.notif-empty{padding:32px 18px;text-align:center;color:var(--muted);font-size:.85rem}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(255,193,7,0.35);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent2)}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+  <div class="header-brand">
+    <div class="logo-mark"></div>
+    <span class="logo-text">ALTRIX</span>
+    <span class="page-badge">ALTRIX MANAGER</span>
+  </div>
+  <div class="header-clock">
+    <div class="time" id="liveClock">--:--:--</div>
+    <div id="liveDate">טוען...</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline btn-sm" onclick="loadLeads()">↻ רענן</button>
+    <div class="notif-wrap" id="notifWrap">
+      <button class="notif-bell" id="notifBell" onclick="toggleNotifPanel()" title="התראות">
+        🔔
+        <span class="notif-badge" id="notifBadge"></span>
+      </button>
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-head">
+          <span>🔔 התראות</span>
+          <button class="notif-close-btn" onclick="toggleNotifPanel()">✕ סגור</button>
+        </div>
+        <div id="notifList"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal()">+ ליד חדש</button>
+    <a href="/manager-logout" class="btn btn-outline btn-sm" style="text-decoration:none">יציאה</a>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--kpi-color:var(--accent)">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-label">לידים היום</div>
+      <div class="kpi-value" id="kpiToday">—</div>
+      <div class="kpi-sub">נוספו היום</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--blue)">
+      <div class="kpi-icon">📁</div>
+      <div class="kpi-label">סה״כ לידים</div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <div class="kpi-sub">בסך הכל</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--green)">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-label">עסקאות נסגרו</div>
+      <div class="kpi-value" id="kpiClosed">—</div>
+      <div class="kpi-sub">לקוחות פעילים</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--gold)">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">סה״כ הכנסות</div>
+      <div class="kpi-value" id="kpiRevenue">—</div>
+      <div class="kpi-sub">מעסקאות סגורות</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--orange)">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-label">שיעור המרה</div>
+      <div class="kpi-value" id="kpiConversion">—</div>
+      <div class="kpi-sub">מתוך כלל הלידים</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--red)">
+      <div class="kpi-icon">⏰</div>
+      <div class="kpi-label">פולואפים</div>
+      <div class="kpi-value" id="kpiFollowups">—</div>
+      <div class="kpi-sub">ממתינים לטיפול</div>
+    </div>
+  </div>
+
+  <!-- TIPS CARD -->
+  <div class="tips-card">
+    <div class="tips-icon" id="tipsIcon">💡</div>
+    <div class="tips-body">
+      <div class="tips-label" id="tipsLabel">טיפ יומי</div>
+      <div class="tips-text" id="tipsText">טוען...</div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">לידים לפי סטטוס טיפול</div>
+      <div class="chart-wrap-sm"><canvas id="statusChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">לידים חדשים — 7 ימים</div>
+      <div class="chart-wrap-sm"><canvas id="weekChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">מגמת הכנסות — 30 ימים</div>
+      <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ═══ CLOSING STEPS STRIP ═══ -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;overflow-x:auto">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
+      <span style="font-size:1rem">🎯</span>
+      <span style="font-size:.8rem;font-weight:800;color:var(--accent);letter-spacing:.5px;text-transform:uppercase">שלבים לסגירת לקוח</span>
+    </div>
+    <div style="display:flex;align-items:stretch;gap:0;min-width:max-content">
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.18);border-radius:10px 0 0 10px;min-width:110px;text-align:center">
+        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#1a1000">1</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);line-height:1.3">שיחת<br/>היכרות</div>
+        <div style="font-size:.65rem;color:var(--muted)">📞 טלפון</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--accent2);font-size:1rem;padding:0 2px">›</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.18);border-right:none;border-left:none;min-width:110px;text-align:center">
+        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#1a1000">2</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);line-height:1.3">הובלה<br/>לניסיון</div>
+        <div style="font-size:.65rem;color:var(--muted)">נוסטרו/לייב/דמו</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--accent2);font-size:1rem;padding:0 2px">›</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.18);border-right:none;border-left:none;min-width:110px;text-align:center">
+        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#1a1000">3</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);line-height:1.3">פתיחת<br/>חשבון</div>
+        <div style="font-size:.65rem;color:var(--muted)">קבלת מס׳ חשבון</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--accent2);font-size:1rem;padding:0 2px">›</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.18);border-right:none;border-left:none;min-width:110px;text-align:center">
+        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#1a1000">4</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);line-height:1.3">שליחת<br/>לינק פרטים</div>
+        <div style="font-size:.65rem;color:var(--muted)">📧 מילוי פרטים</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--accent2);font-size:1rem;padding:0 2px">›</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.18);border-right:none;border-left:none;min-width:110px;text-align:center">
+        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#1a1000">5</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);line-height:1.3">פרטים<br/>+ הסכם</div>
+        <div style="font-size:.65rem;color:var(--muted)">✍️ חתימה</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--accent2);font-size:1rem;padding:0 2px">›</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.18);border-right:none;border-left:none;min-width:110px;text-align:center">
+        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#1a1000">6</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);line-height:1.3">הדרכה<br/>במייל</div>
+        <div style="font-size:.65rem;color:var(--muted)">🤖 חיבור לרובוט</div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--accent2);font-size:1rem;padding:0 2px">›</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:rgba(255,193,7,0.06);border:1px solid rgba(255,193,7,0.18);border-right:none;border-left:none;min-width:110px;text-align:center">
+        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#1a1000">7</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);line-height:1.3">ליווי<br/>10 ימים</div>
+        <div style="font-size:.65rem;color:var(--muted)">💬 שמירת קשר</div>
+      </div>
+      <div style="display:flex;align-items:center;color:#66bb6a;font-size:1rem;padding:0 2px">›</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;background:linear-gradient(135deg,rgba(102,187,106,0.15),rgba(102,187,106,0.08));border:1px solid rgba(102,187,106,0.35);border-radius:0 10px 10px 0;min-width:90px;text-align:center">
+        <div style="font-size:1.2rem">🏆</div>
+        <div style="font-size:.75rem;font-weight:800;color:#66bb6a;line-height:1.3">סגירה!</div>
+        <div style="font-size:.65rem;color:var(--muted)">עדכן במערכת</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ COMPACT INFO BAR ═══ -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:20px">
+    <!-- Bank details row -->
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+      <span style="font-size:.7rem">🏦</span>
+      <span style="font-size:.7rem;color:var(--muted);font-weight:600">פרטי חשבון בנק:</span>
+      <span style="font-size:.7rem;color:var(--text);font-weight:700">אלטריקס בית תוכנה</span>
+      <span style="font-size:.65rem;color:var(--border)">|</span>
+      <span style="font-size:.7rem;color:var(--muted)">מזרחי טפחות</span>
+      <span style="font-size:.65rem;color:var(--border)">|</span>
+      <span style="font-size:.7rem;color:var(--muted)">סניף 529</span>
+      <span style="font-size:.65rem;color:var(--border)">|</span>
+      <span style="font-size:.7rem;color:var(--muted)">חשבון <strong style="color:var(--text)">233617</strong></span>
+      <button onclick="copyBankDetails()" style="background:rgba(255,213,79,0.1);border:1px solid rgba(255,213,79,0.25);color:var(--gold);border-radius:5px;padding:2px 7px;font-size:.62rem;cursor:pointer;margin-right:4px">📋 העתק</button>
+    </div>
+    <!-- Compact links grid — 11 items -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:5px">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,213,79,0.07);border:1px solid rgba(255,213,79,0.18);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://pay.hyp.co.il/cgi-bin/yaadpay/yaadpay3ds.pl?Amount=14750&Coin=1&FixTash=False&Info=ALTRIX%20PRO&Masof=4502160326&MoreData=True&PageLang=HEB&Postpone=False&Pritim=True&ShowEngTashText=True&Tash=12&UTF8out=True&action=pay&freq=1&heshDesc=%5B111~ALTRIX%20PRO~1~14750%5D&sendemail=True&tmp=3&signature=581ce8cb73cc4d76e79f80439a6f95fb2636abf4d0939a55ced28aa5df7106b9" target="_blank" style="font-size:.7rem;font-weight:700;color:#ffd54f;text-decoration:none;flex:1">💳 PRO — 14,750₪</a>
+        <button onclick="copyLink('https://pay.hyp.co.il/cgi-bin/yaadpay/yaadpay3ds.pl?Amount=14750&Coin=1&FixTash=False&Info=ALTRIX%20PRO&Masof=4502160326&MoreData=True&PageLang=HEB&Postpone=False&Pritim=True&ShowEngTashText=True&Tash=12&UTF8out=True&action=pay&freq=1&heshDesc=%5B111~ALTRIX%20PRO~1~14750%5D&sendemail=True&tmp=3&signature=581ce8cb73cc4d76e79f80439a6f95fb2636abf4d0939a55ced28aa5df7106b9',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,213,79,0.07);border:1px solid rgba(255,213,79,0.18);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://pay.hyp.co.il/cgi-bin/yaadpay/yaadpay3ds.pl?Amount=9800&Coin=1&FixTash=False&Info=ALTRIX%20Basic&Masof=4502160326&MoreData=True&PageLang=HEB&Postpone=False&ShowEngTashText=True&Tash=12&UTF8out=True&action=pay&freq=1&sendemail=True&tmp=3&signature=6cabec4caa6801449c1d07e7e35eb7f5814d66e3c06e18d68541d791076e667c" target="_blank" style="font-size:.7rem;font-weight:700;color:#ffd54f;text-decoration:none;flex:1">💳 Basic — 9,800₪</a>
+        <button onclick="copyLink('https://pay.hyp.co.il/cgi-bin/yaadpay/yaadpay3ds.pl?Amount=9800&Coin=1&FixTash=False&Info=ALTRIX%20Basic&Masof=4502160326&MoreData=True&PageLang=HEB&Postpone=False&ShowEngTashText=True&Tash=12&UTF8out=True&action=pay&freq=1&sendemail=True&tmp=3&signature=6cabec4caa6801449c1d07e7e35eb7f5814d66e3c06e18d68541d791076e667c',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://register.altrixalgo.com/" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">📝 מילוי פרטים — ניסיון</a>
+        <button onclick="copyLink('https://register.altrixalgo.com/',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://www.vantagemarkets.com/forex-trading/forex-trading-account/?affid=MTExNjg5" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">🏦 הרשמה ל-VANTAGE</a>
+        <button onclick="copyLink('https://www.vantagemarkets.com/forex-trading/forex-trading-account/?affid=MTExNjg5',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://drive.google.com/file/d/1DdJAcJ-D8MA3qGmGxBYTEmLAfjTZwHBi/view" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">🤖 הורדת הרובוט</a>
+        <button onclick="copyLink('https://drive.google.com/file/d/1DdJAcJ-D8MA3qGmGxBYTEmLAfjTZwHBi/view',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://www.youtube.com/playlist?list=PLxec4YGCA2DGFxqjD3Fkz3lQoKr318Zf2" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">📺 הדרכות יוטיוב</a>
+        <button onclick="copyLink('https://www.youtube.com/playlist?list=PLxec4YGCA2DGFxqjD3Fkz3lQoKr318Zf2',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://altrixalgo.com/installation-guide" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">📖 מדריך התקנה</a>
+        <button onclick="copyLink('https://altrixalgo.com/installation-guide',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://trader.ftmo.com/?affiliates=NSmgIDcgCsioHpQEKwqK" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">📊 הרשמה ל-FTMO</a>
+        <button onclick="copyLink('https://trader.ftmo.com/?affiliates=NSmgIDcgCsioHpQEKwqK',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://altrixalgo.com/" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">🌐 האתר הרשמי</a>
+        <button onclick="copyLink('https://altrixalgo.com/',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://www.instagram.com/altrix_algo/" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">📸 אינסטגרם</a>
+        <button onclick="copyLink('https://www.instagram.com/altrix_algo/',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,193,7,0.05);border:1px solid rgba(255,193,7,0.12);border-radius:7px;padding:4px 8px;gap:4px">
+        <a href="https://chat.whatsapp.com/IXtsvBilVi4LWeNjDHZNuF" target="_blank" style="font-size:.7rem;color:var(--text);text-decoration:none;flex:1">💬 קבוצת וואטסאפ</a>
+        <button onclick="copyLink('https://chat.whatsapp.com/IXtsvBilVi4LWeNjDHZNuF',this)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px" title="העתק לינק">📋</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION TABS -->
+  <div class="section-tabs">
+    <button class="stab active" data-sec="leads">📋 טבלת לידים <span class="count-badge" id="tabLeadsCount">0</span></button>
+    <button class="stab" data-sec="clients">🏆 לקוחות <span class="count-badge" id="tabClientsCount">0</span></button>
+    <button class="stab" data-sec="followups">⏰ פולואפים <span class="count-badge" id="tabFuCount">0</span></button>
+    <button class="stab" data-sec="reps">👥 נציגי מכירות <span class="count-badge" id="tabRepsCount">0</span></button>
+    <button class="stab" data-sec="info">📎 מידע ולינקים</button>
+  </div>
+
+  <!-- ─── LEADS SECTION ─── -->
+  <div id="sec-leads" class="section-panel active">
+    <div class="panel-toolbar">
+      <input id="leadsSearch" class="search-input" placeholder="🔍 חיפוש שם, טלפון, מקור..." oninput="renderLeadsTable()"/>
+      <select id="filterTrial" class="filter-select" onchange="renderLeadsTable()">
+        <option value="">כל המצבים</option>
+        <option>לפני ניסיון</option>
+        <option>באמצע ניסיון</option>
+        <option>סיים ניסיון</option>
+      </select>
+      <select id="filterTreatment" class="filter-select" onchange="renderLeadsTable()">
+        <option value="">כל הסטטוסים</option>
+        <option>חדש</option>
+        <option>אין מענה 1</option>
+        <option>אין מענה 2</option>
+        <option>בוצעה שיחה התחיל ניסיון</option>
+        <option>פולואפ</option>
+        <option>לא רלוונטי</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>תאריך</th>
+              <th>שם מלא</th>
+              <th>טלפון</th>
+              <th>מקור הגעה</th>
+              <th>מצב נוכחי</th>
+              <th>סטטוס טיפול</th>
+              <th>הערות</th>
+              <th>משימה להמשך</th>
+              <th>שעת חזרה</th>
+              <th>נסגר/לא נסגר</th>
+              <th>סכום עסקה</th>
+              <th>סוג תשלום</th>
+              <th>נציג</th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="leadsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── CLIENTS SECTION ─── -->
+  <div id="sec-clients" class="section-panel">
+    <div class="clients-summary">
+      <div class="summary-card">
+        <div class="s-val" style="color:var(--green)" id="cliTotal">0</div>
+        <div class="s-lbl">סה״כ לקוחות</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-val" style="color:var(--gold)" id="cliRevenue">₪0</div>
+        <div class="s-lbl">סה״כ הכנסות</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-val" style="color:var(--accent)" id="cliAvg">₪0</div>
+        <div class="s-lbl">ממוצע עסקה</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>תאריך סגירה</th>
+              <th>שם לקוח</th>
+              <th>טלפון</th>
+              <th>מקור הגעה</th>
+              <th>מצב ניסיון</th>
+              <th>סכום עסקה</th>
+              <th>סוג תשלום</th>
+              <th>הערות</th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="clientsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── FOLLOW-UPS SECTION ─── -->
+  <div id="sec-followups" class="section-panel">
+    <div class="followups-grid" id="fuContainer"></div>
+  </div>
+
+  <!-- ─── REPS SECTION ─── -->
+  <div id="sec-reps" class="section-panel">
+    <div class="reps-toolbar">
+      <button class="btn btn-primary" onclick="openAddRepModal()">+ הוספת נציג מכירות</button>
+      <button class="btn btn-outline btn-sm" onclick="loadReps()">↻ רענן</button>
+    </div>
+    <div class="reps-grid" id="repsGrid"></div>
+
+    <!-- STATS SECTION -->
+    <div class="stats-section">
+      <div style="font-size:.92rem;font-weight:700;color:var(--accent);margin-bottom:12px">📊 ביצועי נציגים לפי תקופה</div>
+      <div class="stats-toolbar">
+        <span style="font-size:.82rem;color:var(--muted)">מתאריך:</span>
+        <input type="text" class="date-input" id="statsFrom" placeholder="01/01/2026" oninput="loadStats()"/>
+        <span style="font-size:.82rem;color:var(--muted)">עד:</span>
+        <input type="text" class="date-input" id="statsTo" placeholder="31/12/2026" oninput="loadStats()"/>
+        <button class="btn btn-outline btn-sm" onclick="clearStatsFilter()">הצג הכל</button>
+      </div>
+      <div class="stats-table-wrap">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th style="text-align:right">שם נציג</th>
+              <th>סה״כ לידים</th>
+              <th>עסקאות נסגרו</th>
+              <th>סה״כ הכנסות</th>
+              <th>שיעור המרה</th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody id="statsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEADS OF SELECTED REP -->
+    <div id="repLeadsSection" style="margin-top:24px;display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="font-size:.92rem;font-weight:700;color:var(--accent)" id="repLeadsTitle">לידים של הנציג</div>
+        <button class="btn btn-outline btn-sm" onclick="clearRepFilter()">← חזור לכולם</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>תאריך</th><th>שם מלא</th><th>טלפון</th><th>מקור הגעה</th>
+              <th>סטטוס טיפול</th><th>הערות</th><th>נסגר</th><th>סכום עסקה</th><th>פעולות</th>
+            </tr></thead>
+            <tbody id="repLeadsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── INFO SECTION ─── -->
+  <div id="sec-info" class="section-panel">
+    <div class="info-grid">
+
+      <!-- BANK DETAILS CARD -->
+      <div class="info-card">
+        <div class="info-card-head">
+          <span class="info-card-icon">🏦</span>
+          <div>
+            <div class="info-card-title">פרטי חשבון בנק</div>
+            <div class="info-card-sub">להעברה בנקאית</div>
+          </div>
+        </div>
+        <div class="bank-fields">
+          <div class="bank-row">
+            <span class="bank-label">שם המוטב</span>
+            <span class="bank-val">אלטריקס בית תוכנה</span>
+          </div>
+          <div class="bank-row">
+            <span class="bank-label">בנק</span>
+            <span class="bank-val">מזרחי טפחות</span>
+          </div>
+          <div class="bank-row">
+            <span class="bank-label">סניף</span>
+            <span class="bank-val">529</span>
+          </div>
+          <div class="bank-row">
+            <span class="bank-label">מספר חשבון</span>
+            <span class="bank-val">233617</span>
+          </div>
+          <div class="bank-row bank-row-amount">
+            <span class="bank-label">סכום להעברה (₪)</span>
+            <input type="number" id="bankAmount" class="bank-amount-input" placeholder="הכנס סכום..." min="0" dir="ltr"/>
+          </div>
+        </div>
+        <button class="btn-copy-bank" onclick="copyBankDetails()">
+          <span id="copyBankIcon">📋</span> העתק פרטי חשבון
+        </button>
+      </div>
+
+      <!-- PAYMENT LINKS CARD -->
+      <div class="info-card">
+        <div class="info-card-head">
+          <span class="info-card-icon">💳</span>
+          <div>
+            <div class="info-card-title">לינקים לרכישה</div>
+            <div class="info-card-sub">עד 12 תשלומים</div>
+          </div>
+        </div>
+        <div class="pay-link-card lifetime">
+          <div class="pay-link-badge">♾️ לכל החיים</div>
+          <div class="pay-link-price">14,750 ₪</div>
+          <div class="pay-link-desc">רישיון לכל החיים — עד 12 תשלומים</div>
+          <div class="pay-link-actions">
+            <a class="btn-pay-link" href="https://pay.hyp.co.il/cgi-bin/yaadpay/yaadpay3ds.pl?Amount=14750&Coin=1&FixTash=False&Info=ALTRIX%20PRO&Masof=4502160326&MoreData=True&PageLang=HEB&Postpone=False&Pritim=True&ShowEngTashText=True&Tash=12&UTF8out=True&action=pay&freq=1&heshDesc=%5B111~ALTRIX%20PRO~1~14750%5D&sendemail=True&tmp=3&signature=581ce8cb73cc4d76e79f80439a6f95fb2636abf4d0939a55ced28aa5df7106b9" target="_blank">🔗 פתח לינק</a>
+            <button class="btn-copy-link" onclick="copyLink('https://pay.hyp.co.il/cgi-bin/yaadpay/yaadpay3ds.pl?Amount=14750&Coin=1&FixTash=False&Info=ALTRIX%20PRO&Masof=4502160326&MoreData=True&PageLang=HEB&Postpone=False&Pritim=True&ShowEngTashText=True&Tash=12&UTF8out=True&action=pay&freq=1&heshDesc=%5B111~ALTRIX%20PRO~1~14750%5D&sendemail=True&tmp=3&signature=581ce8cb73cc4d76e79f80439a6f95fb2636abf4d0939a55ced28aa5df7106b9', this)">📋 העתק</button>
+          </div>
+        </div>
+        <div class="pay-link-card annual">
+          <div class="pay-link-badge">📅 שנתי</div>
+          <div class="pay-link-price">9,800 ₪</div>
+          <div class="pay-link-desc">רישיון שנתי — עד 12 תשלומים</div>
+          <div class="pay-link-actions">
+            <a class="btn-pay-link" href="https://pay.hyp.co.il/cgi-bin/yaadpay/yaadpay3ds.pl?Amount=9800&Coin=1&FixTash=False&Info=ALTRIX%20Basic&Masof=4502160326&MoreData=True&PageLang=HEB&Postpone=False&ShowEngTashText=True&Tash=12&UTF8out=True&action=pay&freq=1&sendemail=True&tmp=3&signature=6cabec4caa6801449c1d07e7e35eb7f5814d66e3c06e18d68541d791076e667c" target="_blank">🔗 פתח לינק</a>
+            <button class="btn-copy-link" onclick="copyLink('https://pay.hyp.co.il/cgi-bin/yaadpay/yaadpay3ds.pl?Amount=9800&Coin=1&FixTash=False&Info=ALTRIX%20Basic&Masof=4502160326&MoreData=True&PageLang=HEB&Postpone=False&ShowEngTashText=True&Tash=12&UTF8out=True&action=pay&freq=1&sendemail=True&tmp=3&signature=6cabec4caa6801449c1d07e7e35eb7f5814d66e3c06e18d68541d791076e667c', this)">📋 העתק</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK LINKS CARD -->
+      <div class="info-card info-card-wide">
+        <div class="info-card-head">
+          <span class="info-card-icon">🔗</span>
+          <div>
+            <div class="info-card-title">לינקים מהירים</div>
+            <div class="info-card-sub">לינקים לשימוש יומיומי</div>
+          </div>
+        </div>
+        <div class="quick-links-grid">
+          <div class="quick-link-item">
+            <div class="quick-link-label">📝 מילוי פרטים — התחלת ניסיון 10 ימים</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://register.altrixalgo.com/" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://register.altrixalgo.com/', this)">📋 העתק</button>
+            </div>
+          </div>
+          <div class="quick-link-item">
+            <div class="quick-link-label">🏦 הרשמה ל-VANTAGE</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://www.vantagemarkets.com/forex-trading/forex-trading-account/?affid=MTExNjg5" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://www.vantagemarkets.com/forex-trading/forex-trading-account/?affid=MTExNjg5', this)">📋 העתק</button>
+            </div>
+          </div>
+          <div class="quick-link-item">
+            <div class="quick-link-label">🤖 הורדת קובץ הרובוט המעודכן</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://drive.google.com/file/d/1DdJAcJ-D8MA3qGmGxBYTEmLAfjTZwHBi/view" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://drive.google.com/file/d/1DdJAcJ-D8MA3qGmGxBYTEmLAfjTZwHBi/view', this)">📋 העתק</button>
+            </div>
+          </div>
+          <div class="quick-link-item">
+            <div class="quick-link-label">📺 כל ההדרכות ביוטיוב</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://www.youtube.com/playlist?list=PLxec4YGCA2DGFxqjD3Fkz3lQoKr318Zf2" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://www.youtube.com/playlist?list=PLxec4YGCA2DGFxqjD3Fkz3lQoKr318Zf2', this)">📋 העתק</button>
+            </div>
+          </div>
+          <div class="quick-link-item">
+            <div class="quick-link-label">📖 מדריך ההתקנה</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://altrixalgo.com/installation-guide" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://altrixalgo.com/installation-guide', this)">📋 העתק</button>
+            </div>
+          </div>
+          <div class="quick-link-item">
+            <div class="quick-link-label">📊 הרשמה ל-FTMO</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://trader.ftmo.com/?affiliates=NSmgIDcgCsioHpQEKwqK" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://trader.ftmo.com/?affiliates=NSmgIDcgCsioHpQEKwqK', this)">📋 העתק</button>
+            </div>
+          </div>
+
+          <div class="quick-link-item">
+            <div class="quick-link-label">🌐 האתר הרשמי</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://altrixalgo.com/" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://altrixalgo.com/', this)">📋 העתק</button>
+            </div>
+          </div>
+
+          <div class="quick-link-item">
+            <div class="quick-link-label">📸 עמוד האינסטגרם הרשמי</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://www.instagram.com/altrix_algo/" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://www.instagram.com/altrix_algo/', this)">📋 העתק</button>
+            </div>
+          </div>
+
+          <div class="quick-link-item">
+            <div class="quick-link-label">💬 קבוצת הוואטסאפ</div>
+            <div class="pay-link-actions">
+              <a class="btn-pay-link" href="https://chat.whatsapp.com/IXtsvBilVi4LWeNjDHZNuF" target="_blank">🔗 פתח</a>
+              <button class="btn-copy-link" onclick="copyLink('https://chat.whatsapp.com/IXtsvBilVi4LWeNjDHZNuF', this)">📋 העתק</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+
+<!-- ═══ ADD/EDIT MODAL ═══ -->
+<div class="overlay" id="leadModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">הוספת ליד חדש</h3>
+      <button class="modal-close" onclick="closeLeadModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>תאריך</label>
+          <input type="text" id="fDate" placeholder="10/05/2026"/>
+        </div>
+        <div class="form-group">
+          <label>שם מלא *</label>
+          <input type="text" id="fName" placeholder="ישראל ישראלי"/>
+        </div>
+        <div class="form-group">
+          <label>טלפון *</label>
+          <input type="tel" id="fPhone" placeholder="050-0000000" dir="ltr"/>
+        </div>
+        <div class="form-group">
+          <label>מקור הגעה</label>
+          <input type="text" id="fSource" placeholder="פייסבוק, המלצה, גוגל..."/>
+        </div>
+        <div class="form-group">
+          <label>מצב נוכחי</label>
+          <select id="fTrial">
+            <option>לפני ניסיון</option>
+            <option>באמצע ניסיון</option>
+            <option>סיים ניסיון</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>סטטוס טיפול</label>
+          <select id="fTreatment">
+            <option>חדש</option>
+            <option>אין מענה 1</option>
+            <option>אין מענה 2</option>
+            <option>בוצעה שיחה התחיל ניסיון</option>
+            <option>פולואפ</option>
+            <option>לא רלוונטי</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>הערות — תיאור השיחה</label>
+          <textarea id="fNotes" rows="3" placeholder="מה היה בשיחה, תגובת הלקוח..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>משימה להמשך</label>
+          <input type="text" id="fNextTask" placeholder="להתקשר ביום שלישי, לשלוח מידע..."/>
+        </div>
+        <div class="form-group">
+          <label>שעת חזרה ללקוח</label>
+          <input type="datetime-local" id="fCallback" dir="ltr"/>
+        </div>
+        <div class="form-group">
+          <label>סכום עסקה (₪)</label>
+          <input type="number" id="fAmount" placeholder="0" dir="ltr" min="0"/>
+        </div>
+        <div class="form-group">
+          <label>סוג תשלום</label>
+          <select id="fPayment">
+            <option value="">— לא רלוונטי —</option>
+            <option>אשראי</option>
+            <option>העברה בנקאית</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>מצב סגירה</label>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="fClosed"/>
+            <span class="toggle-slider"></span>
+            <span id="closedLabel">פתוח</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeLeadModal()">ביטול</button>
+      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveLead()">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DELETE CONFIRM MODAL ═══ -->
+<div class="overlay" id="deleteModal">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h3 style="color:var(--red)">🗑 מחיקת ליד</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding-bottom:8px">
+      <p style="color:var(--muted);font-size:.9rem">האם למחוק את הליד? פעולה זו אינה הפיכה.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">ביטול</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">מחק</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD REP MODAL ═══ -->
+<div class="overlay" id="addRepModal">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h3>👤 הוספת נציג מכירות</h3>
+      <button class="modal-close" onclick="closeOverlay('addRepModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>שם מלא *</label>
+        <input type="text" id="repName" placeholder="ישראל ישראלי"/>
+      </div>
+      <div class="form-group">
+        <label>טלפון *</label>
+        <input type="tel" id="repPhone" placeholder="050-0000000" dir="ltr"/>
+      </div>
+      <div class="form-group">
+        <label>מייל</label>
+        <input type="email" id="repEmail" placeholder="name@company.com" dir="ltr"/>
+      </div>
+      <div class="form-group">
+        <label>תאריך תחילת עבודה</label>
+        <input type="text" id="repStartDate" placeholder="01/01/2026"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeOverlay('addRepModal')">ביטול</button>
+      <button class="btn btn-primary" id="saveRepBtn" onclick="saveRep()">💾 הוסף נציג</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────
+let allLeads = [];
+let allReps = [];
+let selectedRepId = null; // for rep leads filter
+let editingId = null;
+let pendingDeleteId = null;
+let statusChart, weekChart, revenueChart;
+
+const TREATMENT_BADGE = {
+  'חדש':                         'b-new',
+  'אין מענה 1':                  'b-no1',
+  'אין מענה 2':                  'b-no2',
+  'בוצעה שיחה התחיל ניסיון':    'b-called',
+  'פולואפ':                       'b-followup',
+  'לא רלוונטי':                   'b-irrelevant'
+};
+const TRIAL_BADGE = {
+  'לפני ניסיון':  'b-before',
+  'באמצע ניסיון': 'b-during',
+  'סיים ניסיון':  'b-done'
+};
+const TREATMENT_COLORS = {
+  'חדש':                         '#ffd54f',
+  'אין מענה 1':                  '#ffa726',
+  'אין מענה 2':                  '#ef5350',
+  'בוצעה שיחה התחיל ניסיון':    '#66bb6a',
+  'פולואפ':                       '#4fc3f7',
+  'לא רלוונטי':                   '#555e7d'
+};
+
+// ─── UTILS ───────────────────────────────────────
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function todayStr(){
+  const d=new Date();
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+}
+function pad(n){return String(n).padStart(2,'0')}
+function fmt(n){return Number(n||0).toLocaleString('he-IL')}
+function showToast(msg, ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+(ok?'ok':'err');
+  setTimeout(()=>t.className='',3200);
+}
+function openOverlay(id){document.getElementById(id).classList.add('open')}
+function closeOverlay(id){document.getElementById(id).classList.remove('open')}
+function closeLeadModal(){closeOverlay('leadModal')}
+function closeDeleteModal(){closeOverlay('deleteModal')}
+
+function parseCallbackTime(str){
+  if(!str||str.length<14)return null;
+  const parts=str.trim().replace(' ','/').replace(':','/').split('/');
+  if(parts.length<5)return null;
+  const [d,m,y,h,mn]=parts;
+  const dt=new Date(+y,+m-1,+d,+h,+mn);
+  return isNaN(dt.getTime())?null:dt;
+}
+
+// ─── CLOCK ───────────────────────────────────────
+function startClock(){
+  const HE_DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const HE_MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  function tick(){
+    const now=new Date();
+    document.getElementById('liveClock').textContent=
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    document.getElementById('liveDate').textContent=
+      `יום ${HE_DAYS[now.getDay()]}, ${now.getDate()} ${HE_MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+  }
+  tick(); setInterval(tick,1000);
+}
+
+// ─── LOAD ─────────────────────────────────────────
+async function loadLeads(){
+  try{
+    const res=await fetch(`/api/manager/leads`);
+    if(!res.ok)throw new Error('unauthorized');
+    const data=await res.json();
+    allLeads=data.leads||[];
+    renderAll();
+  }catch(e){
+    showToast('שגיאה בטעינת נתונים',false);
+  }
+}
+
+function renderAll(){
+  renderKPIs();
+  renderCharts();
+  renderLeadsTable();
+  renderClientsSection();
+  renderFollowupsSection();
+  updateTabCounts();
+  renderNotifications();
+}
+
+// ─── KPIs ─────────────────────────────────────────
+function renderKPIs(){
+  const today=todayStr();
+  const closed=allLeads.filter(l=>l.is_closed);
+  const totalRev=closed.reduce((s,l)=>s+(l.deal_amount||0),0);
+  const todayCount=allLeads.filter(l=>l.created_date===today).length;
+  const closedCount=closed.length;
+  const convRate=allLeads.length?((closedCount/allLeads.length)*100).toFixed(1)+'%':'0%';
+  const fuCount=allLeads.filter(l=>!l.is_closed&&l.treatment_status==='פולואפ').length;
+
+  document.getElementById('kpiToday').textContent=todayCount;
+  document.getElementById('kpiTotal').textContent=allLeads.length;
+  document.getElementById('kpiClosed').textContent=closedCount;
+  document.getElementById('kpiRevenue').textContent='₪'+fmt(totalRev);
+  document.getElementById('kpiConversion').textContent=convRate;
+  document.getElementById('kpiFollowups').textContent=fuCount;
+}
+
+// ─── CHARTS ───────────────────────────────────────
+const chartDefaults={
+  color:'rgba(255,255,255,0.6)',
+  font:{family:"'Segoe UI',Arial,sans-serif",size:11}
+};
+Chart.defaults.color=chartDefaults.color;
+Chart.defaults.font=chartDefaults.font;
+
+function destroyChart(c){if(c)c.destroy()}
+
+function renderCharts(){
+  renderStatusChart();
+  renderWeekChart();
+  renderRevenueChart();
+}
+
+function renderStatusChart(){
+  destroyChart(statusChart);
+  const labels=Object.keys(TREATMENT_COLORS);
+  const data=labels.map(l=>allLeads.filter(x=>x.treatment_status===l).length);
+  const colors=labels.map(l=>TREATMENT_COLORS[l]);
+  statusChart=new Chart(document.getElementById('statusChart'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:colors.map(c=>c+'44'),borderColor:colors,borderWidth:2}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      cutout:'62%',
+      plugins:{
+        legend:{position:'bottom',labels:{boxWidth:10,padding:8,font:{size:10}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}`}}
+      }
+    }
+  });
+}
+
+function renderWeekChart(){
+  destroyChart(weekChart);
+  const labels=[],counts=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=`${pad(d.getDate())}/${pad(d.getMonth()+1)}`;
+    labels.push(ds);
+    counts.push(allLeads.filter(l=>l.created_date&&l.created_date.startsWith(ds)).length);
+  }
+  weekChart=new Chart(document.getElementById('weekChart'),{
+    type:'bar',
+    data:{labels,datasets:[{
+      label:'לידים',data:counts,
+      backgroundColor:'rgba(255,193,7,0.30)',
+      borderColor:'#ffc107',borderWidth:2,borderRadius:6
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{stepSize:1}}
+      }
+    }
+  });
+}
+
+function renderRevenueChart(){
+  destroyChart(revenueChart);
+  const labels=[],revenues=[];
+  const closedLeads=allLeads.filter(l=>l.is_closed&&l.deal_amount>0);
+  for(let i=29;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=`${pad(d.getDate())}/${pad(d.getMonth()+1)}`;
+    const yds=`${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+    labels.push(i===0?'היום':ds);
+    revenues.push(closedLeads.filter(l=>l.updated_at&&l.updated_at.startsWith(yds)).reduce((s,l)=>s+(l.deal_amount||0),0));
+  }
+  revenueChart=new Chart(document.getElementById('revenueChart'),{
+    type:'line',
+    data:{labels,datasets:[{
+      label:'הכנסות (₪)',data:revenues,
+      backgroundColor:'rgba(255,213,79,0.12)',
+      borderColor:'#ffd54f',borderWidth:2,
+      fill:true,tension:0.4,pointRadius:3,
+      pointBackgroundColor:'#ffd54f'
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{maxTicksLimit:8,font:{size:10}}},
+        y:{
+          grid:{color:'rgba(255,255,255,0.04)'},
+          ticks:{callback:v=>'₪'+fmt(v)}
+        }
+      }
+    }
+  });
+}
+
+// ─── TAB COUNTS ───────────────────────────────────
+function updateTabCounts(){
+  const open=allLeads.filter(l=>!l.is_closed);
+  const closed=allLeads.filter(l=>l.is_closed);
+  const fu=allLeads.filter(l=>!l.is_closed&&l.callback_time&&l.treatment_status!=='לא רלוונטי');
+  document.getElementById('tabLeadsCount').textContent=open.length;
+  document.getElementById('tabClientsCount').textContent=closed.length;
+  document.getElementById('tabFuCount').textContent=fu.length;
+  document.getElementById('tabRepsCount').textContent=allReps.length;
+}
+
+// ─── LEADS TABLE ──────────────────────────────────
+function getFilteredLeads(){
+  const q=document.getElementById('leadsSearch').value.toLowerCase();
+  const ft=document.getElementById('filterTrial').value;
+  const ftr=document.getElementById('filterTreatment').value;
+  return allLeads.filter(l=>{
+    if(l.is_closed)return false;
+    if(q&&![l.full_name,l.phone,l.lead_source,l.notes].some(s=>(s||'').toLowerCase().includes(q)))return false;
+    if(ft&&l.trial_status!==ft)return false;
+    if(ftr&&l.treatment_status!==ftr)return false;
+    return true;
+  });
+}
+
+function renderLeadsTable(){
+  const leads=getFilteredLeads();
+  const tbody=document.getElementById('leadsBody');
+  if(!leads.length){
+    tbody.innerHTML=`<tr class="empty-row"><td colspan="13"><div class="empty-state"><div class="es-icon">📭</div><p>אין לידים תואמים לחיפוש</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=leads.map(l=>`
+    <tr data-id="${l.id}">
+      <td class="editable" onclick="inlineEdit(event,${l.id},'created_date','text')" title="לחץ לעריכה" style="color:var(--muted);font-size:.78rem">${esc(l.created_date)}</td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'full_name','text')" title="לחץ לעריכה"><strong>${esc(l.full_name)}</strong></td>
+      <td dir="ltr"><a href="${waLink(l.phone)}" target="_blank" style="color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:5px" title="פתח ב-WhatsApp"><span>📱</span>${esc(l.phone)}</a></td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'lead_source','text')" title="לחץ לעריכה" style="color:var(--muted)">${esc(l.lead_source)||'<span style="opacity:.35">לחץ להוספה</span>'}</td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'trial_status','select-trial')" title="לחץ לעריכה"><span class="badge ${TRIAL_BADGE[l.trial_status]||''}">${esc(l.trial_status)}</span></td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'treatment_status','select-treatment')" title="לחץ לעריכה"><span class="badge ${TREATMENT_BADGE[l.treatment_status]||''}">${esc(l.treatment_status)}</span></td>
+      <td class="editable notes-cell" onclick="inlineEdit(event,${l.id},'notes','textarea')" title="${esc(l.notes)||'לחץ להוספת הערה'}">${esc(l.notes)||'<span style="opacity:.35">לחץ להוספה</span>'}</td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'next_task','text')" title="לחץ לעריכה" style="color:var(--text)">${esc(l.next_task)||'<span style="opacity:.35">לחץ להוספה</span>'}</td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'callback_time','datetime')" title="לחץ לבחור תאריך ושעה" style="color:var(--accent);font-size:.78rem">${esc(l.callback_time)||'<span style="opacity:.35">—</span>'}</td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'is_closed','select-closed')" title="לחץ לשינוי סטטוס"><span class="${l.is_closed?'badge b-closed':'badge b-open'}">${l.is_closed?'✅ נסגר':'⬜ לא נסגר'}</span></td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'deal_amount','number')" title="לחץ לעריכה" dir="ltr" style="color:var(--gold)">${l.deal_amount!=null?'₪'+fmt(l.deal_amount):'<span style="opacity:.35">—</span>'}</td>
+      <td class="editable" onclick="inlineEdit(event,${l.id},'payment_type','select-payment')" title="לחץ לעריכה">${l.payment_type?`<span class="badge ${l.payment_type==='אשראי'?'b-credit':'b-transfer'}">${esc(l.payment_type)}</span>`:'<span style="opacity:.35">—</span>'}</td>
+      <td>${buildRepSelect(l.id, l.rep_id)}</td>
+      <td class="action-cell">
+        <button class="btn-icon" onclick="openEditModal(${l.id})" title="עריכה מלאה">✏️</button>
+        <button class="btn-icon" onclick="openDeleteModal(${l.id})" title="מחק">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function buildRepSelect(leadId, repId){
+  const opts = `<option value="">— לא משויך —</option>` +
+    allReps.map(r=>`<option value="${r.id}" ${r.id===repId?'selected':''}>${esc(r.full_name)}</option>`).join('');
+  return `<select class="assign-select" onchange="assignLeadToRep(${leadId},this.value)">${opts}</select>`;
+}
+
+// ─── HELPERS ──────────────────────────────────────
+function waLink(phone){
+  const clean=(phone||'').replace(/[\s\-\(\)]/g,'');
+  const intl=clean.startsWith('0')?'972'+clean.slice(1):clean;
+  return `https://wa.me/${intl}`;
+}
+function toDatetimeLocal(str){
+  if(!str||str.length<14)return '';
+  const [datePart,timePart]=str.split(' ');
+  const [d,m,y]=datePart.split('/');
+  return `${y}-${m}-${d}T${timePart||'00:00'}`;
+}
+function fromDatetimeLocal(str){
+  if(!str)return '';
+  const [date,time]=str.split('T');
+  const [y,m,d]=date.split('-');
+  return `${d}/${m}/${y} ${time}`;
+}
+function missingClosingFields(lead){
+  const missing=[];
+  if(!lead.full_name)missing.push('שם מלא');
+  if(!lead.phone)missing.push('טלפון');
+  if(lead.deal_amount==null)missing.push('סכום עסקה');
+  if(!lead.payment_type)missing.push('סוג תשלום');
+  return missing;
+}
+
+// ─── INLINE EDIT ──────────────────────────────────
+function inlineEdit(e, id, field, type){
+  e.stopPropagation();
+  const td=e.currentTarget;
+  if(td.querySelector('input,select,textarea'))return;
+
+  const lead=allLeads.find(l=>l.id===id);
+  if(!lead)return;
+
+  const currentVal=lead[field];
+  let el;
+
+  if(type==='select-trial'){
+    el=document.createElement('select');
+    el.className='inline-input inline-select';
+    ['לפני ניסיון','באמצע ניסיון','סיים ניסיון'].forEach(opt=>{
+      const o=new Option(opt,opt); if(opt===currentVal)o.selected=true; el.appendChild(o);
+    });
+  }else if(type==='select-treatment'){
+    el=document.createElement('select');
+    el.className='inline-input inline-select';
+    ['חדש','אין מענה 1','אין מענה 2','בוצעה שיחה התחיל ניסיון','פולואפ','לא רלוונטי'].forEach(opt=>{
+      const o=new Option(opt,opt); if(opt===currentVal)o.selected=true; el.appendChild(o);
+    });
+  }else if(type==='select-payment'){
+    el=document.createElement('select');
+    el.className='inline-input inline-select';
+    [['','— ללא —'],['אשראי','אשראי'],['העברה בנקאית','העברה בנקאית']].forEach(([v,t])=>{
+      const o=new Option(t,v); if(v===(currentVal||''))o.selected=true; el.appendChild(o);
+    });
+  }else if(type==='select-closed'){
+    el=document.createElement('select');
+    el.className='inline-input inline-select';
+    [['false','⬜ לא נסגר'],['true','✅ נסגר']].forEach(([v,t])=>{
+      const o=new Option(t,v);
+      if(v===(currentVal?'true':'false'))o.selected=true;
+      el.appendChild(o);
+    });
+  }else if(type==='textarea'){
+    el=document.createElement('textarea');
+    el.className='inline-input inline-textarea';
+    el.value=currentVal||'';
+    el.rows=3;
+  }else if(type==='number'){
+    el=document.createElement('input');
+    el.className='inline-input inline-number';
+    el.type='number'; el.min='0';
+    el.value=currentVal!=null?currentVal:'';
+    el.dir='ltr';
+  }else if(type==='datetime'){
+    el=document.createElement('input');
+    el.className='inline-input';
+    el.type='datetime-local';
+    el.value=toDatetimeLocal(currentVal);
+    el.style.direction='ltr';
+  }else{
+    el=document.createElement('input');
+    el.className='inline-input';
+    el.type='text';
+    el.value=currentVal||'';
+  }
+
+  td.classList.add('editing');
+  td.innerHTML='';
+  td.appendChild(el);
+  el.focus();
+  if(el.select&&type==='text')el.select();
+
+  let saved=false;
+  const save=async()=>{
+    if(saved)return; saved=true;
+    let val=el.value;
+
+    if(type==='number') val=val!==''?parseFloat(val):null;
+    else if(type==='datetime') val=fromDatetimeLocal(val);
+    else if(type==='select-closed'){
+      const closing=val==='true';
+      if(closing){
+        const missing=missingClosingFields(lead);
+        if(missing.length){
+          showToast('חסרים שדות לסגירה: '+missing.join(', '),false);
+          await loadLeads(); return;
+        }
+      }
+      val=closing;
+    }
+    saveInlineField(id,field,val);
+  };
+
+  el.addEventListener('blur',save);
+  el.addEventListener('keydown',ev=>{
+    if(ev.key==='Enter'&&type!=='textarea'){ev.preventDefault();save();}
+    if(ev.key==='Escape'){saved=true;loadLeads();}
+  });
+  if(el.tagName==='SELECT') el.addEventListener('change',()=>{save();});
+}
+
+async function saveInlineField(id, field, value){
+  const lead=allLeads.find(l=>l.id===id);
+  if(!lead)return;
+  lead[field]=value;
+  try{
+    await fetch(`/api/manager/leads/${id}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({[field]:value})
+    });
+    showToast('✅ נשמר');
+  }catch{
+    showToast('שגיאה בשמירה',false);
+  }
+  await loadLeads();
+}
+
+// ─── CLIENTS SECTION ──────────────────────────────
+function renderClientsSection(){
+  const clients=allLeads.filter(l=>l.is_closed);
+  const totalRev=clients.reduce((s,l)=>s+(l.deal_amount||0),0);
+  const avgDeal=clients.length?totalRev/clients.length:0;
+
+  document.getElementById('cliTotal').textContent=clients.length;
+  document.getElementById('cliRevenue').textContent='₪'+fmt(totalRev);
+  document.getElementById('cliAvg').textContent='₪'+fmt(Math.round(avgDeal));
+
+  const tbody=document.getElementById('clientsBody');
+  if(!clients.length){
+    tbody.innerHTML=`<tr class="empty-row"><td colspan="9"><div class="empty-state"><div class="es-icon">🏆</div><p>עדיין אין עסקאות שנסגרו</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=clients.map(l=>`
+    <tr>
+      <td style="color:var(--muted);font-size:.78rem">${esc(l.updated_at?l.updated_at.split(' ')[0]:l.created_date)}</td>
+      <td><strong>${esc(l.full_name)}</strong></td>
+      <td dir="ltr" style="color:var(--blue)">${esc(l.phone)}</td>
+      <td style="color:var(--muted)">${esc(l.lead_source)||'—'}</td>
+      <td><span class="badge ${TRIAL_BADGE[l.trial_status]||''}">${esc(l.trial_status)}</span></td>
+      <td dir="ltr" style="color:var(--gold);font-weight:700">${l.deal_amount!=null?'₪'+fmt(l.deal_amount):'—'}</td>
+      <td>${l.payment_type?`<span class="badge ${l.payment_type==='אשראי'?'b-credit':'b-transfer'}">${esc(l.payment_type)}</span>`:'—'}</td>
+      <td class="notes-cell" title="${esc(l.notes)}">${esc(l.notes)||'—'}</td>
+      <td class="action-cell">
+        <button class="btn-icon" onclick="openEditModal(${l.id})" title="ערוך">✏️</button>
+        <button class="btn-icon" onclick="openDeleteModal(${l.id})" title="מחק">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ─── FOLLOW-UPS ───────────────────────────────────
+function renderFollowupsSection(){
+  const now=new Date();
+  const soon=new Date(now.getTime()+2*60*60*1000);
+  const items=allLeads
+    .filter(l=>!l.is_closed&&l.callback_time&&l.treatment_status!=='לא רלוונטי')
+    .map(l=>({...l,cbDate:parseCallbackTime(l.callback_time)}))
+    .filter(l=>l.cbDate)
+    .sort((a,b)=>a.cbDate-b.cbDate);
+
+  const container=document.getElementById('fuContainer');
+  if(!items.length){
+    container.innerHTML=`<div class="empty-state"><div class="es-icon">✨</div><p>אין פולואפים ממתינים — כל הכבוד!</p></div>`;
+    return;
+  }
+  container.innerHTML=items.map(l=>{
+    const overdue=l.cbDate<now;
+    const urgent=!overdue&&l.cbDate<=soon;
+    const cls=overdue?'fu-card overdue':urgent?'fu-card urgent':'fu-card';
+    const timeCls=overdue?'fu-time overdue':urgent?'fu-time urgent':'fu-time';
+    const icon=overdue?'🔴':urgent?'🟠':'🟢';
+    return `
+      <div class="${cls}">
+        <div class="fu-head">
+          <div>
+            <div class="fu-name">${icon} ${esc(l.full_name)}</div>
+            <span class="fu-phone">${esc(l.phone)}</span>
+          </div>
+          <span class="${timeCls}">${esc(l.callback_time)}</span>
+        </div>
+        <div>
+          <span class="badge ${TREATMENT_BADGE[l.treatment_status]||''}">${esc(l.treatment_status)}</span>
+          <span class="badge ${TRIAL_BADGE[l.trial_status]||''}" style="margin-right:6px">${esc(l.trial_status)}</span>
+        </div>
+        ${l.next_task?`<div class="fu-task">${esc(l.next_task)}</div>`:''}
+        ${l.notes?`<div style="font-size:.78rem;color:var(--muted)" title="${esc(l.notes)}">${esc(l.notes.length>80?l.notes.slice(0,80)+'...':l.notes)}</div>`:''}
+        <div class="fu-footer">
+          <span style="font-size:.72rem;color:var(--muted)">מקור: ${esc(l.lead_source)||'—'}</span>
+          <button class="btn btn-outline btn-sm" onclick="openEditModal(${l.id})">✏️ ערוך</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── MODAL — ADD ──────────────────────────────────
+function openAddModal(){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='הוספת ליד חדש';
+  clearModalForm();
+  document.getElementById('fDate').value=todayStr();
+  openOverlay('leadModal');
+}
+
+// ─── MODAL — EDIT ─────────────────────────────────
+function openEditModal(id){
+  editingId=id;
+  const l=allLeads.find(x=>x.id===id);
+  if(!l)return;
+  document.getElementById('modalTitle').textContent='עריכת ליד — '+l.full_name;
+  document.getElementById('fDate').value=l.created_date||'';
+  document.getElementById('fName').value=l.full_name||'';
+  document.getElementById('fPhone').value=l.phone||'';
+  document.getElementById('fSource').value=l.lead_source||'';
+  document.getElementById('fTrial').value=l.trial_status||'לפני ניסיון';
+  document.getElementById('fTreatment').value=l.treatment_status||'אין מענה 1';
+  document.getElementById('fNotes').value=l.notes||'';
+  document.getElementById('fNextTask').value=l.next_task||'';
+  document.getElementById('fCallback').value=toDatetimeLocal(l.callback_time);
+  document.getElementById('fAmount').value=l.deal_amount!=null?l.deal_amount:'';
+  document.getElementById('fPayment').value=l.payment_type||'';
+  document.getElementById('fClosed').checked=!!l.is_closed;
+  updateClosedLabel();
+  openOverlay('leadModal');
+}
+
+function clearModalForm(){
+  ['fDate','fName','fPhone','fSource','fNotes','fNextTask','fCallback','fAmount'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('fTrial').value='לפני ניסיון';
+  document.getElementById('fTreatment').value='אין מענה 1';
+  document.getElementById('fPayment').value='';
+  document.getElementById('fClosed').checked=false;
+  updateClosedLabel();
+}
+
+function updateClosedLabel(){
+  document.getElementById('closedLabel').textContent=
+    document.getElementById('fClosed').checked?'נסגר ✅':'פתוח';
+}
+document.getElementById('fClosed').addEventListener('change',updateClosedLabel);
+
+function collectModalForm(){
+  const amtRaw=document.getElementById('fAmount').value;
+  return{
+    created_date:  document.getElementById('fDate').value.trim()||todayStr(),
+    full_name:     document.getElementById('fName').value.trim(),
+    phone:         document.getElementById('fPhone').value.trim(),
+    lead_source:   document.getElementById('fSource').value.trim(),
+    trial_status:  document.getElementById('fTrial').value,
+    treatment_status: document.getElementById('fTreatment').value,
+    notes:         document.getElementById('fNotes').value.trim(),
+    next_task:     document.getElementById('fNextTask').value.trim(),
+    callback_time: fromDatetimeLocal(document.getElementById('fCallback').value),
+    deal_amount:   amtRaw!==''?parseFloat(amtRaw):null,
+    payment_type:  document.getElementById('fPayment').value,
+    is_closed:     document.getElementById('fClosed').checked
+  };
+}
+
+// ─── SAVE ─────────────────────────────────────────
+async function saveLead(){
+  const payload=collectModalForm();
+  if(!payload.full_name){showToast('שם מלא הוא שדה חובה',false);return}
+  if(!payload.phone){showToast('מספר טלפון הוא שדה חובה',false);return}
+  const btn=document.getElementById('modalSaveBtn');
+  btn.disabled=true; btn.textContent='שומר...';
+  try{
+    let res;
+    if(editingId===null){
+      res=await fetch(`/api/manager/leads`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+    }else{
+      res=await fetch(`/api/manager/leads/${editingId}`,{
+        method:'PUT',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+    }
+    if(!res.ok)throw new Error(await res.text());
+    showToast(editingId===null?'✅ ליד נוסף בהצלחה':'✅ ליד עודכן בהצלחה');
+    closeLeadModal();
+    await loadLeads();
+  }catch(e){
+    showToast('שגיאה בשמירה',false);
+  }finally{
+    btn.disabled=false; btn.textContent='💾 שמור';
+  }
+}
+
+// ─── DELETE ───────────────────────────────────────
+function openDeleteModal(id){
+  pendingDeleteId=id;
+  document.getElementById('confirmDeleteBtn').onclick=confirmDelete;
+  openOverlay('deleteModal');
+}
+async function confirmDelete(){
+  if(!pendingDeleteId)return;
+  try{
+    const res=await fetch(`/api/manager/leads/${pendingDeleteId}`,{method:'DELETE'});
+    if(!res.ok)throw new Error();
+    showToast('🗑 הליד נמחק');
+    closeDeleteModal();
+    await loadLeads();
+  }catch{
+    showToast('שגיאה במחיקה',false);
+  }
+}
+
+// ─── SECTION TABS ─────────────────────────────────
+document.querySelectorAll('.stab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sec-'+btn.dataset.sec).classList.add('active');
+  });
+});
+
+// ─── CLOSE OVERLAYS ON BACKDROP CLICK ────────────
+document.querySelectorAll('.overlay').forEach(ov=>{
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open')});
+});
+
+// ─── INFO SECTION ─────────────────────────────────
+function copyBankDetails(){
+  const amount = document.getElementById('bankAmount').value;
+  const amountLine = amount ? `סכום להעברה: ₪${Number(amount).toLocaleString('he-IL')}` : 'סכום להעברה: ';
+  const text = [
+    'פרטי חשבון בנק — ALTRIX',
+    '────────────────────',
+    'שם המוטב: אלטריקס בית תוכנה',
+    'בנק: מזרחי טפחות',
+    'סניף: 529',
+    'מספר חשבון: 233617',
+    amountLine,
+  ].join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector('.btn-copy-bank');
+    const icon = document.getElementById('copyBankIcon');
+    btn.classList.add('copied');
+    icon.textContent = '✅';
+    btn.childNodes[1].textContent = ' הועתק בהצלחה!';
+    setTimeout(()=>{
+      btn.classList.remove('copied');
+      icon.textContent = '📋';
+      btn.childNodes[1].textContent = ' העתק פרטי חשבון';
+    }, 2500);
+  });
+}
+
+function copyLink(url, btn){
+  navigator.clipboard.writeText(url).then(()=>{
+    btn.classList.add('copied');
+    btn.textContent = '✅ הועתק';
+    setTimeout(()=>{
+      btn.classList.remove('copied');
+      btn.textContent = '📋 העתק';
+    }, 2500);
+  });
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────
+const NOTIF_SNOOZE_KEY = 'altrix_mgr_notif_snooze';
+const NOTIF_HANDLED_KEY = 'altrix_mgr_notif_handled';
+const NOTIF_REMIND_MS = 15 * 60 * 1000;
+const NOTIF_SNOOZE_MS = 24 * 60 * 60 * 1000;
+
+function parseCallbackTime(str) {
+  if (!str || !str.trim()) return null;
+  const parts = str.trim().split(' ');
+  const dateParts = parts[0].split('/');
+  if (dateParts.length < 3) return null;
+  const [d, m, y] = dateParts;
+  const time = parts[1] || '09:00';
+  const [hh, mm] = time.split(':');
+  const dt = new Date(+y, +m - 1, +d, +(hh || 0), +(mm || 0), 0);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
+function getHandled() {
+  try { return new Set(JSON.parse(localStorage.getItem(NOTIF_HANDLED_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+function saveHandled(set) {
+  localStorage.setItem(NOTIF_HANDLED_KEY, JSON.stringify([...set]));
+}
+function getSnoozes() {
+  try { return JSON.parse(localStorage.getItem(NOTIF_SNOOZE_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveSnoozes(obj) {
+  localStorage.setItem(NOTIF_SNOOZE_KEY, JSON.stringify(obj));
+}
+
+function buildNotifications() {
+  const now = Date.now();
+  const handled = getHandled();
+  const snoozes = getSnoozes();
+  const items = [];
+  for (const lead of allLeads) {
+    if (lead.is_closed) continue;
+    if (!lead.callback_time) continue;
+    const dt = parseCallbackTime(lead.callback_time);
+    if (!dt) continue;
+    const ms = dt.getTime();
+    const diff = ms - now;
+    const id = String(lead.id);
+    if (handled.has(id)) continue;
+    const snoozeUntil = snoozes[id] || 0;
+    if (now < snoozeUntil) continue;
+    if (diff <= NOTIF_REMIND_MS) {
+      items.push({ lead, dt, diff, overdue: diff < 0 });
+    }
+  }
+  items.sort((a, b) => a.diff - b.diff);
+  return items;
+}
+
+function formatDiff(diff) {
+  if (diff < 0) {
+    const mins = Math.round(-diff / 60000);
+    if (mins < 60) return `לפני ${mins} דק׳`;
+    const hrs = Math.floor(mins / 60);
+    const rem = mins % 60;
+    return `לפני ${hrs}ש׳${rem ? ` ${rem}ד׳` : ''}`;
+  }
+  const mins = Math.round(diff / 60000);
+  return `בעוד ${mins} דק׳`;
+}
+
+function renderNotifications() {
+  const items = buildNotifications();
+  const bell = document.getElementById('notifBell');
+  const badge = document.getElementById('notifBadge');
+  const list = document.getElementById('notifList');
+  if (!bell || !list) return;
+
+  if (items.length === 0) {
+    bell.classList.remove('has-notif');
+    badge.classList.remove('show');
+    list.innerHTML = '<div class="notif-empty">✅ אין התראות ממתינות</div>';
+    return;
+  }
+
+  bell.classList.add('has-notif');
+  badge.textContent = items.length > 9 ? '9+' : items.length;
+  badge.classList.add('show');
+
+  list.innerHTML = items.map(({ lead, dt, diff, overdue }) => {
+    const cls = overdue ? 'overdue' : 'upcoming';
+    const icon = overdue ? '🔴' : '🟡';
+    const statusTxt = overdue
+      ? `<div class="notif-status late">⚠️ הזמן חלף — יש לטפל</div>`
+      : `<div class="notif-status soon">⏰ ${formatDiff(diff)}</div>`;
+    const timeStr = dt.toLocaleString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const task = lead.next_task ? `<div class="notif-task-line">📌 ${esc(lead.next_task)}</div>` : '';
+    return `
+      <div class="notif-item ${cls}" data-id="${lead.id}">
+        <div class="notif-item-head">
+          <div class="notif-icon">${icon}</div>
+          <div>
+            <div class="notif-name">${esc(lead.full_name)}</div>
+            <div class="notif-time">${timeStr}</div>
+            ${statusTxt}
+          </div>
+        </div>
+        ${task}
+        <div class="notif-actions">
+          <button class="notif-btn handled" onclick="markHandled(${lead.id})">✅ טופל</button>
+          <button class="notif-btn snooze" onclick="snooze24h(${lead.id})">⏱ תזכר מחר</button>
+          <button class="notif-btn edit-lead" onclick="openEditFromNotif(${lead.id})">✏️ ערוך</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  if (Notification && Notification.permission === 'granted') {
+    items.filter(i => i.overdue).forEach(({ lead }) => {
+      const key = 'notif_mgr_browser_' + lead.id;
+      const last = parseInt(localStorage.getItem(key) || '0');
+      if (Date.now() - last > NOTIF_SNOOZE_MS) {
+        new Notification('ALTRIX MANAGER — משימה לא טופלה', {
+          body: `${lead.full_name}: ${lead.next_task || 'יש לחזור ללקוח'}`,
+          icon: '/favicon.ico'
+        });
+        localStorage.setItem(key, String(Date.now()));
+      }
+    });
+  }
+}
+
+function markHandled(id) {
+  const h = getHandled();
+  h.add(String(id));
+  saveHandled(h);
+  renderNotifications();
+}
+
+function snooze24h(id) {
+  const s = getSnoozes();
+  s[String(id)] = Date.now() + NOTIF_SNOOZE_MS;
+  saveSnoozes(s);
+  renderNotifications();
+}
+
+function openEditFromNotif(id) {
+  document.getElementById('notifPanel').classList.remove('open');
+  const lead = allLeads.find(l => l.id === id);
+  if (lead) openEditModal(lead);
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  panel.classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('notifWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('notifPanel').classList.remove('open');
+  }
+});
+
+function initNotifications() {
+  if (Notification && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  setInterval(renderNotifications, 60000);
+}
+
+// ─── SALES REPS ───────────────────────────────────
+async function loadReps(){
+  try{
+    const res=await fetch('/api/manager/reps');
+    if(!res.ok) return;
+    const data=await res.json();
+    allReps=data.reps||[];
+    updateTabCounts();
+    renderRepsSection();
+    loadStats();
+  }catch(e){}
+}
+
+function renderRepsSection(){
+  const grid=document.getElementById('repsGrid');
+  if(!grid)return;
+  if(!allReps.length){
+    grid.innerHTML=`<div style="color:var(--muted);font-size:.88rem;padding:20px 0">אין נציגי מכירות עדיין. לחץ על "הוספת נציג מכירות" כדי להתחיל.</div>`;
+    return;
+  }
+  grid.innerHTML=allReps.map(r=>{
+    const repLeads=allLeads.filter(l=>l.rep_id===r.id);
+    const closed=repLeads.filter(l=>l.is_closed);
+    const conv=repLeads.length?Math.round(closed.length/repLeads.length*100):0;
+    const initials=r.full_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `
+    <div class="rep-card${selectedRepId===r.id?' selected':''}" onclick="setRepFilter(${r.id},'${esc(r.full_name)}')">
+      <div class="rep-card-head">
+        <div class="rep-avatar">${initials}</div>
+        <div>
+          <div class="rep-name">${esc(r.full_name)}</div>
+          <div class="rep-email">${esc(r.email||r.phone)}</div>
+        </div>
+      </div>
+      <div class="rep-stats">
+        <div class="rep-stat"><div class="rep-stat-val">${repLeads.length}</div><div class="rep-stat-lbl">לידים</div></div>
+        <div class="rep-stat"><div class="rep-stat-val" style="color:var(--green)">${closed.length}</div><div class="rep-stat-lbl">סגירות</div></div>
+        <div class="rep-stat"><div class="rep-stat-val" style="color:var(--orange)">${conv}%</div><div class="rep-stat-lbl">המרה</div></div>
+      </div>
+      <div class="rep-actions">
+        <button class="rep-del-btn" onclick="event.stopPropagation();deleteRep(${r.id})">🗑 מחק נציג</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setRepFilter(repId, repName){
+  selectedRepId=repId;
+  renderRepsSection();
+  const sec=document.getElementById('repLeadsSection');
+  const title=document.getElementById('repLeadsTitle');
+  if(sec) sec.style.display='block';
+  if(title) title.textContent=`לידים של ${repName}`;
+  renderRepLeads(repId);
+}
+
+function clearRepFilter(){
+  selectedRepId=null;
+  renderRepsSection();
+  const sec=document.getElementById('repLeadsSection');
+  if(sec) sec.style.display='none';
+}
+
+function renderRepLeads(repId){
+  const tbody=document.getElementById('repLeadsBody');
+  if(!tbody)return;
+  const leads=allLeads.filter(l=>l.rep_id===repId);
+  if(!leads.length){
+    tbody.innerHTML=`<tr class="empty-row"><td colspan="9"><div class="empty-state"><div class="es-icon">📭</div><p>אין לידים משויכים לנציג זה</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=leads.map(l=>`
+    <tr>
+      <td style="font-size:.78rem;color:var(--muted)">${esc(l.created_date)}</td>
+      <td><strong>${esc(l.full_name)}</strong></td>
+      <td dir="ltr"><a href="${waLink(l.phone)}" target="_blank" style="color:var(--blue);text-decoration:none">📱 ${esc(l.phone)}</a></td>
+      <td style="color:var(--muted)">${esc(l.lead_source)||'—'}</td>
+      <td><span class="badge ${TREATMENT_BADGE[l.treatment_status]||''}">${esc(l.treatment_status)}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(l.notes)}">${esc(l.notes)||'—'}</td>
+      <td><span class="${l.is_closed?'badge b-closed':'badge b-open'}">${l.is_closed?'✅ נסגר':'⬜ פתוח'}</span></td>
+      <td dir="ltr" style="color:var(--gold)">${l.deal_amount!=null?'₪'+fmt(l.deal_amount):'—'}</td>
+      <td class="action-cell">
+        <button class="btn-icon" onclick="openEditModal(${l.id})" title="ערוך">✏️</button>
+        <button class="btn-icon" onclick="openDeleteModal(${l.id})" title="מחק">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openAddRepModal(){
+  ['repName','repPhone','repEmail','repStartDate'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  openOverlay('addRepModal');
+}
+
+async function saveRep(){
+  const name=(document.getElementById('repName').value||'').trim();
+  const phone=(document.getElementById('repPhone').value||'').trim();
+  if(!name){showToast('שם מלא הוא שדה חובה',false);return}
+  if(!phone){showToast('טלפון הוא שדה חובה',false);return}
+  const btn=document.getElementById('saveRepBtn');
+  btn.disabled=true; btn.textContent='שומר...';
+  try{
+    const res=await fetch('/api/manager/reps',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        full_name:name, phone,
+        email:(document.getElementById('repEmail').value||'').trim(),
+        start_date:(document.getElementById('repStartDate').value||'').trim()
+      })
+    });
+    if(!res.ok)throw new Error();
+    showToast('✅ נציג נוסף בהצלחה');
+    closeOverlay('addRepModal');
+    await loadReps();
+  }catch(e){
+    showToast('שגיאה בהוספת נציג',false);
+  }finally{
+    btn.disabled=false; btn.textContent='💾 הוסף נציג';
+  }
+}
+
+async function deleteRep(id){
+  if(!confirm('למחוק את הנציג? הלידים המשויכים אליו יישארו ללא שיוך.'))return;
+  try{
+    const res=await fetch(`/api/manager/reps/${id}`,{method:'DELETE'});
+    if(!res.ok)throw new Error();
+    showToast('✅ נציג נמחק');
+    if(selectedRepId===id) clearRepFilter();
+    await loadReps();
+  }catch(e){
+    showToast('שגיאה במחיקת נציג',false);
+  }
+}
+
+async function assignLeadToRep(leadId, repIdStr){
+  const repId=repIdStr===''?null:parseInt(repIdStr);
+  try{
+    const res=await fetch(`/api/manager/leads/${leadId}`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({rep_id:repId})
+    });
+    if(!res.ok)throw new Error();
+    const lead=allLeads.find(l=>l.id===leadId);
+    if(lead){
+      lead.rep_id=repId;
+      renderRepsSection();
+      if(selectedRepId!==null) renderRepLeads(selectedRepId);
+    }
+    showToast('✅ ליד שויך לנציג');
+  }catch(e){
+    showToast('שגיאה בשיוך ליד',false);
+  }
+}
+
+// ─── PERFORMANCE STATS ────────────────────────────
+async function loadStats(){
+  const from=(document.getElementById('statsFrom')||{}).value||'';
+  const to=(document.getElementById('statsTo')||{}).value||'';
+  try{
+    const params=new URLSearchParams();
+    if(from)params.set('from_date',from);
+    if(to)params.set('to_date',to);
+    const res=await fetch('/api/manager/stats?'+params.toString());
+    if(!res.ok)return;
+    const data=await res.json();
+    renderStatsTable(data.stats||[]);
+  }catch(e){}
+}
+
+function renderStatsTable(stats){
+  const tbody=document.getElementById('statsBody');
+  if(!tbody)return;
+  if(!stats.length){
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">אין נתונים</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=stats.map(s=>`
+    <tr>
+      <td>${esc(s.full_name)}</td>
+      <td>${s.total_leads}</td>
+      <td style="color:var(--green);font-weight:700">${s.closed}</td>
+      <td dir="ltr" style="color:var(--gold);font-weight:700">₪${fmt(s.revenue)}</td>
+      <td style="color:var(--orange)">${s.conversion}%</td>
+      <td>${s.id!==null?`<button class="btn btn-outline btn-sm" onclick="setRepFilter(${s.id},'${esc(s.full_name)}')">צפה בלידים</button>`:'—'}</td>
+    </tr>`).join('');
+}
+
+function clearStatsFilter(){
+  const f=document.getElementById('statsFrom');
+  const t=document.getElementById('statsTo');
+  if(f)f.value='';
+  if(t)t.value='';
+  loadStats();
+}
+
+// ─── TIPS ─────────────────────────────────────────
+const MANAGER_TIPS = [
+  { icon:'🎯', label:'אסטרטגיה', text:'נציג שמתקשר ב-5 הדקות הראשונות לאחר שהליד נרשם — מגדיל את הסגירות ב-78%. מהירות היא הכל.' },
+  { icon:'📊', label:'ניהול ביצועים', text:'עקוב אחרי שיעור ההמרה של כל נציג שבועי. הבדל של 5% בין נציגים יכול לחשוף פער הכשרה חשוב.' },
+  { icon:'💰', label:'הכנסות', text:'80% מהסגירות מגיעות לאחר 5+ נקודות מגע. ודא שהנציגים לא מרימים ידיים אחרי ניסיון ראשון.' },
+  { icon:'🔄', label:'תהליך', text:'ליד ללא פולואפ מתוזמן הוא ליד שאבד. הקפד שלכל ליד פתוח יש "שעת חזרה" מוגדרת.' },
+  { icon:'🏆', label:'מוטיבציה', text:'"המנהל הטוב לא מנהל אנשים — הוא מנהל מערכות שמאפשרות לאנשים להצליח." — W. Edwards Deming' },
+  { icon:'📞', label:'טיפ שיחה', text:'שאל נציגים: "מה הלקוח אמר לפני שאמר לא?" — התשובה מגלה איפה ה-objection האמיתי.' },
+  { icon:'⏰', label:'זמן', text:'הגדר שעות שיחה קבועות בלוח. נציגים שעובדים בלוח שעות מובנה סוגרים 30% יותר מנציגים ש"עובדים כשמרגישים".' },
+  { icon:'🌟', label:'פיתוח', text:'עשה Role-play עם הנציגים — נחק לקוח קשה. נציג שמתרגל מול המנהל לא מופתע מול הלקוח.' },
+];
+let tipsIdx = 0;
+function rotateTip(){
+  const tip = MANAGER_TIPS[tipsIdx % MANAGER_TIPS.length];
+  const icon = document.getElementById('tipsIcon');
+  const label = document.getElementById('tipsLabel');
+  const text = document.getElementById('tipsText');
+  if(icon) icon.textContent = tip.icon;
+  if(label) label.textContent = tip.label;
+  if(text) text.textContent = tip.text;
+  tipsIdx++;
+}
+function initTips(){
+  rotateTip();
+  setInterval(rotateTip, 12000);
+}
+
+// ─── BOOTSTRAP ────────────────────────────────────
+startClock();
+loadLeads();
+loadReps();
+initNotifications();
+initTips();
+</script>
+</body>
+</html>
