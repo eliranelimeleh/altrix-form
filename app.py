@@ -1,9 +1,11 @@
-from flask import Flask, request, jsonify, send_from_directory, send_file
+from flask import Flask, request, jsonify, send_from_directory, send_file, session, redirect, url_for
 from flask_cors import CORS
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from datetime import datetime, timedelta
-import os, sqlite3, io, threading, webbrowser, smtplib
+import os, sqlite3, io, threading, webbrowser, smtplib, time
+import secrets as _sec
+from collections import defaultdict
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from zoneinfo import ZoneInfo
@@ -11,6 +13,13 @@ from zoneinfo import ZoneInfo
 ISRAEL_TZ = ZoneInfo("Asia/Jerusalem")
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY") or _sec.token_hex(32)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=bool(os.environ.get("FLY_APP_NAME")),
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+)
 CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +60,43 @@ def init_db():
                 created_at    TEXT NOT NULL
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS leads (
+                id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_date     TEXT NOT NULL,
+                full_name        TEXT NOT NULL,
+                phone            TEXT NOT NULL,
+                trial_status     TEXT NOT NULL DEFAULT 'לפני ניסיון',
+                lead_source      TEXT DEFAULT '',
+                treatment_status TEXT NOT NULL DEFAULT 'חדש',
+                notes            TEXT DEFAULT '',
+                next_task        TEXT DEFAULT '',
+                callback_time    TEXT DEFAULT '',
+                is_closed        INTEGER NOT NULL DEFAULT 0,
+                deal_amount      REAL DEFAULT NULL,
+                payment_type     TEXT DEFAULT '',
+                updated_at       TEXT DEFAULT '',
+                agent            TEXT NOT NULL DEFAULT 'sales'
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sales_reps (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                full_name  TEXT NOT NULL,
+                phone      TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                email      TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        try:
+            conn.execute("ALTER TABLE leads ADD COLUMN agent TEXT NOT NULL DEFAULT 'sales'")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE leads ADD COLUMN rep_id INTEGER DEFAULT NULL")
+        except Exception:
+            pass
 
 
 def build_excel(rows):
@@ -171,6 +217,96 @@ def send_email_report(to_email, rows):
         s.sendmail(smtp_user, to_email, msg.as_bytes())
 
 
+def is_authed():
+    key = os.environ.get("DOWNLOAD_KEY", "Ariel123")
+    return session.get("authed") or request.args.get("key") == key
+
+def require_auth():
+    if not is_authed():
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "unauthorized"}), 401
+        return redirect("/login")
+    return None
+
+# ── Manager security ──────────────────────────────────────────────────────────
+
+# MANAGER_KEY must be set as a Fly secret; if missing, login is disabled
+MANAGER_KEY: str = os.environ.get("MANAGER_KEY") or _sec.token_hex(32)
+
+# Rate limiting: max 5 attempts per IP per 15 minutes
+_mgr_attempts: dict = defaultdict(list)
+_MGR_MAX = 5
+_MGR_LOCKOUT = 900  # seconds
+
+
+def _client_ip() -> str:
+    xff = request.headers.get("X-Forwarded-For", "")
+    return xff.split(",")[0].strip() or request.remote_addr or "unknown"
+
+
+def _mgr_rate_check(ip: str):
+    now = time.time()
+    lst = _mgr_attempts[ip]
+    lst[:] = [t for t in lst if now - t < _MGR_LOCKOUT]
+    if len(lst) >= _MGR_MAX:
+        wait = int(_MGR_LOCKOUT - (now - lst[0]))
+        return False, wait
+    return True, 0
+
+
+def _mgr_record_fail(ip: str):
+    _mgr_attempts[ip].append(time.time())
+
+
+def _mgr_clear(ip: str):
+    _mgr_attempts.pop(ip, None)
+
+
+def is_manager_authed() -> bool:
+    # Session uses obscured key names to prevent obvious forgery attempts
+    if not session.get("_mgt"):
+        return False
+    token = session.get("_mgk", "")
+    if not token or len(token) < 32:
+        return False
+    # IP binding: session cookie only valid from the IP that logged in
+    bound_ip = session.get("_mgi")
+    if bound_ip and bound_ip != _client_ip():
+        app.logger.warning(f"Manager session IP mismatch: bound={bound_ip} current={_client_ip()}")
+        return False
+    return True
+
+
+def require_manager_auth():
+    if not is_manager_authed():
+        session.clear()  # wipe any tampered/partial session state
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "unauthorized"}), 401
+        return redirect("/manager-login")
+    return None
+
+
+@app.after_request
+def security_headers(response):
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+    if request.path.startswith("/manager"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+        response.headers["Pragma"] = "no-cache"
+    return response
+
+
+UPDATABLE_FIELDS = {
+    "created_date", "full_name", "phone", "trial_status", "lead_source",
+    "treatment_status", "notes", "next_task", "callback_time",
+    "is_closed", "deal_amount", "payment_type"
+}
+MANAGER_UPDATABLE_FIELDS = UPDATABLE_FIELDS | {"rep_id"}
+
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -212,9 +348,8 @@ def update():
 
 @app.route("/api/updates")
 def api_updates():
-    key = request.args.get("key", "")
-    if key != os.environ.get("DOWNLOAD_KEY", "altrix2024"):
-        return jsonify({"error": "unauthorized"}), 401
+    denied = require_auth()
+    if denied: return denied
     with get_db() as conn:
         rows = conn.execute("SELECT * FROM client_updates ORDER BY id").fetchall()
     return jsonify({"rows": [dict(r) for r in rows]})
@@ -222,17 +357,15 @@ def api_updates():
 
 @app.route("/dashboard")
 def dashboard():
-    key = request.args.get("key", "")
-    if key != os.environ.get("DOWNLOAD_KEY", "altrix2024"):
-        return "Unauthorized", 401
+    denied = require_auth()
+    if denied: return denied
     return send_from_directory(BASE_DIR, "dashboard.html")
 
 
 @app.route("/api/stats")
 def api_stats():
-    key = request.args.get("key", "")
-    if key != os.environ.get("DOWNLOAD_KEY", "altrix2024"):
-        return jsonify({"error": "unauthorized"}), 401
+    denied = require_auth()
+    if denied: return denied
     with get_db() as conn:
         rows = conn.execute("SELECT * FROM registrations ORDER BY id").fetchall()
     return jsonify({"rows": [dict(r) for r in rows]})
@@ -267,9 +400,8 @@ def submit():
 
 @app.route("/download")
 def download():
-    key = request.args.get("key", "")
-    if key != os.environ.get("DOWNLOAD_KEY", "altrix2024"):
-        return "Unauthorized", 401
+    denied = require_auth()
+    if denied: return denied
     with get_db() as conn:
         rows = conn.execute("SELECT * FROM registrations ORDER BY id").fetchall()
     buf = build_excel(rows)
@@ -281,9 +413,9 @@ def download():
 
 @app.route("/send-report", methods=["POST"])
 def send_report():
+    denied = require_auth()
+    if denied: return denied
     data = request.get_json(force=True)
-    if data.get("key") != os.environ.get("DOWNLOAD_KEY", "altrix2024"):
-        return jsonify({"error": "unauthorized"}), 401
     to_email = data.get("email", "").strip()
     if not to_email:
         return jsonify({"error": "missing email"}), 400
@@ -296,6 +428,379 @@ def send_report():
         return jsonify({"error": "המייל לא מוגדר בשרת — ראה הוראות הגדרה"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = ""
+    if request.method == "POST":
+        pwd = request.form.get("password", "")
+        if pwd == os.environ.get("DOWNLOAD_KEY", "altrix2024"):
+            session["authed"] = True
+            return redirect("/sales")
+        error = "סיסמה שגויה"
+    return send_from_directory(BASE_DIR, "login.html"), 200 if not error else 401
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
+
+@app.route("/sales")
+def sales():
+    # Persist session when accessing with key URL param so API calls work
+    key = os.environ.get("DOWNLOAD_KEY", "Ariel123")
+    if request.args.get("key") == key:
+        session["authed"] = True
+    denied = require_auth()
+    if denied: return denied
+    return send_from_directory(BASE_DIR, "sales.html")
+
+
+@app.route("/api/leads")
+def api_leads():
+    denied = require_auth()
+    if denied: return denied
+    closed_filter = request.args.get("closed")
+    with get_db() as conn:
+        if closed_filter is not None:
+            rows = conn.execute(
+                "SELECT * FROM leads WHERE agent='sales' AND is_closed=? ORDER BY id DESC",
+                (int(closed_filter),)
+            ).fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM leads WHERE agent='sales' ORDER BY id DESC").fetchall()
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["is_closed"] = bool(d["is_closed"])
+        result.append(d)
+    return jsonify({"leads": result})
+
+
+@app.route("/api/leads", methods=["POST"])
+def create_lead():
+    denied = require_auth()
+    if denied: return denied
+    data = request.get_json(force=True)
+    for f in ["full_name", "phone"]:
+        if not str(data.get(f, "")).strip():
+            return jsonify({"error": f"missing: {f}"}), 400
+    ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
+    today_date = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y")
+    with get_db() as conn:
+        cur = conn.execute(
+            """INSERT INTO leads
+               (created_date, full_name, phone, trial_status, lead_source,
+                treatment_status, notes, next_task, callback_time,
+                is_closed, deal_amount, payment_type, updated_at, agent)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                data.get("created_date", today_date),
+                data["full_name"].strip(),
+                data["phone"].strip(),
+                data.get("trial_status", "לפני ניסיון"),
+                data.get("lead_source", ""),
+                data.get("treatment_status", "חדש"),
+                data.get("notes", ""),
+                data.get("next_task", ""),
+                data.get("callback_time", ""),
+                1 if data.get("is_closed") else 0,
+                data.get("deal_amount"),
+                data.get("payment_type", ""),
+                ts,
+                'sales'
+            )
+        )
+        new_id = cur.lastrowid
+    return jsonify({"ok": True, "id": new_id}), 201
+
+
+@app.route("/api/leads/<int:lead_id>", methods=["PUT"])
+def update_lead(lead_id):
+    denied = require_auth()
+    if denied: return denied
+    data = request.get_json(force=True)
+    fields = {k: v for k, v in data.items() if k in UPDATABLE_FIELDS}
+    if not fields:
+        return jsonify({"error": "no fields to update"}), 400
+    if "is_closed" in fields:
+        fields["is_closed"] = 1 if fields["is_closed"] else 0
+    ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
+    fields["updated_at"] = ts
+    set_clause = ", ".join(f"{k}=?" for k in fields)
+    values = list(fields.values()) + [lead_id]
+    with get_db() as conn:
+        cur = conn.execute(f"UPDATE leads SET {set_clause} WHERE id=? AND agent='sales'", values)
+        if cur.rowcount == 0:
+            return jsonify({"error": "not found"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/leads/<int:lead_id>", methods=["DELETE"])
+def delete_lead(lead_id):
+    denied = require_auth()
+    if denied: return denied
+    with get_db() as conn:
+        cur = conn.execute("DELETE FROM leads WHERE id=? AND agent='sales'", (lead_id,))
+        if cur.rowcount == 0:
+            return jsonify({"error": "not found"}), 404
+    return jsonify({"ok": True})
+
+
+# ── Manager routes ────────────────────────────────────────────────────────────
+
+@app.route("/manager-login", methods=["GET", "POST"])
+def manager_login():
+    if request.method == "POST":
+        ip = _client_ip()
+        allowed, wait = _mgr_rate_check(ip)
+        if not allowed:
+            m, s = divmod(wait, 60)
+            app.logger.warning(f"Manager login rate-limited: {ip}")
+            return redirect(f"/manager-login?err=locked&wait={m}:{s:02d}")
+
+        pwd = request.form.get("password", "")
+        # Constant-time comparison prevents timing-based password discovery
+        if _sec.compare_digest(pwd.encode("utf-8"), MANAGER_KEY.encode("utf-8")):
+            _mgr_clear(ip)
+            session.clear()  # evict any existing session (e.g., stale sales auth)
+            session["_mgt"] = True               # manager authenticated flag
+            session["_mgk"] = _sec.token_hex(32) # per-session cryptographic token
+            session["_mgi"] = ip                 # IP binding
+            session.permanent = True
+            app.logger.info(f"Manager login success: {ip}")
+            return redirect("/manager")
+
+        _mgr_record_fail(ip)
+        remaining = _MGR_MAX - len(_mgr_attempts[ip])
+        app.logger.warning(f"Manager login failed: {ip} ({len(_mgr_attempts[ip])}/{_MGR_MAX})")
+        return redirect(f"/manager-login?err=1&left={max(remaining,0)}")
+
+    return send_from_directory(BASE_DIR, "manager-login.html")
+
+
+@app.route("/manager-logout")
+def manager_logout():
+    session.clear()
+    return redirect("/manager-login")
+
+
+@app.route("/manager")
+def manager_dashboard():
+    denied = require_manager_auth()
+    if denied: return denied
+    return send_from_directory(BASE_DIR, "manager.html")
+
+
+@app.route("/api/manager/leads")
+def api_manager_leads():
+    denied = require_manager_auth()
+    if denied: return denied
+    closed_filter = request.args.get("closed")
+    rep_filter = request.args.get("rep_id")
+    with get_db() as conn:
+        conditions = ["agent='manager'"]
+        params = []
+        if closed_filter is not None:
+            conditions.append("is_closed=?")
+            params.append(int(closed_filter))
+        if rep_filter is not None:
+            if rep_filter == "unassigned":
+                conditions.append("rep_id IS NULL")
+            else:
+                conditions.append("rep_id=?")
+                params.append(int(rep_filter))
+        where = " AND ".join(conditions)
+        rows = conn.execute(f"SELECT * FROM leads WHERE {where} ORDER BY id DESC", params).fetchall()
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["is_closed"] = bool(d["is_closed"])
+        result.append(d)
+    return jsonify({"leads": result})
+
+
+@app.route("/api/manager/leads", methods=["POST"])
+def create_manager_lead():
+    denied = require_manager_auth()
+    if denied: return denied
+    data = request.get_json(force=True)
+    for f in ["full_name", "phone"]:
+        if not str(data.get(f, "")).strip():
+            return jsonify({"error": f"missing: {f}"}), 400
+    ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
+    today_date = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y")
+    with get_db() as conn:
+        cur = conn.execute(
+            """INSERT INTO leads
+               (created_date, full_name, phone, trial_status, lead_source,
+                treatment_status, notes, next_task, callback_time,
+                is_closed, deal_amount, payment_type, updated_at, agent)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                data.get("created_date", today_date),
+                data["full_name"].strip(),
+                data["phone"].strip(),
+                data.get("trial_status", "לפני ניסיון"),
+                data.get("lead_source", ""),
+                data.get("treatment_status", "חדש"),
+                data.get("notes", ""),
+                data.get("next_task", ""),
+                data.get("callback_time", ""),
+                1 if data.get("is_closed") else 0,
+                data.get("deal_amount"),
+                data.get("payment_type", ""),
+                ts,
+                'manager'
+            )
+        )
+        new_id = cur.lastrowid
+    return jsonify({"ok": True, "id": new_id}), 201
+
+
+@app.route("/api/manager/leads/<int:lead_id>", methods=["PUT"])
+def update_manager_lead(lead_id):
+    denied = require_manager_auth()
+    if denied: return denied
+    data = request.get_json(force=True)
+    fields = {k: v for k, v in data.items() if k in MANAGER_UPDATABLE_FIELDS}
+    if not fields:
+        return jsonify({"error": "no fields to update"}), 400
+    if "is_closed" in fields:
+        fields["is_closed"] = 1 if fields["is_closed"] else 0
+    ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
+    fields["updated_at"] = ts
+    set_clause = ", ".join(f"{k}=?" for k in fields)
+    values = list(fields.values()) + [lead_id]
+    with get_db() as conn:
+        cur = conn.execute(f"UPDATE leads SET {set_clause} WHERE id=? AND agent='manager'", values)
+        if cur.rowcount == 0:
+            return jsonify({"error": "not found"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/manager/leads/<int:lead_id>", methods=["DELETE"])
+def delete_manager_lead(lead_id):
+    denied = require_manager_auth()
+    if denied: return denied
+    with get_db() as conn:
+        cur = conn.execute("DELETE FROM leads WHERE id=? AND agent='manager'", (lead_id,))
+        if cur.rowcount == 0:
+            return jsonify({"error": "not found"}), 404
+    return jsonify({"ok": True})
+
+
+# ── Sales Reps API ───────────────────────────────────────────────────────────
+
+@app.route("/api/manager/reps")
+def api_manager_reps():
+    denied = require_manager_auth()
+    if denied: return denied
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM sales_reps ORDER BY full_name").fetchall()
+    return jsonify({"reps": [dict(r) for r in rows]})
+
+
+@app.route("/api/manager/reps", methods=["POST"])
+def create_manager_rep():
+    denied = require_manager_auth()
+    if denied: return denied
+    data = request.get_json(force=True)
+    for f in ["full_name", "phone"]:
+        if not str(data.get(f, "")).strip():
+            return jsonify({"error": f"missing: {f}"}), 400
+    ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
+    with get_db() as conn:
+        cur = conn.execute(
+            "INSERT INTO sales_reps (full_name, phone, start_date, email, created_at) VALUES (?,?,?,?,?)",
+            (data["full_name"].strip(), data["phone"].strip(),
+             data.get("start_date", ""), data.get("email", ""), ts)
+        )
+        new_id = cur.lastrowid
+    return jsonify({"ok": True, "id": new_id}), 201
+
+
+@app.route("/api/manager/reps/<int:rep_id>", methods=["DELETE"])
+def delete_manager_rep(rep_id):
+    denied = require_manager_auth()
+    if denied: return denied
+    with get_db() as conn:
+        cur = conn.execute("DELETE FROM sales_reps WHERE id=?", (rep_id,))
+        if cur.rowcount == 0:
+            return jsonify({"error": "not found"}), 404
+        # Un-assign any leads that were assigned to this rep
+        conn.execute("UPDATE leads SET rep_id=NULL WHERE rep_id=?", (rep_id,))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/manager/stats")
+def api_manager_stats():
+    """Per-rep performance stats within an optional date range."""
+    denied = require_manager_auth()
+    if denied: return denied
+    from_date = request.args.get("from_date", "")  # dd/mm/yyyy
+    to_date   = request.args.get("to_date", "")
+    with get_db() as conn:
+        reps = conn.execute("SELECT * FROM sales_reps ORDER BY full_name").fetchall()
+        leads = conn.execute("SELECT * FROM leads WHERE agent='manager'").fetchall()
+    leads = [dict(l) for l in leads]
+
+    def in_range(lead):
+        d = lead.get("created_date", "")
+        if not d: return True
+        try:
+            dd, mm, yy = d.split("/")
+            ld = f"{yy}-{mm}-{dd}"
+        except Exception:
+            return True
+        if from_date:
+            try:
+                fd, fm, fy = from_date.split("/")
+                if ld < f"{fy}-{fm}-{fd}": return False
+            except Exception:
+                pass
+        if to_date:
+            try:
+                td, tm, ty = to_date.split("/")
+                if ld > f"{ty}-{tm}-{td}": return False
+            except Exception:
+                pass
+        return True
+
+    filtered = [l for l in leads if in_range(l)]
+    stats = []
+    for rep in reps:
+        rep_leads = [l for l in filtered if l.get("rep_id") == rep["id"]]
+        closed = [l for l in rep_leads if l.get("is_closed")]
+        revenue = sum(l.get("deal_amount") or 0 for l in closed)
+        stats.append({
+            "id": rep["id"],
+            "full_name": rep["full_name"],
+            "email": rep["email"],
+            "phone": rep["phone"],
+            "start_date": rep["start_date"],
+            "total_leads": len(rep_leads),
+            "closed": len(closed),
+            "revenue": revenue,
+            "conversion": round(len(closed) / len(rep_leads) * 100, 1) if rep_leads else 0
+        })
+    unassigned = [l for l in filtered if l.get("rep_id") is None]
+    closed_u = [l for l in unassigned if l.get("is_closed")]
+    stats.append({
+        "id": None,
+        "full_name": "לא משויך",
+        "email": "",
+        "phone": "",
+        "start_date": "",
+        "total_leads": len(unassigned),
+        "closed": len(closed_u),
+        "revenue": sum(l.get("deal_amount") or 0 for l in closed_u),
+        "conversion": round(len(closed_u) / len(unassigned) * 100, 1) if unassigned else 0
+    })
+    return jsonify({"stats": stats})
 
 
 # ── Startup ───────────────────────────────────────────────────────────────────
