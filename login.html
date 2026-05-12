@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ALTRIX — כניסה</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:#05091a;
+  color:#e8eaf6;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.card{
+  background:#0d1530;
+  border:1px solid rgba(126,87,194,0.25);
+  border-radius:18px;
+  padding:48px 40px;
+  width:100%;
+  max-width:380px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.6);
+  text-align:center;
+}
+.logo{
+  font-size:2rem;
+  font-weight:900;
+  letter-spacing:3px;
+  background:linear-gradient(135deg,#b39ddb,#7e57c2);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.subtitle{
+  font-size:.82rem;
+  color:rgba(255,255,255,0.4);
+  margin-bottom:36px;
+  letter-spacing:.5px;
+}
+label{
+  display:block;
+  text-align:right;
+  font-size:.78rem;
+  color:rgba(255,255,255,0.55);
+  margin-bottom:6px;
+}
+input[type=password]{
+  width:100%;
+  background:#080e1e;
+  border:1px solid rgba(126,87,194,0.3);
+  border-radius:10px;
+  padding:12px 14px;
+  color:#e8eaf6;
+  font-size:.95rem;
+  outline:none;
+  direction:ltr;
+  letter-spacing:2px;
+  transition:border-color .2s;
+}
+input[type=password]:focus{border-color:#7e57c2;}
+.btn{
+  width:100%;
+  margin-top:20px;
+  background:linear-gradient(135deg,#7e57c2,#4527a0);
+  border:none;
+  border-radius:10px;
+  padding:13px;
+  color:#fff;
+  font-size:1rem;
+  font-weight:700;
+  cursor:pointer;
+  letter-spacing:.5px;
+  transition:opacity .2s;
+}
+.btn:hover{opacity:.88}
+.error{
+  margin-top:14px;
+  color:#ef5350;
+  font-size:.82rem;
+  background:rgba(239,83,80,0.1);
+  border:1px solid rgba(239,83,80,0.25);
+  border-radius:8px;
+  padding:8px 12px;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">ALTRIX</div>
+  <div class="subtitle">דשבורד נציג מכירות</div>
+
+  <form method="POST" action="/login">
+    <label>סיסמה</label>
+    <input type="password" name="password" placeholder="••••••••" autofocus required/>
+    <button type="submit" class="btn">כניסה →</button>
+  </form>
+
+  <div class="error" id="errMsg" style="display:none">סיסמה שגויה — נסה שוב</div>
+</div>
+<script>
+  if(new URLSearchParams(location.search).get('err')==='1'){
+    document.getElementById('errMsg').style.display='block';
+  }
+</script>
+</body>
+</html>

@@ -432,14 +432,13 @@ def send_report():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    error = ""
     if request.method == "POST":
         pwd = request.form.get("password", "")
         if pwd == os.environ.get("DOWNLOAD_KEY", "altrix2024"):
             session["authed"] = True
             return redirect("/sales")
-        error = "סיסמה שגויה"
-    return send_from_directory(BASE_DIR, "login.html"), 200 if not error else 401
+        return redirect("/login?err=1")
+    return send_from_directory(BASE_DIR, "login.html")
 
 
 @app.route("/logout")
