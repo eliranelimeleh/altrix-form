@@ -254,16 +254,26 @@ const Coin: React.FC<{x: number; y: number; s: number; rot: number}> = ({x, y, s
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Rubik', fontWeight: 900, fontSize: s * 0.45, color: '#8a5d05'}}>$</div>
 );
 
-export const Welcome3: React.FC = () => (
+export const Welcome3: React.FC<{grid?: boolean}> = ({grid = false}) => (
   <AbsoluteFill style={{background: '#f4f1fb', fontFamily: 'Rubik', direction: 'rtl', overflow: 'hidden'}}>
     {/* soft gradient mesh blobs */}
     {[['#b58cff', -180, -160, 760], ['#7fe3c7', 620, 180, 640], ['#ffd27a', -120, 820, 620], ['#9fb6ff', 640, 900, 700]].map(([c, x, y, s], i) => (
       <div key={i} style={{position: 'absolute', left: x as number, top: y as number, width: s as number, height: s as number, borderRadius: '50%',
         background: c as string, filter: 'blur(110px)', opacity: 0.75}} />
     ))}
-    <Coin x={850} y={975} s={150} rot={-15} />
-    <Coin x={950} y={1070} s={96} rot={20} />
-    <Coin x={40} y={1000} s={120} rot={12} />
+    {grid ? (
+      <>
+        <Coin x={880} y={120} s={130} rot={-15} />
+        <Coin x={960} y={220} s={84} rot={20} />
+        <Coin x={60} y={150} s={100} rot={12} />
+      </>
+    ) : (
+      <>
+        <Coin x={850} y={975} s={150} rot={-15} />
+        <Coin x={950} y={1070} s={96} rot={20} />
+        <Coin x={40} y={1000} s={120} rot={12} />
+      </>
+    )}
 
     {/* header */}
     <div style={{position: 'absolute', top: 60, left: 0, right: 0, display: 'flex', justifyContent: 'center'}}>
@@ -273,14 +283,14 @@ export const Welcome3: React.FC = () => (
         <div style={{fontWeight: 800, fontSize: 30, letterSpacing: 6, color: '#2a1260'}}>ALTRIX</div>
       </div>
     </div>
-    <div style={{position: 'absolute', top: 180, left: 60, right: 60, textAlign: 'center'}}>
+    <div style={{position: 'absolute', top: grid ? 160 : 180, left: 60, right: 60, textAlign: 'center'}}>
       <div style={{fontWeight: 800, fontSize: 96, lineHeight: 1.05, color: '#1b0f3d'}}>ברוכים הבאים</div>
       <div style={{fontWeight: 900, fontSize: 140, lineHeight: 1.08, backgroundImage: 'linear-gradient(90deg, #7b2ff7 0%, #b14bff 45%, #f2a900 100%)',
         WebkitBackgroundClip: 'text', color: 'transparent'}}>לאלטריקס!</div>
     </div>
 
     {/* glass card */}
-    <div style={{position: 'absolute', top: 540, left: 60, right: 60, borderRadius: 44, padding: '56px 44px 40px', background: 'rgba(255,255,255,0.55)',
+    <div style={{position: 'absolute', top: grid ? 490 : 540, left: 60, right: 60, borderRadius: 44, padding: grid ? '48px 40px 22px' : '56px 44px 40px', background: 'rgba(255,255,255,0.55)',
       border: '2px solid rgba(255,255,255,0.95)', boxShadow: '0 30px 80px rgba(60,20,140,0.18)', backdropFilter: 'blur(20px)'}}>
       <div style={{position: 'absolute', top: -34, right: 44, background: 'linear-gradient(135deg, #7b2ff7, #b14bff)', color: '#fff', fontWeight: 800, fontSize: 40,
         padding: '10px 30px', borderRadius: 30, boxShadow: '0 12px 30px rgba(123,47,247,0.45)'}}><E c="1f381" /> קבלו מאיתנו בונוס</div>
@@ -288,7 +298,7 @@ export const Welcome3: React.FC = () => (
         {bg: 'linear-gradient(135deg, #25D366, #0fa958)', icon: <ChatIcon size={70} />, t: <>הצטרפו לקבוצת הוואטסאפ<br /><b style={{color: '#0c9a4f'}}>החינמית</b> שלנו!</>},
         {bg: 'linear-gradient(135deg, #ffd24d, #f2a900)', icon: <E c="1f916" size={70} />, t: <>קבלו את רובוט המסחר שלנו<br /><b style={{color: '#7b2ff7'}}>בחינם ל-10 ימים!</b></>},
       ].map((r, i) => (
-        <div key={i} style={{display: 'flex', alignItems: 'center', gap: 28, padding: '34px 0', borderTop: i ? '2px dashed rgba(90,50,170,0.18)' : 'none'}}>
+        <div key={i} style={{display: 'flex', alignItems: 'center', gap: 28, padding: grid ? '22px 0' : '34px 0', borderTop: i ? '2px dashed rgba(90,50,170,0.18)' : 'none'}}>
           <div style={{width: 124, height: 124, borderRadius: 32, background: r.bg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 12px 26px rgba(0,0,0,0.15)'}}>{r.icon}</div>
           <div style={{fontWeight: 700, fontSize: 50, lineHeight: 1.25, color: '#1b0f3d', textAlign: 'right'}}>{r.t}</div>
@@ -297,12 +307,29 @@ export const Welcome3: React.FC = () => (
     </div>
 
     {/* mini chart chip */}
-    <div style={{position: 'absolute', top: 440, left: 60, transform: 'rotate(-6deg)', padding: '14px 20px', borderRadius: 24, background: 'rgba(255,255,255,0.8)',
+    <div style={{position: 'absolute', top: grid ? 410 : 440, left: 60, transform: 'rotate(-6deg)', padding: '14px 20px', borderRadius: 24, background: 'rgba(255,255,255,0.8)',
       boxShadow: '0 14px 34px rgba(60,20,140,0.18)', direction: 'ltr', display: 'flex', alignItems: 'center', gap: 14}}>
       <svg width="120" height="50" viewBox="0 0 120 50"><path d="M2 44 L20 38 L34 40 L50 28 L64 31 L80 18 L96 20 L118 4" stroke="#0fa958" strokeWidth="5" fill="none" strokeLinecap="round" /></svg>
       <div style={{fontWeight: 800, fontSize: 26, color: '#1b0f3d'}}>XAUUSD<div style={{color: '#0fa958', fontSize: 22}}>AUTO ●</div></div>
     </div>
 
+    {grid ? (
+      <div style={{position: 'absolute', top: 1000, left: 30, right: 30, textAlign: 'center'}}>
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, whiteSpace: 'nowrap'}}>
+          <div style={{fontWeight: 900, fontSize: 62, color: '#1b0f3d'}}>כתבו את המילה</div>
+          <div style={{display: 'flex', alignItems: 'center', gap: 12, padding: '10px 30px 14px', borderRadius: 30, transform: 'rotate(-3deg)',
+            background: 'linear-gradient(135deg, #25D366, #0fa958)', color: '#fff', fontWeight: 900, fontSize: 66,
+            boxShadow: '0 16px 34px rgba(15,169,88,0.45)', border: '4px solid #fff'}}>
+            <ChatIcon size={54} />"וואטסאפ"
+          </div>
+        </div>
+        <div style={{marginTop: 34, display: 'inline-block', padding: '20px 46px', borderRadius: 60, background: '#1b0f3d', color: '#fff',
+          fontWeight: 800, fontSize: 54, whiteSpace: 'nowrap', boxShadow: '0 20px 40px rgba(27,15,61,0.35)'}}>
+          ונשלח לכם קישור <span style={{color: '#ffd24d'}}>לקהילה שלנו</span> <E c="1f680" />
+        </div>
+      </div>
+    ) : (
+      <>
     {/* CTA */}
     <div style={{position: 'absolute', top: 1150, left: 0, right: 0, display: 'flex', justifyContent: 'center'}}>
       <div style={{display: 'flex', alignItems: 'center', gap: 18, padding: '24px 46px', borderRadius: 60, background: '#1b0f3d', color: '#fff', fontWeight: 700, fontSize: 40,
@@ -313,6 +340,8 @@ export const Welcome3: React.FC = () => (
         </div>
       </div>
     </div>
+      </>
+    )}
   </AbsoluteFill>
 );
 

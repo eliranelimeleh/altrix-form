@@ -165,6 +165,10 @@ the reel. Build it as a Remotion `<Still>` (1080×1350, Instagram 4:5) in the sa
   printed on a tilted "VIP PASS" ticket with perforation, barcode and "10 DAYS · FREE".
 When asked for "another style", pick a direction none of these used (e.g. editorial/print,
 3D render look, minimal mono) rather than recolouring one of them.
+- **Feed / pinned grid post** (`Welcome3Grid` = `<Welcome3 grid />`, approved): no button exists
+  on a feed post, so the CTA is a comment keyword - 'כתבו את המילה "וואטסאפ"' with the keyword on a
+  green pill + 'ונשלח לכם קישור לקהילה שלנו' - big and bold. The profile grid shows posts cropped to
+  3:4, so keep everything inside the centre 1012px of the 1080px width (check with a 3:4 crop).
 Use the user's exact wording; put explicit `<br />` line breaks in Hebrew list items (orphaned
 "שלנו!" on its own line looked broken). Mask the logo edges (`WebkitMaskImage` radial) - its
 background isn't pure black, so `mix-blend-mode: screen` alone leaves a visible rectangle.

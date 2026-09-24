@@ -25,6 +25,7 @@ export const Root: React.FC = () => (
     <Still id="Welcome1" component={Welcome1} width={IW} height={IH} />
     <Still id="Welcome2" component={Welcome2} width={IW} height={IH} />
     <Still id="Welcome3" component={Welcome3} width={IW} height={IH} />
+    <Still id="Welcome3Grid" component={Welcome3} defaultProps={{grid: true}} width={IW} height={IH} />
     <Still id="Welcome4" component={Welcome4} width={IW} height={IH} />
   </>
 );
