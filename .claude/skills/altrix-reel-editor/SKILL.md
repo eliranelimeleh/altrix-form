@@ -67,9 +67,25 @@ should notice), then map it:
 - **Outro** texts (the offer + CTA pill). Speech end → `OUTRO_START`.
 - `SFX`: whoosh on each card entrance, ding on counters.
 
+### 5b. High-energy mode (long static screen recordings)
+When the user asks for a surprising hook, "more sounds and animations", or the recording has long
+stretches where only the trading terminal is visible ("שטחים מתים"), start from
+`template/examples/HighEnergy.Main.tsx` (reel #2, approved) instead of the plain template. It adds:
+- **Shock hook**: `<Slam>` stickers per word ("רגע! רגע! רגע!"), screen shake (`SHAKES`), red alarm
+  tint, giant emoji reactions (😱 🚨 📉), record scratch + boom SFX. Drop captions for words the
+  stickers already show.
+- **Full-screen `<Scene>`s** that take over dead footage while the voice continues: circle-wipe in,
+  animated grid + particles, one idea each (robot "מסחר אוטומטי", giant "0 התעסקות", orbiting icons,
+  gift + 1→10 counter, WhatsApp phone mock with pinging bubbles, ✅ checklist). Aim for something
+  new on screen every 2-4 s; alternate scenes with footage zooms so the proof stays visible.
+- **`<Ticket>`s** (BUY / SELL / CLOSE +$) popping on "פותח / סוגר / קונה / מוכר", a green
+  `<Scanner>` line over the trades table, "לבד!" stamps growing on each repetition.
+- Extra SFX from `sfx.py` (scratch, boom, pop, click, glitch, riser, sad, ping, swish) and music
+  with `DROP=<payoff time>` so the beat drops on the hook's payoff line.
+
 ### 6. Music
 ```bash
-python3 <skill>/scripts/music.py <work>/rem/public/music.wav <TOTAL+1> <big-number-time> <LOGO_SLAM>
+[DROP=<payoff-s>] python3 <skill>/scripts/music.py <work>/rem/public/music.wav <TOTAL+1> <big-number-time> <LOGO_SLAM>
 ```
 Sub-drop impacts land on the big reveal and the logo slam. Music sits at 0.16 under speech,
 rises to 0.6 for the outro (`musicVol`).
@@ -87,7 +103,7 @@ npx remotion still src/index.ts Main out.png --frame=N --scale=0.4 --browser-exe
 ```bash
 cd <work>/rem && bash <skill>/scripts/render.sh ../Reel_Name
 ```
-Produces `Reel_Name_hq.mp4` (master) and `Reel_Name.mp4` (Instagram delivery, -14 LUFS, <30MB).
+Produces `Reel_Name_hq.mp4` (master) and `Reel_Name.mp4` (Instagram delivery, -14 LUFS, bitrate sized to ~28MB so it can be sent in chat).
 Sample frames from the final file before sending. You can't hear the audio, so say that you
 checked levels only.
 
