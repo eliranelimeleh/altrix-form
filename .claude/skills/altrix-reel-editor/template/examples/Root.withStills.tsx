@@ -6,7 +6,7 @@ import '@fontsource/secular-one/hebrew-400.css';
 import '@fontsource/rubik/700.css';
 import '@fontsource/rubik/800.css';
 import '@fontsource/rubik/900.css';
-import {IH, IW, Welcome1, Welcome2} from './Welcome';
+import {IH, IW, Welcome1, Welcome2, Welcome3, Welcome4} from './Welcome';
 import {FPS, H, Main, TOTAL, W} from './Main';
 
 const handle = delayRender('fonts');
@@ -24,5 +24,7 @@ export const Root: React.FC = () => (
     <Composition id="Main" component={Main} durationInFrames={Math.round(TOTAL * FPS)} fps={FPS} width={W} height={H} />
     <Still id="Welcome1" component={Welcome1} width={IW} height={IH} />
     <Still id="Welcome2" component={Welcome2} width={IW} height={IH} />
+    <Still id="Welcome3" component={Welcome3} width={IW} height={IH} />
+    <Still id="Welcome4" component={Welcome4} width={IW} height={IH} />
   </>
 );

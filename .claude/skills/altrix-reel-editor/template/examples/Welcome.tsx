@@ -245,3 +245,144 @@ export const Welcome2: React.FC = () => (
     </div>
   </AbsoluteFill>
 );
+
+// ---------------------------------------------------------------- design 3: light glassmorphism fintech
+const Coin: React.FC<{x: number; y: number; s: number; rot: number}> = ({x, y, s, rot}) => (
+  <div style={{position: 'absolute', left: x, top: y, width: s, height: s, borderRadius: '50%', transform: `rotate(${rot}deg) scaleY(0.92)`,
+    background: 'radial-gradient(circle at 35% 30%, #fff6c9 0%, #f7d25a 28%, #d9a520 60%, #9c6a0c 100%)',
+    boxShadow: `0 ${s * 0.12}px ${s * 0.25}px rgba(120,80,0,0.35), inset 0 0 0 ${s * 0.06}px #f3c64a, inset 0 0 0 ${s * 0.1}px #b98314`,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Rubik', fontWeight: 900, fontSize: s * 0.45, color: '#8a5d05'}}>$</div>
+);
+
+export const Welcome3: React.FC = () => (
+  <AbsoluteFill style={{background: '#f4f1fb', fontFamily: 'Rubik', direction: 'rtl', overflow: 'hidden'}}>
+    {/* soft gradient mesh blobs */}
+    {[['#b58cff', -180, -160, 760], ['#7fe3c7', 620, 180, 640], ['#ffd27a', -120, 820, 620], ['#9fb6ff', 640, 900, 700]].map(([c, x, y, s], i) => (
+      <div key={i} style={{position: 'absolute', left: x as number, top: y as number, width: s as number, height: s as number, borderRadius: '50%',
+        background: c as string, filter: 'blur(110px)', opacity: 0.75}} />
+    ))}
+    <Coin x={850} y={975} s={150} rot={-15} />
+    <Coin x={950} y={1070} s={96} rot={20} />
+    <Coin x={40} y={1000} s={120} rot={12} />
+
+    {/* header */}
+    <div style={{position: 'absolute', top: 60, left: 0, right: 0, display: 'flex', justifyContent: 'center'}}>
+      <div style={{display: 'flex', alignItems: 'center', gap: 14, padding: '10px 26px', borderRadius: 40, background: 'rgba(255,255,255,0.6)',
+        border: '1.5px solid rgba(255,255,255,0.9)', boxShadow: '0 8px 30px rgba(80,40,160,0.12)', direction: 'ltr'}}>
+        <div style={{width: 46, height: 46, borderRadius: 12, overflow: 'hidden', background: '#0c0618'}}><Img src={staticFile('logo.jpg')} style={{width: 46, height: 46, transform: 'scale(1.9)'}} /></div>
+        <div style={{fontWeight: 800, fontSize: 30, letterSpacing: 6, color: '#2a1260'}}>ALTRIX</div>
+      </div>
+    </div>
+    <div style={{position: 'absolute', top: 180, left: 60, right: 60, textAlign: 'center'}}>
+      <div style={{fontWeight: 800, fontSize: 96, lineHeight: 1.05, color: '#1b0f3d'}}>ברוכים הבאים</div>
+      <div style={{fontWeight: 900, fontSize: 140, lineHeight: 1.08, backgroundImage: 'linear-gradient(90deg, #7b2ff7 0%, #b14bff 45%, #f2a900 100%)',
+        WebkitBackgroundClip: 'text', color: 'transparent'}}>לאלטריקס!</div>
+    </div>
+
+    {/* glass card */}
+    <div style={{position: 'absolute', top: 540, left: 60, right: 60, borderRadius: 44, padding: '56px 44px 40px', background: 'rgba(255,255,255,0.55)',
+      border: '2px solid rgba(255,255,255,0.95)', boxShadow: '0 30px 80px rgba(60,20,140,0.18)', backdropFilter: 'blur(20px)'}}>
+      <div style={{position: 'absolute', top: -34, right: 44, background: 'linear-gradient(135deg, #7b2ff7, #b14bff)', color: '#fff', fontWeight: 800, fontSize: 40,
+        padding: '10px 30px', borderRadius: 30, boxShadow: '0 12px 30px rgba(123,47,247,0.45)'}}><E c="1f381" /> קבלו מאיתנו בונוס</div>
+      {[
+        {bg: 'linear-gradient(135deg, #25D366, #0fa958)', icon: <ChatIcon size={70} />, t: <>הצטרפו לקבוצת הוואטסאפ<br /><b style={{color: '#0c9a4f'}}>החינמית</b> שלנו!</>},
+        {bg: 'linear-gradient(135deg, #ffd24d, #f2a900)', icon: <E c="1f916" size={70} />, t: <>קבלו את רובוט המסחר שלנו<br /><b style={{color: '#7b2ff7'}}>בחינם ל-10 ימים!</b></>},
+      ].map((r, i) => (
+        <div key={i} style={{display: 'flex', alignItems: 'center', gap: 28, padding: '34px 0', borderTop: i ? '2px dashed rgba(90,50,170,0.18)' : 'none'}}>
+          <div style={{width: 124, height: 124, borderRadius: 32, background: r.bg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 12px 26px rgba(0,0,0,0.15)'}}>{r.icon}</div>
+          <div style={{fontWeight: 700, fontSize: 50, lineHeight: 1.25, color: '#1b0f3d', textAlign: 'right'}}>{r.t}</div>
+        </div>
+      ))}
+    </div>
+
+    {/* mini chart chip */}
+    <div style={{position: 'absolute', top: 440, left: 60, transform: 'rotate(-6deg)', padding: '14px 20px', borderRadius: 24, background: 'rgba(255,255,255,0.8)',
+      boxShadow: '0 14px 34px rgba(60,20,140,0.18)', direction: 'ltr', display: 'flex', alignItems: 'center', gap: 14}}>
+      <svg width="120" height="50" viewBox="0 0 120 50"><path d="M2 44 L20 38 L34 40 L50 28 L64 31 L80 18 L96 20 L118 4" stroke="#0fa958" strokeWidth="5" fill="none" strokeLinecap="round" /></svg>
+      <div style={{fontWeight: 800, fontSize: 26, color: '#1b0f3d'}}>XAUUSD<div style={{color: '#0fa958', fontSize: 22}}>AUTO ●</div></div>
+    </div>
+
+    {/* CTA */}
+    <div style={{position: 'absolute', top: 1150, left: 0, right: 0, display: 'flex', justifyContent: 'center'}}>
+      <div style={{display: 'flex', alignItems: 'center', gap: 18, padding: '24px 46px', borderRadius: 60, background: '#1b0f3d', color: '#fff', fontWeight: 700, fontSize: 40,
+        boxShadow: '0 20px 40px rgba(27,15,61,0.35)'}}>
+        לחצו על הכפתור למטה כדי לקבל את הגישה
+        <div style={{width: 56, height: 56, borderRadius: 28, background: 'linear-gradient(135deg, #7b2ff7, #f2a900)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          <svg width="30" height="30" viewBox="0 0 24 24"><path d="M12 4v14M5 12l7 7 7-7" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </div>
+      </div>
+    </div>
+  </AbsoluteFill>
+);
+
+// ---------------------------------------------------------------- design 4: VIP access pass (neon green terminal)
+const NEON = '#39FF88';
+const Barcode: React.FC<{w: number; h: number}> = ({w, h}) => (
+  <div style={{display: 'flex', alignItems: 'stretch', gap: 3, width: w, height: h, direction: 'ltr'}}>
+    {new Array(46).fill(0).map((_, i) => <div key={i} style={{flex: random('bc' + i) > 0.6 ? 3 : 1, background: '#0b1a12'}} />)}
+  </div>
+);
+
+export const Welcome4: React.FC = () => (
+  <AbsoluteFill style={{background: '#040806', fontFamily: 'Heebo', direction: 'rtl', overflow: 'hidden'}}>
+    {/* rising candle wall */}
+    {new Array(26).fill(0).map((_, i) => {
+      const base = 900 - i * 22 + (random('w' + i) - 0.5) * 120, h = 60 + random('wh' + i) * 160, up = random('wu' + i) > 0.28;
+      return <div key={i} style={{position: 'absolute', left: 20 + i * 41, top: base, width: 22, height: h, borderRadius: 4, opacity: 0.28,
+        background: up ? NEON : '#ff4d6a', boxShadow: up ? `0 0 18px ${NEON}` : 'none'}} />;
+    })}
+    <AbsoluteFill style={{background: 'radial-gradient(ellipse at 50% 45%, transparent 0%, rgba(4,8,6,0.55) 55%, #040806 100%)'}} />
+    <AbsoluteFill style={{backgroundImage: `linear-gradient(${NEON}14 1px, transparent 1px), linear-gradient(90deg, ${NEON}14 1px, transparent 1px)`, backgroundSize: '54px 54px'}} />
+
+    {/* ticker tape */}
+    <div style={{position: 'absolute', top: 40, left: -40, right: -40, height: 64, background: NEON, transform: 'rotate(-2deg)', display: 'flex', alignItems: 'center',
+      gap: 40, whiteSpace: 'nowrap', direction: 'ltr', fontFamily: '"DejaVu Sans Mono", monospace', fontWeight: 700, fontSize: 30, color: '#04140a', paddingLeft: 30}}>
+      {new Array(4).fill(0).map((_, i) => <span key={i}>ALTRIX GOLD BOT ▲ AUTO-TRADING ● XAUUSD ▲ 10 DAYS FREE ●</span>)}
+    </div>
+
+    <div style={{position: 'absolute', top: 150, left: 0, right: 0, textAlign: 'center'}}>
+      <div style={{fontWeight: 900, fontSize: 100, lineHeight: 1, color: '#fff'}}>ברוכים הבאים</div>
+      <div style={{fontWeight: 900, fontSize: 150, lineHeight: 1.05, color: NEON, textShadow: `0 0 30px ${NEON}aa, 0 0 80px ${NEON}55`}}>לאלטריקס!</div>
+    </div>
+
+    {/* VIP pass */}
+    <div style={{position: 'absolute', top: 450, left: 70, right: 70, height: 640, transform: 'rotate(-2.5deg)'}}>
+      <div style={{position: 'absolute', inset: 0, borderRadius: 36, background: 'linear-gradient(160deg, #f4fff8 0%, #dffbea 100%)', boxShadow: `0 40px 80px rgba(0,0,0,0.6), 0 0 60px ${NEON}55`}} />
+      {/* perforation */}
+      <div style={{position: 'absolute', top: 470, left: 30, right: 30, borderTop: '5px dashed #9ad9b2'}} />
+      <div style={{position: 'absolute', top: 440, left: -34, width: 68, height: 68, borderRadius: 34, background: '#040806'}} />
+      <div style={{position: 'absolute', top: 440, right: -34, width: 68, height: 68, borderRadius: 34, background: '#040806'}} />
+      <div style={{position: 'absolute', top: 30, left: 40, right: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+        <div style={{background: '#04140a', color: NEON, fontWeight: 900, fontSize: 38, padding: '8px 24px', borderRadius: 14, direction: 'ltr', letterSpacing: 4}}>VIP PASS</div>
+        <div style={{fontWeight: 900, fontSize: 44, color: '#04140a'}}><E c="1f381" /> קבלו מאיתנו בונוס</div>
+      </div>
+      <div style={{position: 'absolute', top: 140, left: 40, right: 40}}>
+        {[
+          {icon: <ChatIcon size={70} />, t: <>הצטרפו לקבוצת הוואטסאפ<br /><span style={{color: '#0c9a4f'}}>החינמית</span> שלנו!</>},
+          {icon: <E c="1f916" size={70} />, t: <>קבלו את רובוט המסחר שלנו<br /><span style={{color: '#0c9a4f'}}>בחינם ל-10 ימים!</span></>},
+        ].map((r, i) => (
+          <div key={i} style={{display: 'flex', alignItems: 'center', gap: 22, marginBottom: 44}}>
+            <div style={{width: 108, height: 108, borderRadius: 24, background: '#04140a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0}}>{r.icon}</div>
+            <div style={{fontWeight: 900, fontSize: 48, lineHeight: 1.2, color: '#04140a', textAlign: 'right'}}>{r.t}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{position: 'absolute', top: 505, left: 40, right: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+        <div style={{direction: 'ltr', fontFamily: '"DejaVu Sans Mono", monospace', color: '#04140a'}}>
+          <div style={{fontSize: 22, opacity: 0.6}}>ACCESS</div>
+          <div style={{fontSize: 44, fontWeight: 700}}>10 DAYS · FREE</div>
+        </div>
+        <Barcode w={330} h={90} />
+      </div>
+    </div>
+
+    {/* CTA */}
+    <div style={{position: 'absolute', top: 1160, left: 0, right: 0, textAlign: 'center'}}>
+      <div style={{fontWeight: 800, fontSize: 44, color: '#fff'}}>לחצו על הכפתור למטה כדי לקבל את הגישה</div>
+      <div style={{marginTop: 16, display: 'inline-block', padding: '8px 40px', borderRadius: 40, border: `3px solid ${NEON}`, boxShadow: `0 0 26px ${NEON}88`}}>
+        <svg width="48" height="48" viewBox="0 0 24 24"><path d="M12 4v14M5 12l7 7 7-7" stroke={NEON} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </div>
+    </div>
+  </AbsoluteFill>
+);
