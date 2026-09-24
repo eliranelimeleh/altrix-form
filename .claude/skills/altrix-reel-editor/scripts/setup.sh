@@ -15,6 +15,7 @@ npm i --silent >/dev/null 2>&1
 mkdir -p public/emoji
 cp node_modules/@twemoji/svg/*.svg public/emoji/
 cp "$SKILL/assets/logo.jpg" public/logo.jpg
+mkdir -p public/faces && cp "$SKILL"/assets/faces/*.jpg public/faces/   # AI-generated faces (not real people) for chat mockups
 cp "$SRC" public/src.mp4
 python3 "$SKILL/scripts/sfx.py" public
 ffmpeg -loglevel error -y -i public/src.mp4 -ac 1 -ar 16000 "$WORK/audio.wav"
