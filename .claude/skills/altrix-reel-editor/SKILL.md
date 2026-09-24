@@ -159,6 +159,12 @@ the reel. Build it as a Remotion `<Still>` (1080×1350, Instagram 4:5) in the sa
   perspective grid, CTA pill + gold chevrons pointing at the ManyChat button below the image.
 - **Welcome2 - black & gold luxury**: Secular One title in metallic gold, tilted phone with the
   group chat + equity curve, gold "בונוס 10 ימים חינם" seal, gold check list, candlestick skyline.
+- **Welcome3 - light glassmorphism fintech**: pastel gradient-mesh blobs, frosted glass card with
+  app-style icon tiles, purple→gold gradient title, 3D CSS gold coins, dark CTA pill.
+- **Welcome4 - VIP access pass**: black + neon green terminal grid, green ticker tape, the offer
+  printed on a tilted "VIP PASS" ticket with perforation, barcode and "10 DAYS · FREE".
+When asked for "another style", pick a direction none of these used (e.g. editorial/print,
+3D render look, minimal mono) rather than recolouring one of them.
 Use the user's exact wording; put explicit `<br />` line breaks in Hebrew list items (orphaned
 "שלנו!" on its own line looked broken). Mask the logo edges (`WebkitMaskImage` radial) - its
 background isn't pure black, so `mix-blend-mode: screen` alone leaves a visible rectangle.
