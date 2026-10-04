@@ -26,6 +26,9 @@ def t_(d): return np.arange(int(d * SR)) / SR
 def add(buf, sig, start, gain=1.0):
     i = int(start * SR)
     if i >= N: return
+    if i < 0:  # starts before 0 (pre-drop bars when DROP < one bar): keep only the audible tail
+        sig = sig[-i:]; i = 0
+        if not len(sig): return
     sig = sig[: N - i]
     buf[i:i + len(sig)] += sig * gain
 def both(sig, start, gain=1.0, pan=0.0):
