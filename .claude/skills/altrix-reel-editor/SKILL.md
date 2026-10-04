@@ -175,6 +175,28 @@ background isn't pure black, so `mix-blend-mode: screen` alone leaves a visible 
 Render: `npx remotion still src/index.ts Welcome1 out.png --browser-executable=$B`.
 Extra fonts: `@fontsource/secular-one` (hebrew-400) and `@fontsource/rubik`, loaded in Root.
 
+## Testimonial clips from a client interview (split-screen, ~55s each)
+The approved format for cutting several short Instagram clips out of one Zoom/Meet client interview.
+Files: `template/examples/testimonial/` (`ClipEngine.tsx`, `clipdata.example.ts`, `sfxFor.ts`,
+`renderall.sh`) and `scripts/clip_base.py`.
+1. Transcribe the whole interview with BOTH ivrit-ai models (turbo + large-v3) - each drops or
+   mishears words the other gets. Pick strong statements: numbers, money, trust, "go wild".
+2. Write `clips.json` = `{"cA": [[start, end, "client"|"host"], ...]}`. Open with the most shocking
+   line as the hook, then the story. Check every edge with `find_cut.py` (Whisper word times can
+   be 0.3s off - e.g. "עוד" really started 0.3s later; a fake "כי" got clipped).
+3. `clip_base.py` builds `<name>_base.mp4`: client panel y110-1010 (1080x900), caption band
+   y1010-1300, host panel y1300-1920 (1080x620). Measure the tiles on a frame and set the crops;
+   if a face doesn't fit the panel aspect, the script fits it and fills the sides with a blurred,
+   darkened copy (no chopped chins).
+4. Re-transcribe each base with turbo, and use those times for the `raw` captions
+   (`word@t | ...`, `*` gold, `_` = space inside one token).
+5. Events: hook (2 lines, line 2 <= ~30 chars), focus, money, quote, stat, range, compare, multi,
+   stamp, scan, shield, phone, shake. `sfxFor` adds the matching SFX automatically.
+6. Music: `DROP=<hook end> music.py musicN.wav <len+4.3> <impacts>`. Register in `Root.tsx`, make
+   stills of key moments, then `renderall.sh C7 C8 ...` (sized to < 28MB, loudnorm -14).
+Privacy: if the client asks - no name anywhere (`clientName: ''`, cut the self-intro and any
+mention of the name). The outro keeps the disclaimer.
+
 ## Gotchas learned the hard way
 - Headless Chromium can't paint color-emoji fonts - emoji render as nothing. Use the `<E c="1f4b0"/>`
   Twemoji component (codepoint file names in `public/emoji/`).
@@ -189,3 +211,7 @@ Extra fonts: `@fontsource/secular-one` (hebrew-400) and `@fontsource/rubik`, loa
   (`(ffmpeg -i f 2>&1 || true) | grep ...`).
 - A container is ephemeral: the work dir is lost when the session ends. If the user may want
   more fixes later, keep the session alive or commit the per-video `Main.tsx`/`captions.ts`.
+- RTL hook text with "+8$" renders as "8$+": use Hebrew words around the numbers ("עוד 8$ · עוד 14$")
+  or an LTR element (the `multi` event picks the direction per text).
+- Caption words need an explicit per-word margin; flex `gap` collapsed in the render and short
+  words ran together ("כיעכשיויש").
