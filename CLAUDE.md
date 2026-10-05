@@ -12,4 +12,4 @@ Editing rules from the owner. Apply them to every future clip:
 - Audio must be clear. Use only complete sentences and never cut off the last word.
 - Use full Hebrew captions: large, bold and centered.
 - Effects, motion and money/impact moments are welcome, as long as they stay within the "real phone call with a real customer" framing.
-- Approved realistic style (clips 4-6 v3): real stock B-roll (Mixkit, free commercial licence) cropped to 9:16, phone-style "שיחה מוקלטת" call bar, karaoke captions, TV-style lower thirds, a generic trading-app balance mockup, customer review card with stars, whip/flash/light-leak transitions, small "צילומי אילוסטרציה" note.
+- Current realistic style (clips 4-6 v3): real stock B-roll (Mixkit, free commercial licence) cropped to 9:16, phone-style "שיחה מוקלטת" call bar, karaoke captions, TV-style lower thirds, a generic trading-app balance mockup, customer review card with stars, whip/flash/light-leak transitions, small "צילומי אילוסטרציה" note.
