@@ -197,6 +197,14 @@ Files: `template/examples/testimonial/` (`ClipEngine.tsx`, `clipdata.example.ts`
 Privacy: if the client asks - no name anywhere (`clientName: ''`, cut the self-intro and any
 mention of the name). The outro keeps the disclaimer.
 
+Solo variant (the owner's own screen recording with a webcam circle): `scripts/solo_base.py` puts
+the webcam circle big on top (circle-masked over a blurred copy of the screen) and a screen crop
+(MT5 trades / TradingView chart) in the bottom panel. In the clip data use `ring: true`,
+`tag: ['Altrix', '...']`, `quoteBy: 'Altrix'` and a `disclaimer` without "דברי הלקוח"
+(`clipdata.solo.example.ts`); range cards take `label` (default "מתוך הריאיון" is wrong here).
+Respect any time ranges the user excludes. Run heavy jobs one at a time - base building +
+Whisper + Remotion together restarted the container (out of memory).
+
 ## Gotchas learned the hard way
 - Headless Chromium can't paint color-emoji fonts - emoji render as nothing. Use the `<E c="1f4b0"/>`
   Twemoji component (codepoint file names in `public/emoji/`).
@@ -215,3 +223,5 @@ mention of the name). The outro keeps the disclaimer.
   or an LTR element (the `multi` event picks the direction per text).
 - Caption words need an explicit per-word margin; flex `gap` collapsed in the render and short
   words ran together ("כיעכשיויש").
+- "200,000$" at the end of an RTL sub-line renders as "$200,000": write "200 אלף דולר" in sub-lines,
+  titles and range labels; numbers are safe in the big LTR number slots and in captions.

@@ -43,11 +43,12 @@ export type Ev =
   | {type: 'scan'; at: number; to: number; text: string}
   | {type: 'compare'; at: number; to: number; a: {title: string; value: string; sub: string}; b: {title: string; value: string; sub: string}}
   | {type: 'multi'; at: number; to: number; steps: [number, string][]; sub: string}
-  | {type: 'range'; at: number; to: number; from: number; toV: number; suffix: string; sub: string}
+  | {type: 'range'; at: number; to: number; from: number; toV: number; suffix: string; sub: string; label?: string}
   | {type: 'shake'; at: number; amp: number};
 export type ClipData = {
   id: string; video: string; len: number; raw: string; speakers: [number, number, 'client' | 'host'][];
   joins: number[]; events: Ev[]; sfx: [number, string, number?][]; music: string; dropAt: number; clientName: string;
+  tag?: [string, string]; quoteBy?: string; disclaimer?: string; ring?: boolean;
 };
 
 export const parseRaw = (raw: string, end: number): Chunk[] => {
@@ -134,9 +135,11 @@ const Frames: React.FC<{d: ClipData}> = ({d}) => {
   return (
     <>
       {box('client')}{box('host')}
+      {d.ring ? <div style={{position: 'absolute', left: 540 - 432, top: PANELS.client.y + 450 - 432, width: 864, height: 864, borderRadius: 432, pointerEvents: 'none',
+        border: `7px solid ${PURPLE_LIGHT}`, boxShadow: `0 0 40px ${PURPLE}, 0 0 90px ${PURPLE}88, inset 0 0 30px ${PURPLE}88`}} /> : null}
       <div style={{position: 'absolute', top: PANELS.client.y + PANELS.client.h - 86, right: 26, direction: 'rtl', fontFamily: FONT, fontWeight: 800, fontSize: 34,
         color: '#fff', padding: '8px 22px', borderRadius: 30, background: 'rgba(12,6,24,0.72)', border: `2px solid ${GOLD}aa`}}>
-        {d.clientName ? <>{d.clientName} <span style={{color: GOLD}}>· לקוח Altrix</span></> : <><span style={{color: GOLD}}>לקוח Altrix</span> · ריאיון אמיתי</>}
+        {d.tag ? <><span style={{color: GOLD}}>{d.tag[0]}</span> · {d.tag[1]}</> : d.clientName ? <>{d.clientName} <span style={{color: GOLD}}>· לקוח Altrix</span></> : <><span style={{color: GOLD}}>לקוח Altrix</span> · ריאיון אמיתי</>}
       </div>
     </>
   );
@@ -283,7 +286,7 @@ const Quote: React.FC<{e: Extract<Ev, {type: 'quote'}>; who: string}> = ({e, who
         })}
       </div>
       <div style={{position: 'absolute', top: 1420, left: 0, right: 0, fontWeight: 800, fontSize: 44, color: PURPLE_LIGHT, opacity: interpolate(f / FPS, [e.at + 0.6, e.at + 0.9], [0, 1], clamp)}}>
-        — {who ? `${who}, ` : ''}לקוח Altrix
+        — {who}
       </div>
     </SceneShell>
   );
@@ -439,7 +442,7 @@ const Range: React.FC<{e: Extract<Ev, {type: 'range'}>}> = ({e}) => {
   const done = t > e.at + 1.6;
   return (
     <SceneShell at={e.at} to={e.to} tint="#C9A227">
-      <div style={{position: 'absolute', top: 230, left: 0, right: 0, fontWeight: 800, fontSize: 56, color: PURPLE_LIGHT}}>מתוך הריאיון</div>
+      <div style={{position: 'absolute', top: 230, left: 0, right: 0, fontWeight: 800, fontSize: 56, color: PURPLE_LIGHT}}>{e.label ?? 'מתוך הריאיון'}</div>
       <div style={{position: 'absolute', top: 330, left: 0, right: 0, direction: 'ltr', fontFamily: 'Rubik, Heebo', fontWeight: 900, fontSize: 200, lineHeight: 1,
         color: 'transparent', backgroundImage: `linear-gradient(180deg, #fff6c9, ${GOLD} 50%, #E0A800)`, WebkitBackgroundClip: 'text',
         filter: `drop-shadow(0 0 ${done ? 46 : 18}px ${GOLD}99)`, transform: `scale(${done ? interpolate(t, [e.at + 1.6, e.at + 1.9], [1.15, 1], clamp) : 1})`}}>
@@ -500,7 +503,7 @@ const Outro: React.FC<{d: ClipData}> = ({d}) => {
         <div style={{marginTop: 30, display: 'inline-block', fontWeight: 800, fontSize: 56, padding: '18px 46px', borderRadius: 60, background: `linear-gradient(135deg, ${WA}, #128C7E)`,
           boxShadow: `0 0 50px ${WA}88`, opacity: b, transform: `translateY(${(1 - b) * 60}px) scale(${1 + Math.sin(t * 6) * 0.03})`}}>הצטרפו לקבוצת הוואטסאפ <E c="1f447" /></div>
         <div style={{marginTop: 70, fontWeight: 400, fontSize: 26, color: '#9a8fb3', opacity: b, padding: '0 80px', lineHeight: 1.4}}>
-          דברי הלקוח משקפים את ניסיונו האישי. תוצאות עבר אינן מבטיחות תוצאות עתידיות, ומסחר כרוך בסיכון. אין לראות באמור ייעוץ השקעות.
+          {d.disclaimer ?? 'דברי הלקוח משקפים את ניסיונו האישי. תוצאות עבר אינן מבטיחות תוצאות עתידיות, ומסחר כרוך בסיכון. אין לראות באמור ייעוץ השקעות.'}
         </div>
       </div>
     </AbsoluteFill>
@@ -527,7 +530,7 @@ export const ClipComp: React.FC<{d: ClipData; chunks: Chunk[]}> = ({d, chunks}) 
       <Footage d={d} />
       <Frames d={d} />
       {d.events.map((e, i) => e.type === 'scan' ? <Scan key={i} e={e} /> : e.type === 'focus' ? <Focus key={i} e={e} /> : null)}
-      {d.events.map((e, i) => e.type === 'quote' ? <Quote key={i} e={e} who={d.clientName} /> : e.type === 'stat' ? <Stat key={i} e={e} />
+      {d.events.map((e, i) => e.type === 'quote' ? <Quote key={i} e={e} who={d.quoteBy ?? (d.clientName ? `${d.clientName}, לקוח Altrix` : 'לקוח Altrix')} /> : e.type === 'stat' ? <Stat key={i} e={e} />
         : e.type === 'phone' ? <Phone key={i} e={e} /> : e.type === 'shield' ? <Shield key={i} e={e} /> : null)}
       {d.events.map((e, i) => e.type === 'compare' ? <Compare key={i} e={e} /> : e.type === 'multi' ? <Multi key={i} e={e} /> : e.type === 'range' ? <Range key={i} e={e} /> : null)}
       {d.events.map((e, i) => e.type === 'money' ? <Money key={i} at={e.at} /> : null)}
