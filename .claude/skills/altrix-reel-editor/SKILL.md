@@ -205,6 +205,15 @@ the webcam circle big on top (circle-masked over a blurred copy of the screen) a
 Respect any time ranges the user excludes. Run heavy jobs one at a time - base building +
 Whisper + Remotion together restarted the container (out of memory).
 
+Meet recordings whose layout changes mid-call (side panel → 3 tiles → 2 tiles): `scripts/meet_base.py`
+picks the crop per segment by time, and `scripts/tighten_ranges.py` turns coarse `ranges.json` into
+segments with pauses > 0.4s removed (fast pace; a word span always counts as speech, so quiet
+reactions like "וואו" survive). Detect the switch times from frames and never let one segment span
+a switch.
+**No AI look when the user asks for it:** set `noZoom: true` and use no `focus`/`scan` events
+(the HUD "AI FOCUS" lock and zoom were rejected). Hooks, money, stat/range, compare, quote, stamp,
+shield are fine.
+
 ## Gotchas learned the hard way
 - Headless Chromium can't paint color-emoji fonts - emoji render as nothing. Use the `<E c="1f4b0"/>`
   Twemoji component (codepoint file names in `public/emoji/`).
@@ -225,3 +234,6 @@ Whisper + Remotion together restarted the container (out of memory).
   words ran together ("כיעכשיויש").
 - "200,000$" at the end of an RTL sub-line renders as "$200,000": write "200 אלף דולר" in sub-lines,
   titles and range labels; numbers are safe in the big LTR number slots and in captions.
+- A hook line that STARTS with a number renders reversed ("100% עובדת" came out "עובדת 100%",
+  "״1,400$ בחודשיים״" too): start hook lines with a Hebrew word ("המערכת עובדת 100%").
+- Compare-card values are direction-aware now; multi-word Hebrew values used to read backwards.

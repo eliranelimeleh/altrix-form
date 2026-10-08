@@ -48,7 +48,7 @@ export type Ev =
 export type ClipData = {
   id: string; video: string; len: number; raw: string; speakers: [number, number, 'client' | 'host'][];
   joins: number[]; events: Ev[]; sfx: [number, string, number?][]; music: string; dropAt: number; clientName: string;
-  tag?: [string, string]; quoteBy?: string; disclaimer?: string; ring?: boolean;
+  tag?: [string, string]; quoteBy?: string; disclaimer?: string; ring?: boolean; noZoom?: boolean;
 };
 
 export const parseRaw = (raw: string, end: number): Chunk[] => {
@@ -94,6 +94,7 @@ const Bg: React.FC = () => {
 
 const camAt = (d: ClipData, t: number) => {
   let s = 1, cy = H / 2;
+  if (d.noZoom) return {s, cy};
   for (const e of d.events) {
     if (e.type !== 'focus') continue;
     const w = Math.min(interpolate(t, [e.at - 0.15, e.at + 0.35], [0, 1], {...clamp, easing: Easing.out(Easing.cubic)}),
@@ -401,7 +402,7 @@ const Compare: React.FC<{e: Extract<Ev, {type: 'compare'}>}> = ({e}) => {
     <div style={{position: 'absolute', top, left: 70, right: 70, padding: '34px 40px', borderRadius: 40, background: 'rgba(20,10,40,0.85)',
       border: `4px solid ${col}`, boxShadow: `0 0 60px ${col}77, inset 0 0 50px ${col}22`, transform: `translateX(${(1 - s) * dir * 900}px) rotate(${(1 - s) * dir * 6}deg)`}}>
       <div style={{fontWeight: 800, fontSize: 50, color: col}}>{c.title}</div>
-      <div style={{direction: 'ltr', fontFamily: 'Rubik, Heebo', fontWeight: 900, fontSize: 130, lineHeight: 1.05, color: 'transparent',
+      <div style={{direction: /[א-ת]/.test(c.value) ? 'rtl' : 'ltr', fontFamily: 'Rubik, Heebo', fontWeight: 900, fontSize: /[א-ת]/.test(c.value) && c.value.length > 6 ? 104 : 130, lineHeight: 1.05, color: 'transparent',
         backgroundImage: `linear-gradient(180deg, #fff6c9, ${GOLD} 50%, #E0A800)`, WebkitBackgroundClip: 'text'}}>{c.value}</div>
       <div style={{fontWeight: 700, fontSize: 40, color: '#e9defa'}}>{c.sub}</div>
     </div>
