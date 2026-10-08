@@ -210,6 +210,9 @@ picks the crop per segment by time, and `scripts/tighten_ranges.py` turns coarse
 segments with pauses > 0.4s removed (fast pace; a word span always counts as speech, so quiet
 reactions like "וואו" survive). Detect the switch times from frames and never let one segment span
 a switch.
+When the user says the clips feel like "small pieces" and wants to hear the client: build 75-100s
+clips from long continuous stretches (story → numbers → recommendation), keep the host's questions,
+and loosen the pause cut (`MAXGAP=0.55, PRE=0.12, POST=0.18` in `tighten_ranges.py`).
 **No AI look when the user asks for it:** set `noZoom: true` and use no `focus`/`scan` events
 (the HUD "AI FOCUS" lock and zoom were rejected). Hooks, money, stat/range, compare, quote, stamp,
 shield are fine.
