@@ -300,6 +300,8 @@ class Chart {
     ctx.save(); ctx.globalAlpha *= alpha;
     if (frame) this.frame(ctx);
     this.grid(ctx);
+    this._drawn = FRAME;
+    if (this._pf === FRAME) { const q = this._pend; this._pend = []; q.forEach(f => f()); }
     const n = Math.min(this.c.length, Math.floor(reveal)), f = reveal - Math.floor(reveal);
     let last = null;
     this.clip(ctx, () => {
@@ -325,7 +327,13 @@ class Chart {
     return last;
   }
   // ---- annotations (chart space) ----
+  _defer(fn) { // called before draw() this frame -> run under the candles, after the panel is painted
+    if (this._drawn === FRAME) return false;
+    if (this._pf !== FRAME) { this._pend = []; this._pf = FRAME; }
+    this._pend.push(fn); return true;
+  }
   hline(ctx, p, i0, i1, o = {}) {
+    if (this._defer(() => this.hline(ctx, p, i0, i1, o))) return;
     const { color = C.purple2, width = 4, dash = null, progress = 1, glow = 16, alpha = 1 } = o;
     if (progress <= 0) return;
     const x0 = this.X(i0), x1 = lerp(x0, this.X(i1), E.outCubic(clamp(progress))), y = this.Y(p);
@@ -335,6 +343,7 @@ class Chart {
     });
   }
   zone(ctx, p0, p1, i0, i1, o = {}) {
+    if (this._defer(() => this.zone(ctx, p0, p1, i0, i1, o))) return;
     const { color = C.purple, progress = 1, alpha = 0.22, label = null } = o; if (progress <= 0) return;
     const x0 = this.X(i0), x1 = lerp(x0, this.X(i1), E.outCubic(clamp(progress))), y0 = this.Y(Math.max(p0, p1)), y1 = this.Y(Math.min(p0, p1));
     this.clip(ctx, () => {
@@ -442,27 +451,36 @@ function drawCaptions(ctx, t, chunks, spec, o = {}) {
   const clean = s => s.replace(/[.,:!]$/g, '').replace(/^["']|["']$/g, '');
   const ws = c.words.map(w => ({ ...w, s: clean(w.d) })).filter(w => w.s);
   if (!ws.length) return;
+  // runs of consecutive Latin words read left-to-right inside the RTL line: reverse each run
+  for (let i = 0; i < ws.length;) {
+    if (isHeb(ws[i].s)) { i++; continue; }
+    let j = i; while (j < ws.length && !isHeb(ws[j].s)) j++;
+    const run = ws.slice(i, j).reverse(); ws.splice(i, j - i, ...run); i = j;
+  }
   const gap = size * 0.38, widths = ws.map(w => measure(ctx, w.s, size, 900));
-  const total = widths.reduce((a, b) => a + b, 0) + gap * (ws.length - 1);
+  const pad = widths.map(w => w * 0.05); // room for the active word's scale-up
+  const total = widths.reduce((a, b) => a + b, 0) + pad.reduce((a, b) => a + b, 0) * 2 + gap * (ws.length - 1);
   const sc = Math.min(1, 980 / total);
   ctx.save(); ctx.translate(W / 2, y); const s0 = lerp(0.82, 1, E.outBack(clamp(p))); ctx.scale(sc * s0, sc * s0); ctx.globalAlpha = clamp(p * 2.5);
   let x = total / 2; // rtl: start at right
   ws.forEach((w, k) => {
+    x -= pad[k];
     const cx = x - widths[k] / 2, active = t >= w.t0 - 0.03, now = t >= w.t0 - 0.03 && t < w.t1 + 0.05;
     const key = (spec.keywords || []).some(kw => w.s.includes(kw)) || /[A-Za-z]/.test(w.s);
     const green = (spec.green || []).some(kw => w.s.includes(kw)), red = (spec.red || []).some(kw => w.s.includes(kw));
     let col = green ? '#3df2a6' : red ? '#ff5a72' : key ? C.purple2 : '#ffffff';
-    const sc2 = now ? 1.1 : 1;
+    const sc2 = now ? 1.08 : 1;
     ctx.save(); ctx.translate(cx, 0); ctx.scale(sc2, sc2);
     if (now && !green && !red && !key) col = C.gold;
     text(ctx, w.s, 0, 0, { size, weight: 900, color: active ? col : 'rgba(255,255,255,0.45)', stroke: 14, strokeColor: 'rgba(5,0,15,0.9)', glow: now ? 28 : 0, glowColor: col });
     ctx.restore();
-    x -= widths[k] + gap;
+    x -= widths[k] + pad[k] + gap;
   });
   ctx.restore();
 }
 
 // ---------- timeline / runtime ----------
+let FRAME = 0; // bumps per scene render; lets charts defer annotations drawn before the chart body
 const R = { tl: null, spec: null, scenes: null, caps: [], offA: null, offB: null, events: [] };
 function segLocal(seg, t) {
   const words = seg.words;
@@ -481,6 +499,7 @@ function impactsFor(seg) {
   return sc.events(segLocal(seg, seg.t0)).map(e => ({ ...e, t: seg.t0 + e.lt }));
 }
 function renderScene(ctx, seg, t) {
+  FRAME++;
   const s = segLocal(seg, t), sc = sceneOf(seg.id);
   // camera punch & shake from impacts
   let k = 1, sx = 0, sy = 0;
