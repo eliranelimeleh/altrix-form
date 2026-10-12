@@ -19,4 +19,4 @@ Requirements: python3 + numpy + requests, node 22, Playwright Chromium, ffmpeg.
 The ElevenLabs key comes from `ELEVENLABS_API_KEY`. Optional settings: `VOICE_NAME`, `VOICE_ID`, `MODEL_ID`,
 `TARGET_WPS`, `MAX_GAP`. To print the Instagram handle on the end card, add `"handle": "@your_handle"` to the script JSON.
 
-See `../.claude/skills/altrix-reels/SKILL.md` for how to write a new video.
+See `AGENT_GUIDE.md` (full playbook, Hebrew), `TOPICS.md` (done + next topics) and `../.claude/skills/altrix-reels/SKILL.md`.

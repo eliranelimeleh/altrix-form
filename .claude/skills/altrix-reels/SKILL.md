@@ -5,6 +5,13 @@ description: Produce ALTRIX-branded Hebrew educational trading reels (Instagram/
 
 # ALTRIX reels
 
+**Standing rule from the brand owner:** every time videos are requested, make a NEW topic with new
+practical value (pick from `videos/TOPICS.md`, never repeat a topic listed under "נעשו"), at exactly
+the same level of design, editing, pace and quality as v1/v2. Do not simplify. After delivering,
+move the topic to "נעשו". The full playbook (content formula, design system, editing grammar,
+voice, sound, QA checklist, known pitfalls) is `videos/AGENT_GUIDE.md`. Read it before writing a
+new video.
+
 Everything lives in `videos/`. A video is one script JSON plus one scene file; the
 pipeline does the rest and every animation is synced to the real voice timestamps.
 
