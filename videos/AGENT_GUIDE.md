@@ -40,7 +40,7 @@
 | `src/<id>.json` | הסקריפט: מקטעים (`segments`) עם הטקסט שנאמר (`say`), מילות מפתח לצביעה, ומיפוי תצוגה (`display`) |
 | `src/scenes_<id>.js` | הסצנות: מה מצויר בכל מקטע ומתי |
 | `src/engine.js` | המנוע: גרף בסגנון TradingView, טקסט, כתוביות, מעברים, מצלמה, רקע, גריין |
-| `src/common.js` | עזרים משותפים: `badge`, `scrim`, `warnIcon`, `override`, כרטיס הסיום `ctaDraw`, ובלוקים לסצנות: `headlines`, ‏`titleLock`, ‏`recapDraw`, ‏`tvToolbar`, ‏`indicatorDialog`, ‏`volumeBars`, ‏`stdChart` |
+| `src/common.js` | עזרים משותפים: `badge`, `scrim`, `warnIcon`, `override`, כרטיס הסיום `ctaDraw`, ובלוקים לסצנות: `headlines`, ‏`titleLock`, ‏`recapDraw`, ‏`tvToolbar`, ‏`indicatorDialog`, ‏`volumeBars`, ‏`stdChart`, ואינדיקטורים: `emaSeries`, ‏`rsiSeries`, ‏`lineSeries`, ‏`oscPane` (חלונית RSI), ‏`fibDraw`, ‏`goldenSpiral` |
 | `tools/tts.py` | קריינות: ElevenLabs, קיצוץ פאוזות, האצה, timeline |
 | `tools/render.mjs` | רינדור פריימים ל-mp4, ותמונות בדיקה (`--stills`) |
 | `tools/audio.py` | מוזיקה, אפקטים ומיקס |
@@ -273,3 +273,7 @@ ch.tag(ctx, 51, 68300, 'BOS', prog(lt, br, br + 0.4));   // התגית "קופצ
 | מילים ארוכות נדבקו בכתובית ("תחפשבאינדיקטורים") | מרווח נוסף של 5% מרוחב המילה, כי המילה הפעילה גדלה |
 | אזורים וקופסאות סיכון/סיכוי שצוירו לפני הגרף נעלמו מתחת לפאנל | `zone` ו-`hline` שנקראים לפני `draw()` נדחים אוטומטית ומצוירים מתחת לנרות |
 | מספר עם יחידה בתוך משפט עברי התהפך ("BTC 0.1", ‏"2R+") | ציור הטקסט העברי והמספר כשני אלמנטים נפרדים. המספר ב-JetBrains Mono |
+| מפתח ב-`display` עם סימן פיסוק ("ואף.") לא נתפס | החיפוש בודק עכשיו גם את המילה בלי פיסוק וגם עם פיסוק. עדיף לכתוב מפתחות בלי פיסוק |
+| כותרת באנגלית ארוכה ("RELATIVE STRENGTH INDEX") נחתכה | `titleLock` מקטין את הגופן אוטומטית עד שהטקסט נכנס ברוחב 960 |
+| תוויות פיבונאצ'י מחוץ לטווח הגרף ציירו מעל הכתוביות | תווית מצוירת רק כשהרמה בתוך שטח הגרף |
+| דיברגנס לא נראה בנתונים | לפני כתיבת סצנה עם אינדיקטור, מריצים סימולציה ב-node (‏`rsiSeries` / `emaSeries`) ומוודאים שהערכים מראים את מה שהקריינות אומרת |

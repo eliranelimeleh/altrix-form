@@ -66,7 +66,9 @@ function titleLock(ctx, lt, he, en, tHe, tEn, y = 800) {
   popT(ctx, W / 2, y, prog(lt, tHe - 0.05, tHe + 0.35), () => text(ctx, he, W / 2, y, { size: he.length > 9 ? 140 : 180, weight: 900, glow: 50, glowColor: C.purple }));
   ring(ctx, W / 2, y, 700, prog(lt, tHe, tHe + 0.7));
   const pk = prog(lt, tEn - 0.05, tEn + 0.6); if (pk <= 0) return;
-  text(ctx, en, W / 2, y + 190, { size: en.length > 14 ? 64 : 80, weight: 900, color: C.neon, spacing: lerp(50, 14, E.outExpo(pk)), glow: 30, glowColor: C.purple, alpha: clamp(pk * 2) });
+  const sp = lerp(50, 14, E.outExpo(pk)); let fs = en.length > 14 ? 64 : 80;
+  while (fs > 30 && measure(ctx, en, fs, 900, FONT, sp) > 960) fs -= 2;
+  text(ctx, en, W / 2, y + 190, { size: fs, weight: 900, color: C.neon, spacing: sp, glow: 30, glowColor: C.purple, alpha: clamp(pk * 2) });
   const sx = lerp(-300, W + 300, prog(lt, tEn + 0.1, tEn + 0.9));
   ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createLinearGradient(sx - 120, 0, sx + 120, 0);
   g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,230,255,0.35)'); g.addColorStop(1, 'rgba(255,255,255,0)');
@@ -156,4 +158,67 @@ function stdChart(ch, lt, frames, o = {}) {
   const [i0, i1] = kf(lt, frames); ch.layout(...(o.panel || PANEL_STD), o.layout || {});
   if (o.p) ch.view(i0, i1, ...o.p); else ch.view(i0, i1, ...ch.autoP(o.autoFrom ?? i0, o.autoTo ?? i1, o.pad ?? 0.14));
   return ch;
+}
+
+// ---------- indicators (v8+) ----------
+function emaSeries(cs, n) { const k = 2 / (n + 1); let e = cs[0].c; return cs.map(q => (e = q.c * k + e * (1 - k))); }
+function rsiSeries(cs, n = 14) {
+  let ag = 0, al = 0; const out = [50];
+  for (let i = 1; i < cs.length; i++) {
+    const ch = cs[i].c - cs[i - 1].c, g = Math.max(0, ch), l = Math.max(0, -ch);
+    if (i <= n) { ag += g / n; al += l / n; } else { ag = (ag * (n - 1) + g) / n; al = (al * (n - 1) + l) / n; }
+    out.push(al === 0 ? 100 : 100 - 100 / (1 + ag / al));
+  }
+  return out;
+}
+// polyline of per-candle values in chart space, revealed up to `reveal`
+function lineSeries(ctx, ch, vals, reveal, o = {}) {
+  const { color = C.gold, width = 4, glow = 14, alpha = 1, from = 0 } = o, n = Math.min(vals.length, reveal);
+  if (n < 2) return;
+  ch.clip(ctx, () => {
+    ctx.save(); ctx.globalAlpha *= alpha; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = 'round'; ctx.shadowColor = color; ctx.shadowBlur = glow;
+    ctx.beginPath(); for (let i = Math.max(from, Math.floor(ch.v.i0) - 1); i < n; i++) { const x = ch.X(i), y = ch.Y(vals[i]); i === Math.max(from, Math.floor(ch.v.i0) - 1) ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    ctx.stroke(); ctx.restore();
+  });
+}
+// oscillator pane under a chart; returns y-mapper. Uses the chart's X mapping.
+function oscPane(ctx, ch, y, h, vals, reveal, o = {}) {
+  const { lo = 0, hi = 100, levels = [30, 70], color = '#b388ff', label = 'RSI 14' } = o;
+  const x = ch.r.x, w = ch.r.w, Y = v => y + 20 + (1 - (v - lo) / (hi - lo)) * (h - 40);
+  ctx.save(); rrect(ctx, x, y, w, h, 24); ctx.fillStyle = C.panel; ctx.shadowColor = 'rgba(140,70,255,0.45)'; ctx.shadowBlur = 40; ctx.fill(); ctx.shadowBlur = 0;
+  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(200,150,255,0.5)'; ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.fillStyle = 'rgba(126,87,194,0.12)'; ctx.fillRect(ch.p.x, Y(levels[1]), ch.p.w, Y(levels[0]) - Y(levels[1])); ctx.restore();
+  levels.forEach(l => { ctx.save(); ctx.setLineDash([8, 8]); ctx.strokeStyle = 'rgba(200,190,235,0.45)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ch.p.x, Y(l)); ctx.lineTo(ch.p.x + ch.p.w, Y(l)); ctx.stroke(); ctx.restore();
+    text(ctx, String(l), ch.p.x + ch.p.w + 16, Y(l), { size: 24, weight: 600, fam: MONO, color: C.axis, align: 'left' }); });
+  text(ctx, label, x + 30, y + 30, { size: 24, weight: 700, fam: MONO, color, align: 'left' });
+  const n = Math.min(vals.length, reveal);
+  ctx.save(); ctx.beginPath(); ctx.rect(ch.p.x, y, ch.p.w, h); ctx.clip();
+  ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.shadowColor = color; ctx.shadowBlur = 12; ctx.lineJoin = 'round'; ctx.beginPath();
+  let first = true; for (let i = Math.max(0, Math.floor(ch.v.i0) - 1); i < n; i++) { const px = ch.X(i), py = Y(vals[i]); first ? ctx.moveTo(px, py) : ctx.lineTo(px, py); first = false; }
+  ctx.stroke(); ctx.restore();
+  return Y;
+}
+// Fibonacci retracement between low (iL,pL) and high (iH,pH); levels pop in with `p`, golden zone highlight `gz`
+const FIBS = [[0, '#787b86'], [0.236, '#f23645'], [0.382, '#ff9800'], [0.5, '#4caf50'], [0.618, '#089981'], [0.786, '#00bcd4'], [1, '#787b86']];
+function fibDraw(ctx, ch, iL, pL, iH, pH, i1, p, o = {}) {
+  const { gz = 0, hi = [], alpha = 1 } = o, lv = r => pH - r * (pH - pL);
+  if (gz > 0) ch.zone(ctx, lv(0.5), lv(0.618), Math.min(iL, iH), i1, { color: C.gold, alpha: 0.28 * gz, progress: gz });
+  FIBS.forEach(([r, col], k) => {
+    const pk = clamp((p * 1.6 - k * 0.1) * 2); if (pk <= 0) return;
+    const on = hi.includes(r);
+    ch.hline(ctx, lv(r), Math.min(iL, iH), i1, { color: col, width: on ? 5 : 2.5, glow: on ? 24 : 6, progress: pk, alpha: alpha * (on || !hi.length ? 1 : 0.55) });
+    const ly = ch.Y(lv(r)); if (pk > 0.6 && ly > ch.p.y + 20 && ly < ch.p.y + ch.p.h - 10) text(ctx, `${r} (${fmt(lv(r))})`, ch.p.x + 14, ch.Y(lv(r)) - (on ? 18 : 14), { size: on ? 26 : 21, weight: 700, fam: MONO, color: col, align: 'left', alpha: alpha * clamp((pk - 0.6) * 3), stroke: 6 });
+  });
+  return lv;
+}
+function goldenSpiral(ctx, cx, cy, size, p, alpha = 0.5) {
+  const phi = 1.618; let s = size, x = cx, y = cy, a = 0, total = 9, drawn = p * total;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = C.gold; ctx.lineWidth = 4; ctx.shadowColor = C.gold; ctx.shadowBlur = 20;
+  for (let k = 0; k < total && k < drawn; k++) {
+    const f = Math.min(1, drawn - k), ox = x + Math.cos(a + Math.PI) * 0, oy = y;
+    ctx.beginPath(); ctx.arc(ox, oy, s, a, a + Math.PI / 2 * f); ctx.stroke();
+    const nx = ox + Math.cos(a + Math.PI / 2) * s * (1 - 1 / phi), ny = oy + Math.sin(a + Math.PI / 2) * s * (1 - 1 / phi);
+    x = nx; y = ny; s /= phi; a += Math.PI / 2;
+  }
+  ctx.restore();
 }

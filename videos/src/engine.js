@@ -435,7 +435,7 @@ function buildCaptions(tl, spec) {
     let cur = [];
     const flush = () => { if (cur.length) chunks.push({ seg: s.id, words: cur }); cur = []; };
     s.words.forEach((w, k) => {
-      const raw = w.w, disp = (spec.display || {})[raw.replace(/[.,:?!]/g, '')] ?? raw;
+      const raw = w.w, dm = spec.display || {}, disp = dm[raw.replace(/[.,:?!]/g, '')] ?? dm[raw] ?? dm[raw.replace(/[.,:?!]+$/, '')] ?? raw;
       cur.push({ ...w, d: disp });
       const len = cur.reduce((a, x) => a + x.d.length, 0);
       if (/[.,:?!]$/.test(raw) || cur.length >= 3 || len > 15) flush();
