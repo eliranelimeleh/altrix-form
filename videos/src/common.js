@@ -236,3 +236,41 @@ function intervalPopup(ctx, lt, val, t0, tEnter) {
   text(ctx, val.slice(0, n) + (Math.floor(lt * 3) % 2 ? '|' : ''), 360, 836, { size: 52, weight: 800, align: 'left', fam: MONO });
   ctx.restore();
 }
+
+// ---------- v18+ indicators ----------
+function smaSeries(cs, n) { const out = []; let s = 0; cs.forEach((q, i) => { s += q.c; if (i >= n) s -= cs[i - n].c; out.push(s / Math.min(i + 1, n)); }); return out; }
+function bollinger(cs, n = 20, k = 2) {
+  const m = smaSeries(cs, n);
+  return cs.map((q, i) => { const a = Math.max(0, i - n + 1), xs = cs.slice(a, i + 1).map(x => x.c), sd = Math.sqrt(xs.reduce((t, x) => t + (x - m[i]) ** 2, 0) / xs.length); return { m: m[i], u: m[i] + k * sd, l: m[i] - k * sd }; });
+}
+// VWAP with a reset every `day` candles
+function vwapSeries(cs, vols, day = 1e9) {
+  let pv = 0, v = 0; return cs.map((q, i) => { if (i % day === 0) { pv = 0; v = 0; } const tp = (q.h + q.l + q.c) / 3; pv += tp * vols[i]; v += vols[i]; return pv / v; });
+}
+// price-volume histogram from candles [i0, i1)
+function profileBins(cs, vols, i0, i1, lo, hi, n = 42) {
+  const bins = new Array(n).fill(0), step = (hi - lo) / n;
+  for (let i = Math.max(0, i0); i < Math.min(cs.length, i1); i++) {
+    const q = cs[i], a = Math.max(0, Math.floor((q.l - lo) / step)), b = Math.min(n - 1, Math.floor((q.h - lo) / step)), share = vols[i] / Math.max(1, b - a + 1);
+    for (let k = a; k <= b; k++) bins[k] += share;
+  }
+  const poc = bins.indexOf(Math.max(...bins)), total = bins.reduce((x, y) => x + y, 0);
+  let va0 = poc, va1 = poc, acc = bins[poc];
+  while (acc < total * 0.7 && (va0 > 0 || va1 < n - 1)) { const dn = va0 > 0 ? bins[va0 - 1] : -1, up = va1 < n - 1 ? bins[va1 + 1] : -1; if (up >= dn) acc += bins[++va1]; else acc += bins[--va0]; }
+  return { bins, step, lo, poc, va0, va1, price: k => lo + (k + 0.5) * step };
+}
+function drawProfile(ctx, ch, P, p = 1, o = {}) {
+  const { width = 300, colIn = 'rgba(168,85,247,0.55)', colOut = 'rgba(168,85,247,0.2)', colPoc = C.gold, hi = null, alpha = 1 } = o;
+  const mx = Math.max(...P.bins), xr = ch.p.x + ch.p.w;
+  ch.clip(ctx, () => {
+    ctx.save(); ctx.globalAlpha *= alpha;
+    P.bins.forEach((b, k) => {
+      const y0 = ch.Y(P.lo + (k + 1) * P.step), y1 = ch.Y(P.lo + k * P.step), w = b / mx * width * E.outCubic(clamp(p * 1.4 - (1 - k / P.bins.length) * 0.4));
+      const inVA = k >= P.va0 && k <= P.va1, isPoc = k === P.poc, isHi = hi && hi(k);
+      ctx.fillStyle = isPoc ? colPoc : isHi ? '#ff5a72' : inVA ? colIn : colOut;
+      if (isPoc || isHi) { ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 20; } else ctx.shadowBlur = 0;
+      ctx.fillRect(xr - w, y0 + 1, w, Math.max(1, y1 - y0 - 2));
+    });
+    ctx.restore();
+  });
+}
