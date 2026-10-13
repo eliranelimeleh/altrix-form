@@ -21,7 +21,7 @@ function ctaDraw(ctx, s, word) {
   const { lt, d } = s;
   drawBG(ctx, s.t, { rain: 2.2, glow: 1.4 });
   const pl = E.outCubic(prog(lt, 0, 0.8));
-  wipeText(ctx, 'רוצה עוד שיעורים כאלה?', W / 2, 330, prog(lt, 0.05, 0.45), { size: 66, weight: 900 });
+  wipeText(ctx, (R.spec && R.spec.ctaTitle) || 'רוצה עוד שיעורים כאלה?', W / 2, 330, prog(lt, 0.05, 0.45), { size: 66, weight: 900 });
   ctx.save(); ctx.globalAlpha = pl; const sc = lerp(1.35, 1, pl) * (1 + 0.012 * Math.sin(lt * 3));
   ctx.translate(W / 2, 800); ctx.scale(sc, sc); ctx.translate(-W / 2, -800);
   drawLogo(ctx, W / 2, 800, 1000, 1); drawLogo(ctx, W / 2, 800, 1000, 0.35 + 0.25 * Math.sin(lt * 4));

@@ -20,7 +20,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API = "https://api.elevenlabs.io"
 SR = 44100
 LEAD = 0.25      # silence before first word
-TAIL = 2.6       # hold after last word (CTA end card)
+TAIL = 2.8       # hold after last word (CTA end card)
 
 
 def hdrs():
@@ -200,7 +200,7 @@ def main():
         audio, words = tighten(audio, words, float(os.environ.get("MAX_GAP", 0.32)))
         speech = words[-1]["t1"] - words[0]["t0"]
         wps = len(words) / speech
-        tempo = min(float(os.environ.get("MAX_TEMPO", 1.22)), max(1.0, float(os.environ.get("TARGET_WPS", 2.9)) / wps))
+        tempo = min(float(os.environ.get("MAX_TEMPO", 1.22)), max(1.0, float(os.environ.get("TARGET_WPS", 2.75)) / wps))
         print(f"rate {wps:.2f} words/s -> tempo x{tempo:.3f}")
         audio = atempo(audio, tempo)
         for w in words:

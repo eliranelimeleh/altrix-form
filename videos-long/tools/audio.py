@@ -89,8 +89,9 @@ def add(buf, x, at, gain=1.0, pan=0.0):
     buf[i:i + len(x), 1] += x * gain * (1 + min(0, pan))
 
 
-def music(dur):
-    buf = np.zeros((int(dur * SR) + SR, 2))
+def music(dur, breaks=()):
+    """breaks: [(t0, t1)] windows (chapter cards) where the drums drop out and come back on a hit."""
+    buf = np.zeros((int(dur * SR) + SR, 2)); drums = np.zeros_like(buf)
     beat = 60 / BPM; bar = beat * 4
     prog = [(57, [69, 72, 76]), (53, [65, 69, 72]), (48, [64, 67, 72]), (55, [62, 67, 71])]  # Am F C G
     nb = int(dur / bar) + 1
@@ -105,13 +106,20 @@ def music(dur):
         if intro:
             continue
         for k in (0, 2.5, 3.0) if b % 2 else (0, 1.75, 2.5):
-            add(buf, K, t0 + k * beat, 0.9)
+            add(drums, K, t0 + k * beat, 0.9)
         for k in (1, 3):
-            add(buf, CL, t0 + k * beat, 0.8, pan=0.05)
+            add(drums, CL, t0 + k * beat, 0.8, pan=0.05)
         for s in range(8):
-            add(buf, HO if s == 7 and b % 4 == 3 else H, t0 + s * beat / 2, 1.0 if s % 2 else 0.6, pan=-0.3)
+            add(drums, HO if s == 7 and b % 4 == 3 else H, t0 + s * beat / 2, 1.0 if s % 2 else 0.6, pan=-0.3)
         for k in (0, 1.5, 2.5, 3.5):
-            add(buf, sub(root - 12, beat * 0.9), t0 + k * beat, 1.0)
+            add(drums, sub(root - 12, beat * 0.9), t0 + k * beat, 1.0)
+    # drum breaks: mute drums inside each window (short ramps), re-enter with a kick on the drop
+    g = np.ones(drums.shape[0]); tt = np.arange(drums.shape[0]) / SR
+    for a, b in breaks:
+        g = np.minimum(g, np.clip(np.maximum((a - tt) / 0.12, (tt - b) / 0.05), 0, 1))
+    buf += drums * g[:, None]
+    for a, b in breaks:
+        add(buf, K, b, 1.0)
     # fade in/out
     n = buf.shape[0]; t = np.arange(n) / SR
     buf *= np.minimum(1, t / 0.4)[:, None] * np.clip((dur - t) / 1.6, 0, 1)[:, None]
@@ -163,6 +171,13 @@ SFX = {"whoosh": (whoosh, 0.8), "impact": (impact, 0.9), "pop": (pop, 0.7), "cli
        "key": (key, 0.9), "riser": (riser, 0.6)}
 
 
+def movavg(x, n):  # same as np.convolve(x, ones(n)/n, "same"), O(len) for long tracks
+    c = np.cumsum(np.concatenate([np.zeros(1), x]))
+    a = np.arange(len(x)) - (n - 1) // 2
+    lo, hi = np.clip(a, 0, len(x)), np.clip(a + n, 0, len(x))
+    return (c[hi] - c[lo]) / n
+
+
 def read_wav(p):
     with wave.open(p) as f:
         a = np.frombuffer(f.readframes(f.getnframes()), np.int16).astype(np.float32) / 32767
@@ -178,11 +193,12 @@ def main():
     n = int(dur * SR)
     voice = read_wav(os.path.join(d, "voice.wav"))[:n]
     voice = np.pad(voice, (0, n - len(voice)))
-    mus = music(dur)
+    breaks = [(s["t0"] + 0.1, s["t1"]) for s in tl["segments"] if s["id"].startswith("ch")]
+    mus = music(dur, breaks)
     # sidechain: duck music under the voice
-    e = np.convolve(np.abs(voice), np.ones(2205) / 2205, mode="same")
+    e = movavg(np.abs(voice), 2205)
     duck = 1 - 0.6 * np.clip(e / 0.03, 0, 1)
-    duck = np.convolve(duck, np.ones(4410) / 4410, mode="same")
+    duck = movavg(duck, 4410)
     out = mus * 0.55 * duck[:, None]
     cache = {}
     for x in ev:

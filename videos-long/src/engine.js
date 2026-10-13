@@ -479,6 +479,29 @@ function drawCaptions(ctx, t, chunks, spec, o = {}) {
   ctx.restore();
 }
 
+// ---------- chapters (long format) ----------
+// spec.chapters = [{seg: 'ch1', he: 'title'}...]; chapter 0 = everything before the first card
+function chapterSpans() {
+  const segs = R.tl.segments, ch = (R.spec.chapters || []).map(c => ({ ...c, t0: (segs.find(s => s.id === c.seg) || {}).t0 })).filter(c => c.t0 !== undefined);
+  const out = [{ seg: segs[0].id, he: R.spec.hookTitle || 'פתיחה', t0: 0 }, ...ch];
+  out.forEach((c, k) => { c.t1 = k + 1 < out.length ? out[k + 1].t0 : R.tl.duration; c.n = k; });
+  return out;
+}
+function chapterBar(ctx, t, segId) {
+  const sp = R.chap || (R.chap = chapterSpans()), gap = 8, n = sp.length, bw = (W - gap * (n - 1)) / n;
+  sp.forEach((c, k) => { // rtl: chapter 0 at the right
+    const x = W - (k + 1) * bw - k * gap, f = clamp((t - c.t0) / (c.t1 - c.t0));
+    ctx.fillStyle = 'rgba(255,255,255,0.13)'; ctx.fillRect(x, 0, bw, 9);
+    if (f > 0) { const g = ctx.createLinearGradient(x + bw, 0, x, 0); g.addColorStop(0, C.violet); g.addColorStop(1, C.neon); ctx.fillStyle = g; ctx.fillRect(x + bw * (1 - f), 0, bw * f, 9); }
+  });
+  const cur = sp.filter(c => t >= c.t0).pop();
+  if (!cur || cur.n === 0 || segId === 'cta' || segId === cur.seg) return;
+  const a = clamp((t - cur.t0 - 2.2) / 0.4) * 0.85; if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a;
+  text(ctx, `פרק ${cur.n} · ${cur.he}`, W - 34, 46, { size: 30, weight: 800, color: C.neon, align: 'right', stroke: 8, strokeColor: 'rgba(5,0,15,0.85)' });
+  ctx.restore();
+}
+
 // ---------- timeline / runtime ----------
 let FRAME = 0; // bumps per scene render; lets charts defer annotations drawn before the chart body
 const R = { tl: null, spec: null, scenes: null, caps: [], offA: null, offB: null, events: [] };
@@ -565,10 +588,7 @@ function renderAt(t) {
   if (sc.captions !== false) drawCaptions(ctx, t, R.caps, R.spec, sc.capStyle || {});
   // watermark + progress
   if (segs[idx].id !== 'cta') drawLogo(ctx, W / 2, 168, 210, 0.9, 'mark');
-  const pr = t / R.tl.duration;
-  ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(0, 0, W, 8);
-  const pg = ctx.createLinearGradient(0, 0, W, 0); pg.addColorStop(0, C.violet); pg.addColorStop(1, C.neon);
-  ctx.fillStyle = pg; ctx.fillRect(W * (1 - pr), 0, W * pr, 8); // rtl progress
+  chapterBar(ctx, t, segs[idx].id);
   if (R.tl.preview) text(ctx, 'PREVIEW · ללא קול', W / 2, 1800, { size: 26, weight: 700, color: 'rgba(255,255,255,0.35)' });
   // film look
   ctx.drawImage(A.vign, 0, 0);
@@ -576,7 +596,7 @@ function renderAt(t) {
   ctx.restore();
 }
 async function setup(tl, spec) {
-  R.tl = tl; R.spec = spec; R.scenes = window.SCENES;
+  R.tl = tl; R.spec = spec; R.scenes = window.SCENES; R.chap = null;
   R.offA = document.createElement('canvas'); R.offB = document.createElement('canvas');
   R.offA.width = R.offB.width = W; R.offA.height = R.offB.height = H;
   await loadAssets();
