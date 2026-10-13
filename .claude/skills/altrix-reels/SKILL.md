@@ -39,6 +39,13 @@ node videos/tools/render.mjs v1 --stills hook@0.5,bos@0.9   # review frames -> b
    plus whoosh/impact/pop/click/key/riser SFX from the events.
 4. ffmpeg mux, loudnorm -14 LUFS.
 
+## From a YouTube video
+
+Given a YouTube link, run `python3 videos/tools/yt_transcript.py <url>` (pip install yt-dlp) to get title,
+chapters and a timestamped transcript; split long videos by chapter/topic into separate reels and rewrite
+each idea as an original Hebrew ALTRIX lesson (never a word-for-word translation). On HTTP 429 or no
+captions, ask the owner to paste the transcript.
+
 ## Writing a new video
 
 - `src/<id>.json`: `segments: [{id, say}]`, Hebrew, short punchy sentences, 55-80s total.
