@@ -8,7 +8,9 @@ description: Produce ALTRIX-branded Hebrew educational trading reels (Instagram/
 **Standing rule from the brand owner:** every time videos are requested, make a NEW topic with new
 practical value (pick from `videos/TOPICS.md`, never repeat a topic listed under "נעשו"), at exactly
 the same level of design, editing, pace and quality as v1/v2. Do not simplify. After delivering,
-move the topic to "נעשו". The full playbook (content formula, design system, editing grammar,
+move the topic to "נעשו". Every finished video is also copied to the repo-root folder
+`ALTRIX VIDEOS BY CLAUDE/` as `NN - <title>.mp4` (`videos/tools/publish.sh <id>`, run automatically by
+`build.sh`); commit and push that folder so the owner gets every video. The full playbook (content formula, design system, editing grammar,
 voice, sound, QA checklist, known pitfalls) is `videos/AGENT_GUIDE.md`. Read it before writing a
 new video.
 

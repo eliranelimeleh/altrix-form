@@ -92,7 +92,7 @@ function recapDraw(ctx, s, title, cards) {
     else if (ic === 'check') check(ctx, ix, iy, 58, 1, col);
     else if (ic === 'cross') cross(ctx, ix, iy, 58, 1, col);
     else if (ic === 'warn') warnIcon(ctx, ix, iy, 60, 1);
-    else { ctx.save(); ctx.beginPath(); ctx.arc(ix, iy, 62, 0, Math.PI * 2); ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 30; ctx.fill(); ctx.restore(); text(ctx, String(ic), ix, iy + 4, { size: 70, weight: 900 }); }
+    else { ctx.save(); ctx.beginPath(); ctx.arc(ix, iy, 62, 0, Math.PI * 2); ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 30; ctx.fill(); ctx.restore(); const lbl = String(ic); text(ctx, lbl, ix, iy + 4, { size: lbl.length > 2 ? 40 : lbl.length > 1 ? 52 : 70, weight: 900, fam: /[A-Za-z0-9]/.test(lbl) ? FONT : FONT }); }
     ctx.restore();
   });
 }
@@ -220,5 +220,19 @@ function goldenSpiral(ctx, cx, cy, size, p, alpha = 0.5) {
     const nx = ox + Math.cos(a + Math.PI / 2) * s * (1 - 1 / phi), ny = oy + Math.sin(a + Math.PI / 2) * s * (1 - 1 / phi);
     x = nx; y = ny; s /= phi; a += Math.PI / 2;
   }
+  ctx.restore();
+}
+
+function atrSeries(cs, n = 14) {
+  let a = cs[0].h - cs[0].l; return cs.map((q, i) => { const tr = i ? Math.max(q.h - q.l, Math.abs(q.h - cs[i - 1].c), Math.abs(q.l - cs[i - 1].c)) : q.h - q.l; a = i < n ? (a * i + tr) / (i + 1) : (a * (n - 1) + tr) / n; return a; });
+}
+// TradingView-like "change interval" popup typed on the chart
+function intervalPopup(ctx, lt, val, t0, tEnter) {
+  const p = prog(lt, t0 - 0.1, t0 + 0.2) * (1 - prog(lt, tEnter + 0.15, tEnter + 0.35)); if (p <= 0) return;
+  ctx.save(); ctx.globalAlpha = p; glass(ctx, 290, 700, 500, 220, 24, { fill: 'rgba(22,16,40,0.97)' });
+  text(ctx, 'Change interval', 330, 750, { size: 30, weight: 700, align: 'left', color: C.axis });
+  rrect(ctx, 330, 790, 420, 90, 14); ctx.fillStyle = '#0d0a19'; ctx.fill(); ctx.strokeStyle = C.purple; ctx.lineWidth = 3; ctx.stroke();
+  const n = Math.min(val.length, Math.floor(prog(lt, t0, t0 + val.length * 0.12) * val.length + 0.001));
+  text(ctx, val.slice(0, n) + (Math.floor(lt * 3) % 2 ? '|' : ''), 360, 836, { size: 52, weight: 800, align: 'left', fam: MONO });
   ctx.restore();
 }

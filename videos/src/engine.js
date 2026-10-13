@@ -349,7 +349,7 @@ class Chart {
     this.clip(ctx, () => {
       ctx.save(); ctx.globalAlpha *= alpha; ctx.fillStyle = color; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.globalAlpha /= alpha;
       ctx.globalAlpha *= 0.9; ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0); ctx.restore();
-      if (label) text(ctx, label, x0 + 18, (y0 + y1) / 2, { size: 28, weight: 800, color, align: 'left', alpha: clamp(progress * 2) });
+      if (label) text(ctx, label, Math.max(x0, this.p.x) + 18, (y0 + y1) / 2, { size: 28, weight: 800, color, align: 'left', alpha: clamp(progress * 2) });
     });
   }
   zigzag(ctx, pts, progress, o = {}) {
