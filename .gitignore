@@ -5,3 +5,6 @@ __pycache__/
 .env
 videos/build/
 videos/out/
+
+videos-long/build/
+videos-long/out/
