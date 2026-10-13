@@ -15,4 +15,5 @@ for id in "${IDS[@]}"; do
   ffmpeg -y -v error -i "build/$id/video.mp4" -i "build/$id/mix.wav" -map 0:v -map 1:a -c:v copy \
     -af "loudnorm=I=-14:TP=-1.0:LRA=11" -c:a aac -b:a 192k -ar 44100 -movflags +faststart -shortest "out/altrix_${id}${suffix}.mp4"
   echo "==> out/altrix_${id}${suffix}.mp4"
+  if [[ -z $suffix ]]; then tools/publish.sh "$id"; fi
 done
