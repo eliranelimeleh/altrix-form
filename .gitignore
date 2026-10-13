@@ -3,3 +3,5 @@
 __pycache__/
 *.pyc
 .env
+videos/build/
+videos/out/
