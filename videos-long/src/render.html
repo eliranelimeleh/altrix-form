@@ -11,6 +11,7 @@
 <script src="long.js"></script>
 <script>
 const vid = new URLSearchParams(location.search).get('v');
+if (/^L(6|7|8)$/.test(vid)) document.write('<script src="pa_data.js"><\/script>');
 document.write(`<script src="scenes_${vid}.js"><\/script>`);
 </script>
 </body></html>

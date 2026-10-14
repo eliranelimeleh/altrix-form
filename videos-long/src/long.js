@@ -7,6 +7,13 @@ const SERIES = [
   { id: 'L4', he: 'פער הפוך', en: 'IFVG' },
   { id: 'L5', he: 'שיווי משקל', en: 'EQUILIBRIUM' },
 ];
+// second series: price action made simple (L6-L8)
+const SERIES_PA = [
+  { he: 'כיוון', en: 'DIRECTION' },
+  { he: 'אישור', en: 'CONFIRM' },
+  { he: 'פסילה', en: 'INVALIDATE' },
+  { he: 'כניסה', en: 'ENTRY' },
+];
 const HEB_NUM = ['', 'ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שביעי'];
 
 // full-screen chapter card: big outlined number, hebrew title, english subtitle, chapter dots
@@ -42,12 +49,12 @@ const chapterEvents = s => [{ lt: 0.02, type: 'impact', k: 0.8 }, { lt: Math.max
 
 // the 5-part series as a path of nodes (rtl). cur = index 0..4, p = reveal progress, y center
 function seriesMap(ctx, lt, cur, t0, y = 1180, o = {}) {
-  const n = SERIES.length, x0 = 930, x1 = 150, { done = cur } = o;
-  const xs = SERIES.map((_, k) => lerp(x0, x1, k / (n - 1)));
+  const list = o.list || SERIES, n = list.length, x0 = 930, x1 = 150, { done = cur } = o;
+  const xs = list.map((_, k) => lerp(x0, x1, k / (n - 1)));
   const pl = E.outCubic(prog(lt, t0, t0 + 1.0));
   ctx.save(); ctx.strokeStyle = 'rgba(192,132,252,0.35)'; ctx.lineWidth = 5; ctx.setLineDash([10, 10]);
   ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(lerp(x0, x1, pl), y); ctx.stroke(); ctx.restore();
-  SERIES.forEach((c, k) => {
+  list.forEach((c, k) => {
     const pk = prog(lt, t0 + k * 0.15, t0 + k * 0.15 + 0.4), on = k === cur, x = xs[k];
     popT(ctx, x, y, pk, () => {
       ctx.save(); ctx.beginPath(); ctx.arc(x, y, on ? 58 : 44, 0, Math.PI * 2);
@@ -127,4 +134,16 @@ function positionBox(ctx, ch, i0, i1, entry, stop, target, p, o = {}) {
     const rr = Math.abs(target - entry) / Math.abs(entry - stop);
     popT(ctx, ch.X(i1) - 90, ch.Y(target) + (target > entry ? 34 : -34), prog(p, 0.6, 1), () => pill(ctx, `R:R 1:${rr.toFixed(1)}`, ch.X(i1) - 90, ch.Y(target) + (target > entry ? 34 : -34), { size: 26, color: '#0b8f63', fam: MONO, glow: 14 }));
   }
+}
+
+// trend line through (i1,p1)-(i2,p2), extended to iEnd; drawn progressively with p
+function trendLine(ctx, ch, i1, p1, i2, p2, iEnd, p, o = {}) {
+  if (p <= 0) return;
+  const { color = C.teal, width = 5, glow = 20, dash = null, alpha = 1 } = o;
+  const slope = (p2 - p1) / (i2 - i1), ie = lerp(i1, iEnd, E.outCubic(clamp(p)));
+  ch.clip(ctx, () => {
+    ctx.save(); ctx.globalAlpha *= alpha; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.shadowColor = color; ctx.shadowBlur = glow; if (dash) ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(ch.X(i1), ch.Y(p1)); ctx.lineTo(ch.X(ie), ch.Y(p1 + slope * (ie - i1))); ctx.stroke(); ctx.restore();
+  });
+  return i => p1 + slope * (i - i1);
 }
