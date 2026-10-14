@@ -207,7 +207,7 @@ window.SCENES = {
       pill(ctx, 'STOP ' + sp.toFixed(2), ch.X(32), ch.Y(sp) + 32, { size: 26, color: '#d61f45', fam: MONO });
       if (lt > mv) arrow(ctx, ch.X(34.5), ch.Y(LV), ch.X(34.5), ch.Y(sp) - 6, prog(lt, mv, mv + 0.5), { color: '#ff5a72', width: 6, head: 22 });
       if (lt > add) { ch.hline(ctx, ADD, 30, 36, { color: '#3df2a6', width: 3, dash: [10, 8], progress: prog(lt, add, add + 0.4) });
-        popT(ctx, ch.X(30) - 120, ch.Y(ADD) + 40, prog(lt, add, add + 0.3), () => pill(ctx, 'BUY +50', ch.X(30) - 120, ch.Y(ADD) + 40, { size: 28, color: '#0b8f63', fam: MONO })); hit(ctx, ch.X(30), ch.Y(ADD), lt, add, '#3df2a6', 160); }
+        popT(ctx, ch.X(26), ch.Y(ADD), prog(lt, add, add + 0.3), () => pill(ctx, 'BUY +50', ch.X(26), ch.Y(ADD), { size: 28, color: '#0b8f63', fam: MONO })); hit(ctx, ch.X(30), ch.Y(ADD), lt, add, '#3df2a6', 160); }
       bubble(ctx, 'אולי זה יחזור', 330, 560, prog(lt, back - 0.3, back + 0.1));
       bubble(ctx, 'רק רעש', 770, 650, prog(lt, nz - 0.3, nz + 0.1));
       wipeText(ctx, 'מזיז את הסטופ', W / 2, 300, prog(lt, mv - 0.05, mv + 0.3) * (1 - prog(lt, add - 0.2, add)), { size: 74, weight: 900, color: '#ff5a72' });
@@ -238,7 +238,7 @@ window.SCENES = {
         popT(ctx, W / 2, 1180, prog(lt, small, small + 0.3), () => { glass(ctx, W / 2 - 280, 1110, 560, 140, 40, { border: '#ff5a72', glowColor: C.down, glow: 30 + 40 * pb });
           text(ctx, '-$' + fmt(Math.abs(pn)), W / 2, 1182, { size: lerp(64, 96, pb), weight: 800, fam: MONO, color: '#ff5a72', glow: 30 * pb, glowColor: C.down }); });
         if (lt > pain) { hit(ctx, W / 2, 1180, lt, pain, C.down, 360); flashCol(ctx, lt, pain); }
-        wipeText(ctx, 'הפסד קטן → הפסד שכואב', W / 2, 300, prog(lt, small - 0.1, small + 0.3), { size: 64, weight: 900, color: '#ff5a72' });
+        wipeText(ctx, 'הפסד קטן ← הפסד שכואב', W / 2, 300, prog(lt, small - 0.1, small + 0.3), { size: 64, weight: 900, color: '#ff5a72' });
       }
       const ps = prog(lt, today - 0.1, today + 0.3);
       if (ps > 0) {
@@ -388,7 +388,7 @@ window.SCENES = {
       symIcon(ctx, ch, 'X');
       ch.tag(ctx, 20.5, 47.1, 'מתחת לרמה', prog(lt, rc + 0.2, rc + 0.5), { color: '#555', above: false, size: 26, off: 44 });
       ch.tag(ctx, 29, LV, 'ביטול: מתחת לרמה', prog(lt, inv, inv + 0.35), { color: '#d61f45', above: false, size: 28, off: 52 });
-      if (lt > buy) popT(ctx, ch.X(21), ch.Y(51.2), prog(lt, buy, buy + 0.3), () => pill(ctx, 'קניתי ←', ch.X(21), ch.Y(51.2), { size: 30, color: '#0b8f63' }));
+      if (lt > buy) popT(ctx, ch.X(21), ch.Y(51.2), prog(lt, buy, buy + 0.3), () => pill(ctx, '→ קניתי', ch.X(21), ch.Y(51.2), { size: 30, color: '#0b8f63' }));
       // the hypothetical: tomorrow's daily candle closes back below
       const pg = prog(lt, cl - 0.1, cl + 0.5);
       if (pg > 0) { const q = { o: ENT, h: 50.2, l: lerp(ENT, 46.9, pg), c: lerp(ENT, 47.3, pg) }; ghostCandle(ctx, ch, 24, q, 1);
@@ -495,7 +495,7 @@ window.SCENES = {
       ti.draw(ctx, { reveal: kf(lt, [[0, 19.6], [ent, 24], [mkt, 24.6], [flip, 26.98], [d, 28.4]], E.lin)[0] });
       symIcon(ctx, ti, 'S', '#e0546b');
       ctx.restore();
-      popT(ctx, ti.r.x + 400, ti.r.y + 48, look, () => pill(ctx, 'S&P 500', ti.r.x + 400, ti.r.y + 48, { size: 30, color: '#3b1a78', fam: MONO }));
+      popT(ctx, ti.r.x + 425, ti.r.y + 48, look, () => pill(ctx, 'S&P 500', ti.r.x + 425, ti.r.y + 48, { size: 24, color: '#3b1a78', fam: MONO }));
       if (lt > flip) { hit(ctx, ti.X(26), ti.Y(5785), lt, flip, C.down, 200); ti.tag(ctx, 27, 5690, 'השוק מתהפך', prog(lt, flip, flip + 0.3), { color: '#d61f45', above: false, size: 26, off: 40 }); }
       const ph = prog(lt, head - 0.1, head + 0.3);
       if (ph > 0) { arrow(ctx, 960, 760, 960, 1000, ph, { color: C.gold, width: 8, head: 26 }); popT(ctx, W / 2, 865, ph, () => pill(ctx, 'תרים את הראש מהגרף', W / 2, 865, { size: 36, color: '#b8860b', glow: 35 })); }
@@ -871,12 +871,12 @@ window.SCENES = {
       symIcon(ctx, ch, 'X');
       const at = tvToolbar(ctx, 40, 466, 870, lt > tool ? 'pos' : null);
       const sl = kf(lt, [[stp, 49.2], [exact + 0.3, LV]])[0];
-      positionBox(ctx, ch, 23, 34, ENT, sl, TGT, prog(lt, ent, ent + 0.7), { rr: lt > exact + 0.3 });
-      if (lt > ent + 0.4) { const x = ch.X(28.5);
-        popT(ctx, x, ch.Y(TGT) - 30, prog(lt, ent + 0.4, ent + 0.7), () => pill(ctx, 'Target: 6.00 (12.00%)', x, ch.Y(TGT) - 30, { size: 22, color: '#0b8f63', fam: MONO, glow: 10, pad: 12 }));
-        popT(ctx, x, ch.Y(sl) + 30, prog(lt, ent + 0.4, ent + 0.7), () => pill(ctx, `Stop: ${(ENT - sl).toFixed(2)} (${((ENT - sl) / ENT * 100).toFixed(2)}%) Qty: 50`, x, ch.Y(sl) + 30, { size: 22, color: '#d61f45', fam: MONO, glow: 10, pad: 12 })); }
-      if (lt > conf) ch.tag(ctx, 23, RCC[23].l, 'נר האישור', prog(lt, conf, conf + 0.3), { color: '#0b8f63', above: false, size: 26, off: 40 });
-      if (lt > exact) ch.tag(ctx, 16, LV, 'נקודת ביטול', prog(lt, exact, exact + 0.3), { color: '#b8860b', above: true, size: 26, off: 36 });
+      positionBox(ctx, ch, 23, 36.4, ENT, sl, TGT, prog(lt, ent, ent + 0.7), { rr: lt > exact + 0.3 });
+      if (lt > ent + 0.4) { const lw = t => measure(ctx, t, 20, 800, MONO) / 2 + 12, ts = `Stop: ${(ENT - sl).toFixed(2)} (${((ENT - sl) / ENT * 100).toFixed(2)}%) Qty: 50`, x = ch.X(36.4) - lw(ts), xt = ch.X(36.4) - lw('Target: 6.00 (12.00%)');
+        popT(ctx, xt, ch.Y(TGT) - 30, prog(lt, ent + 0.4, ent + 0.7), () => pill(ctx, 'Target: 6.00 (12.00%)', xt, ch.Y(TGT) - 30, { size: 20, color: '#0b8f63', fam: MONO, glow: 10, pad: 12 }));
+        popT(ctx, x, ch.Y(46.55), prog(lt, ent + 0.4, ent + 0.7), () => pill(ctx, ts, x, ch.Y(46.55), { size: 20, color: '#d61f45', fam: MONO, glow: 10, pad: 12 })); }
+      if (lt > conf) popT(ctx, ch.X(20), ch.Y(51.3), prog(lt, conf, conf + 0.3), () => pill(ctx, '→ נר האישור', ch.X(20), ch.Y(51.3), { size: 26, color: '#0b8f63' }));
+      if (lt > exact) ch.tag(ctx, 14, LV, 'נקודת ביטול', prog(lt, exact, exact + 0.3), { color: '#b8860b', above: false, size: 26, off: 36 });
       if (lt > inv) hit(ctx, ch.X(29), ch.Y(LV), lt, inv, C.gold, 180);
       const [px, py] = at('pos');
       const c = kf(lt, [[0, 700, 1150], [tool - 0.1, px, py], [tool + 0.3, px, py], [ent, ch.X(23), ch.Y(ENT)], [stp, ch.X(23), ch.Y(ENT)], [exact + 0.3, ch.X(26), ch.Y(LV)], [d, ch.X(26) + 8, ch.Y(LV) + 6]]);
