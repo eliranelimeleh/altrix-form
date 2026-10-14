@@ -253,7 +253,7 @@ class Chart {
       ctx.beginPath(); ctx.moveTo(this.p.x, y); ctx.lineTo(this.p.x + this.p.w, y); ctx.stroke();
       text(ctx, fmt(p, this.dec), this.p.x + this.p.w + 16, y, { size: 24, weight: 500, fam: MONO, color: C.axis, align: 'left' });
     }
-    const v = this.v, every = Math.max(2, Math.round((v.i1 - v.i0) / 6));
+    const v = this.v, every = Math.max(2, Math.round((v.i1 - v.i0) / 6), Math.ceil(170 / this.cw())); // never closer than a label's width
     for (let i = Math.ceil(v.i0 / every) * every; i < v.i1; i += every) {
       const x = this.X(i); ctx.beginPath(); ctx.moveTo(x, this.p.y); ctx.lineTo(x, this.p.y + this.p.h); ctx.stroke();
       const d = new Date(Date.UTC(2026, 8, 1) + i * 4 * 3600e3);
