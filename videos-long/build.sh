@@ -19,8 +19,11 @@ for id in "${IDS[@]}"; do
   ffmpeg -y -v error -f concat -safe 0 -i "build/$id/parts.txt" -c copy "build/$id/video.mp4"
   python3 tools/audio.py "$id"
   suffix=$(python3 -c "import json;print('_preview' if json.load(open('build/$id/timeline.json'))['preview'] else '')")
+  # fixed gain to -14 LUFS + limiter (dynamic loudnorm can spike in the silent tail)
+  I=$(ffmpeg -nostats -i "build/$id/mix.wav" -filter_complex ebur128 -f null - 2>&1 | grep -E "^\s+I:" | tail -n 1 | awk '{print $2}')
+  g=$(python3 -c "print(-14-($I))")
   ffmpeg -y -v error -i "build/$id/video.mp4" -i "build/$id/mix.wav" -map 0:v -map 1:a -c:v copy \
-    -af "loudnorm=I=-14:TP=-1.5:LRA=11,alimiter=limit=0.84:level=false" -c:a aac -b:a 192k -ar 44100 -movflags +faststart -shortest "out/altrix_${id}${suffix}.mp4"
+    -af "volume=${g}dB,alimiter=limit=0.8:level=false" -c:a aac -b:a 192k -ar 44100 -movflags +faststart -shortest "out/altrix_${id}${suffix}.mp4"
   echo "==> out/altrix_${id}${suffix}.mp4"
   if [[ -z $suffix ]]; then tools/publish.sh "$id"; fi
 done
