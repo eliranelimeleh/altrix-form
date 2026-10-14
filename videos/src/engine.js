@@ -2,7 +2,7 @@
 // Scenes (scenes_<id>.js) register in SCENES and are synced to the voice
 // timeline produced by tools/tts.py.
 'use strict';
-const W = 1080, H = 1920;
+const W = window.VW || 1080, H = window.VH || 1920; // landscape productions set VW/VH (render.html ?w=&h=)
 const C = {
   bg0: '#04020a', bg1: '#0c0620', panel: '#0d0b17', panelTop: '#121020', grid: 'rgba(150,130,220,0.075)',
   purple: '#a855f7', purple2: '#c084fc', neon: '#e3c4ff', violet: '#7c3aed', deep: '#3b1a78',
@@ -215,6 +215,7 @@ function formCandle(c, f) {
 class Chart {
   constructor(candles, o = {}) {
     this.c = candles; this.sym = o.sym || 'BTCUSD'; this.tf = o.tf || '4H'; this.dec = o.dec ?? 0;
+    this.icon = o.icon || '₿'; this.iconColor = o.iconColor || '#f7931a';
     this.v = { i0: 0, i1: candles.length, pMin: 0, pMax: 1 };
   }
   autoP(i0, i1, pad = 0.12) {
@@ -265,8 +266,8 @@ class Chart {
   header(ctx, last, o = {}) {
     const { x, y, w } = this.r, cy = y + 48;
     ctx.save();
-    ctx.beginPath(); ctx.arc(x + 52, cy, 22, 0, Math.PI * 2); ctx.fillStyle = '#f7931a'; ctx.fill();
-    text(ctx, '₿', x + 52, cy + 1, { size: 28, weight: 800, color: '#fff' });
+    ctx.beginPath(); ctx.arc(x + 52, cy, 22, 0, Math.PI * 2); ctx.fillStyle = this.iconColor; ctx.fill();
+    text(ctx, this.icon, x + 52, cy + 1, { size: 28, weight: 800, color: '#fff' });
     text(ctx, this.sym, x + 88, cy, { size: 32, weight: 700, color: '#fff', align: 'left' });
     let bx = x + 88 + measure(ctx, this.sym, 32, 700) + 26;
     (o.tfs || ['1H', '4H', '1D']).forEach(tf => {
@@ -460,7 +461,7 @@ function drawCaptions(ctx, t, chunks, spec, o = {}) {
   const gap = size * 0.38, widths = ws.map(w => measure(ctx, w.s, size, 900));
   const pad = widths.map(w => w * 0.05); // room for the active word's scale-up
   const total = widths.reduce((a, b) => a + b, 0) + pad.reduce((a, b) => a + b, 0) * 2 + gap * (ws.length - 1);
-  const sc = Math.min(1, 980 / total);
+  const sc = Math.min(1, (o.maxW || 980) / total);
   ctx.save(); ctx.translate(W / 2, y); const s0 = lerp(0.82, 1, E.outBack(clamp(p))); ctx.scale(sc * s0, sc * s0); ctx.globalAlpha = clamp(p * 2.5);
   let x = total / 2; // rtl: start at right
   ws.forEach((w, k) => {
@@ -562,6 +563,7 @@ function renderAt(t) {
   }
   // ---- overlay layer ----
   const sc = sceneOf(segs[idx].id);
+  if (window.OVERLAY) { window.OVERLAY(ctx, t, segs[idx], sc); filmLook(ctx, t); ctx.restore(); return; }
   if (sc.captions !== false) drawCaptions(ctx, t, R.caps, R.spec, sc.capStyle || {});
   // watermark + progress
   if (segs[idx].id !== 'cta') drawLogo(ctx, W / 2, 168, 210, 0.9, 'mark');
@@ -570,10 +572,12 @@ function renderAt(t) {
   const pg = ctx.createLinearGradient(0, 0, W, 0); pg.addColorStop(0, C.violet); pg.addColorStop(1, C.neon);
   ctx.fillStyle = pg; ctx.fillRect(W * (1 - pr), 0, W * pr, 8); // rtl progress
   if (R.tl.preview) text(ctx, 'PREVIEW · ללא קול', W / 2, 1800, { size: 26, weight: 700, color: 'rgba(255,255,255,0.35)' });
-  // film look
-  ctx.drawImage(A.vign, 0, 0);
-  ctx.globalAlpha = 0.035; ctx.fillStyle = ctx.createPattern(A.noise[Math.floor(t * 24) % 4], 'repeat'); ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+  filmLook(ctx, t);
   ctx.restore();
+}
+function filmLook(ctx, t) {
+  ctx.drawImage(A.vign, 0, 0);
+  ctx.globalAlpha = (R.spec && R.spec.grain) ?? 0.035; ctx.fillStyle = ctx.createPattern(A.noise[Math.floor(t * 24) % 4], 'repeat'); ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
 }
 async function setup(tl, spec) {
   R.tl = tl; R.spec = spec; R.scenes = window.SCENES;

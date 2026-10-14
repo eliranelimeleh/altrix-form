@@ -20,3 +20,27 @@ The ElevenLabs key comes from `ELEVENLABS_API_KEY`. Optional settings: `VOICE_NA
 `TARGET_WPS`, `MAX_GAP`. To print the Instagram handle on the end card, add `"handle": "@your_handle"` to the script JSON.
 
 See `AGENT_GUIDE.md` (full playbook, Hebrew), `TOPICS.md` (done + next topics) and `../.claude/skills/altrix-reels/SKILL.md`.
+
+## Long-form landscape videos (training / onboarding)
+
+| id | נושא | |
+|----|------|--|
+| onb1 | סרטון קליטה והכשרה לנציגי מכירות חדשים (1920x1080, ‏11 פרקים, כ־13.5 דקות) | `src/onb1.json`, `src/onb1/*.js` |
+
+```bash
+./build_long.sh onb1 --jobs 4     # voice (cached per chapter) -> parallel render -> music/mix -> out/altrix_onb1.mp4 + .srt
+node tools/render.mjs onb1 --stills c5d@0.9,c9s5@0.5   # review frames -> build/onb1/stills
+python3 tools/sheet_wide.py onb1 c5d@0.9,c9s5@0.5 sheet.jpg
+```
+
+- **Editing texts, prices and facts:** everything business-related lives in `src/onb1.json`:
+  `segments[].say` (narration, per scene), `facts` (prices, plan names, risk disclaimer, rep/client names),
+  `chapters` (titles + which funnel stages light up), `phrases` (how spoken words appear in subtitles,
+  e.g. "תשעת אלפים ושמונה מאות שקלים" -> "9,800 ₪"). Changing a `say` re-voices only that chapter's group (cache in `build/onb1/tts/`).
+- **Voices:** `voices.narrator` is the cloned "אלירן 2"; `voices.rep` / `voices.client` are the two voices of the call
+  simulations (swap the `id` to use other ElevenLabs voices). Pacing is in `tts` (target words/sec, max tempo, max pause).
+- **Scenes:** `src/scenes_onb1.js` loads `src/onb1/lib.js` (overlay, journey rail, subtitles, icons, UI mockups, funnel)
+  and the chapter files. Every animation hangs on a spoken word (`cueT(s, 'word')`).
+- **Pipeline pieces:** `tools/tts_long.py` (grouped TTS, loudness match, timeline, `subs.srt`), `tools/audio_long.py`
+  (corporate music bed with energy per section, ducking, SFX), `build_long.sh` (parallel chunk render + concat + mux).
+- Engine changes are backwards compatible: reels still render at 1080x1920; `"format": "landscape"` in the script JSON switches to 1920x1080.
