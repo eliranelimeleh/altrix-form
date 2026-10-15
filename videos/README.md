@@ -56,3 +56,19 @@ python3 tools/sheet_wide.py onb1 c5d@0.9,c9s5@0.5 sheet.jpg
 
 Deliverables live in `ALTRIX VIDEOS BY CLAUDE/ALTRIX Brand Film/` (master, web 1080p/720p, SRT, poster, final script, narration per scene).
 To swap the founder monogram for a real portrait, draw the image in `S.b1b` (`src/brand1/scenes.js`) instead of the "א.א" disc.
+
+### brand2: website brand film v2 (story-driven re-cut, 2:30)
+
+Same design system, new story: opening hit + dive into a floating trading world -> the pain of manual trading
+(desaturated POV: hesitating cursor, trade against you, heartbeat, emotional close) -> conversion to ALTRIX ->
+cinematic trading simulation with a virtual camera (`camK`), an order ticket clicked by the system, floating P/L,
+a winning and a losing trade, history and account -> three solutions in three visual worlds -> people (community,
+staff video call with remote pointer) -> 10 days experience -> risk, CTA, tagline.
+
+| | |
+|--|--|
+| Script & facts | `src/brand2.json` (`ch` = scene 1-7, voiced/cached per scene; `music.bpm`, per-segment `energy`) |
+| Scenes | `src/scenes_brand2.js` -> `src/brand2/scenes.js` (reuses `src/onb1/*` and `src/brand1/scenes.js`) |
+| Build | `./build_long.sh brand2 --jobs 4` |
+
+Version 1 (`brand1`) is kept unchanged for comparison. Deliverables: `ALTRIX VIDEOS BY CLAUDE/ALTRIX Brand Film v2/`.

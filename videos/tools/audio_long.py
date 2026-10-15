@@ -62,7 +62,8 @@ def energy_curve(tl, n, spec=None):
 
 
 def music(dur, tl, spec=None):
-    n = int(dur * SR); beat = 60 / BPM; bar = beat * 4
+    bpm = ((spec or {}).get("music") or {}).get("bpm", BPM)  # per-video tempo from the script JSON
+    n = int(dur * SR); beat = 60 / bpm; bar = beat * 4
     prog = [(45, [69, 72, 76]), (41, [65, 69, 72]), (48, [67, 72, 76]), (43, [67, 71, 74])]  # Am F C G
     pads = [pad_tone([m - 12 for m in ch], bar + 1.2) for _, ch in prog]
     plucks = {}
