@@ -45,19 +45,23 @@ def smooth(x, w):
     return (c[w:w + len(x)] - c[:len(x)]) / w
 
 
-def energy_curve(tl, n):
-    """per-sample gains for (drums, arp): cards/intro/outro full, narration mid, dialogue low."""
+def energy_curve(tl, n, spec=None):
+    """per-sample gains for (drums, arp): cards/intro/outro full, narration mid, dialogue low.
+    A segment in the script JSON can set "energy": [drums, arp] to shape the music explicitly."""
     d = np.full(n, 0.55); a = np.full(n, 0.75)
+    custom = {s["id"]: s["energy"] for s in (spec or {}).get("segments", []) if "energy" in s}
     for s in tl["segments"]:
         i0, i1 = int(s["t0"] * SR), min(n, int(s["t1"] * SR))
-        if s.get("card") or s["id"] in ("intro", "c11g", "c11f", "c1a", "c1e"):
+        if s["id"] in custom:
+            d[i0:i1], a[i0:i1] = custom[s["id"]]
+        elif s.get("card") or s["id"] in ("intro", "c11g", "c11f", "c1a", "c1e"):
             d[i0:i1], a[i0:i1] = 1.0, 1.0
         elif s.get("voice", "narrator") != "narrator" or s["id"] in ("c9n1",):
             d[i0:i1], a[i0:i1] = 0.0, 0.35
     return smooth(d, SR), smooth(a, SR)  # 1 s smoothing
 
 
-def music(dur, tl):
+def music(dur, tl, spec=None):
     n = int(dur * SR); beat = 60 / BPM; bar = beat * 4
     prog = [(45, [69, 72, 76]), (41, [65, 69, 72]), (48, [67, 72, 76]), (43, [67, 71, 74])]  # Am F C G
     pads = [pad_tone([m - 12 for m in ch], bar + 1.2) for _, ch in prog]
@@ -82,7 +86,7 @@ def music(dur, tl):
             add(buf_dr, K, t0 + k * beat, 0.18)
         for s8 in range(8):
             add(buf_dr, shaker() if s8 % 2 else HH * 0.4, t0 + s8 * beat / 2, 1.0, pan=-0.25)
-    dg, ag = energy_curve(tl, n)
+    dg, ag = energy_curve(tl, n, spec)
     out = buf_pad[:n] + buf_arp[:n] * ag[:, None] + buf_dr[:n] * dg[:, None]
     t = np.arange(n) / SR
     out *= np.minimum(1, t / 1.5)[:, None] * np.clip((dur - t) / 3.0, 0, 1)[:, None]
@@ -96,7 +100,8 @@ def main():
     ev = json.load(open(os.path.join(d, "events.json")))
     dur = tl["duration"]; n = int(dur * SR)
     voice = read_wav(os.path.join(d, "voice.wav"))[:n]; voice = np.pad(voice, (0, n - len(voice)))
-    mus = music(dur, tl)
+    spec = json.load(open(os.path.join(ROOT, "src", f"{vid}.json")))
+    mus = music(dur, tl, spec)
     e = smooth(np.abs(voice), 2205)
     duck = smooth(1 - 0.68 * np.clip(e / 0.03, 0, 1), 6615)
     out = mus * 0.62 * duck[:, None]

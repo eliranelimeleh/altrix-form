@@ -44,3 +44,15 @@ python3 tools/sheet_wide.py onb1 c5d@0.9,c9s5@0.5 sheet.jpg
 - **Pipeline pieces:** `tools/tts_long.py` (grouped TTS, loudness match, timeline, `subs.srt`), `tools/audio_long.py`
   (corporate music bed with energy per section, ducking, SFX), `build_long.sh` (parallel chunk render + concat + mux).
 - Engine changes are backwards compatible: reels still render at 1080x1920; `"format": "landscape"` in the script JSON switches to 1920x1080.
+
+### brand1: official website brand film (1920x1080, ~2:28)
+
+| | |
+|--|--|
+| Script & facts | `src/brand1.json`: `segments[].say` (narration per scene, `ch` = scene 1-5, each scene voiced and cached separately), `facts` (founder, 8.5 years, STRIKE minimum, disclaimers), `phrases` (subtitle display), `segments[].energy` ([drums, arp] music intensity per scene), `tts` (pacing) |
+| Scenes | `src/scenes_brand1.js` loads the onboarding design system (`src/onb1/*.js`) + `src/brand1/scenes.js` (own overlay, fly-through intro, founder card, trading simulation, robot emblems, prop flow, STRIKE scenarios, 10-day ring, CTA, tagline) |
+| Trading simulation | `SIM` candles + `TA`/`TB` trades in `src/brand1/scenes.js`; P/L is computed from the candles (0.10 lot EURUSD = $1/pip); timing hangs on the narration words |
+| Build | `./build_long.sh brand1 --jobs 4` -> `out/altrix_brand1.mp4` + `.srt` |
+
+Deliverables live in `ALTRIX VIDEOS BY CLAUDE/ALTRIX Brand Film/` (master, web 1080p/720p, SRT, poster, final script, narration per scene).
+To swap the founder monogram for a real portrait, draw the image in `S.b1b` (`src/brand1/scenes.js`) instead of the "א.א" disc.
