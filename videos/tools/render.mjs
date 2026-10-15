@@ -14,12 +14,13 @@ const browser = await chromium.launch({ args: ['--allow-file-access-from-files',
 const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
 page.on('console', m => { if (m.type() !== 'log') console.log('[page]', m.text()); });
 page.on('pageerror', e => { console.error('[pageerror]', e.message); process.exit(1); });
-await page.goto(`file://${ROOT}/src/render.html?v=${vid}`);
+await page.goto(`file://${ROOT}/src/${spec.page || 'render.html'}?v=${vid}`);
 await page.waitForFunction(() => window.VIDEO && window.SCENES);
 const info = await page.evaluate(([tl, spec]) => window.VIDEO.setup(tl, spec), [tl, spec]);
 fs.writeFileSync(`${ROOT}/build/${vid}/events.json`, JSON.stringify(info.events));
+if (info.music) fs.writeFileSync(`${ROOT}/build/${vid}/music.json`, JSON.stringify(info.music));
 const grab = async t => {
-  const b64 = await page.evaluate(t => { window.VIDEO.renderAt(t); return document.getElementById('c').toDataURL('image/jpeg', 0.93).split(',')[1]; }, t);
+  const b64 = await page.evaluate(async t => { await window.VIDEO.renderAt(t); return document.getElementById('c').toDataURL('image/jpeg', 0.93).split(',')[1]; }, t);
   return Buffer.from(b64, 'base64');
 };
 const stills = opt('--stills');
