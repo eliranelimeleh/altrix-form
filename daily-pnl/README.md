@@ -10,3 +10,5 @@ Input per day: date, STRIKE BOT profit ($), ALTRIX LIVE profit ($).
 
 Edit in `template.html`: day name + date, both profits, both % (pill + meta box), total.
 Render: `NODE_PATH=$(npm root -g) node shot.js $PWD/template.html $PWD/altrix-daily-DD.MM.YY.png`
+
+WhatsApp caption: fill `post-template.txt` with the same numbers (no disclaimer line – it is in the image).
