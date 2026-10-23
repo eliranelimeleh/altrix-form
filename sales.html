@@ -111,6 +111,35 @@ body{
   transition:background .15s;color:var(--text);
 }
 .btn-icon:hover{background:rgba(255,255,255,0.1)}
+.xf-btn{opacity:.45}.xf-btn.filled{opacity:1;box-shadow:inset 0 0 0 1.5px #34d399}
+
+/* ── TRIAL EXPECTATIONS ("המבחן שלי") ──────────── */
+.xf-tabs{display:flex;gap:8px;margin-bottom:16px}
+.xf-tab{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--muted);font:inherit;font-weight:700;cursor:pointer}
+.xf-tab.on{background:rgba(126,87,194,.25);border-color:rgba(192,132,252,.6);color:var(--text)}
+.xf-q{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;margin-bottom:10px}
+.xf-qh{font-weight:700;font-size:.88rem;margin-bottom:8px;display:flex;gap:8px}
+.xf-n{flex:0 0 22px;height:22px;border-radius:50%;background:rgba(126,87,194,.5);display:flex;align-items:center;justify-content:center;font-size:.72rem}
+.xf-opts{display:flex;flex-wrap:wrap;gap:6px}
+.xf-opt{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);font-size:.8rem;cursor:pointer}
+.xf-opt.on{border-color:#c084fc;background:rgba(168,85,247,.18)}
+.xf-scale{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}.xf-dot input{display:none}
+.xf-dot span{display:flex;justify-content:center;padding:6px 0;border-radius:6px;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-weight:700}
+.xf-dot.on span{background:rgba(168,85,247,.5);border-color:#c084fc}
+.xf-in{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--text);font:inherit;color-scheme:dark}
+.xf-empty{color:var(--muted);padding:20px;text-align:center}
+.xf-card{display:flex;flex-direction:column;gap:10px}
+.xf-top{display:flex;justify-content:space-between;align-items:center}
+.xf-t{font-weight:900;font-size:1.05rem}.xf-m{color:var(--muted);font-size:.75rem}
+.xf-ready{width:74px;height:74px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:conic-gradient(#34d399 var(--p),rgba(255,255,255,.08) 0);position:relative}
+.xf-ready::before{content:"";position:absolute;inset:6px;border-radius:50%;background:#0f1734}
+.xf-ready b,.xf-ready small{position:relative}.xf-ready b{font-size:1.3rem}.xf-ready small{font-size:.58rem;color:var(--muted)}
+.xf-goal{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.35);border-radius:12px;padding:12px;font-weight:700;line-height:1.5}
+.xf-goal small{display:block;color:var(--muted);font-weight:400;font-size:.72rem;margin-top:4px}
+.xf-flags{background:rgba(255,201,77,.08);border:1px solid rgba(255,201,77,.35);border-radius:12px;padding:10px 12px;font-size:.82rem;line-height:1.7;color:#ffd98a}
+.xf-row{display:grid;grid-template-columns:120px 1fr;gap:10px;font-size:.84rem;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.xf-l{color:var(--muted)}.xf-chip{display:inline-block;padding:2px 8px;margin:2px;border-radius:999px;background:rgba(126,87,194,.25);font-size:.76rem}
 
 /* ── MAIN LAYOUT ─────────────────────────────────── */
 .main{padding:24px 28px;max-width:1600px;margin:0 auto}
@@ -1290,6 +1319,25 @@ td.editable:hover .cell-hint{display:block}
 </div>
 
 <!-- ═══ DELETE CONFIRM MODAL ═══ -->
+<!-- ═══ TRIAL EXPECTATIONS MODAL ═══ -->
+<div class="overlay" id="expectModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="xfTitle">🎯 תיאום ציפיות לניסיון</h3>
+      <button class="modal-close" onclick="closeOverlay('expectModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="xf-tabs"><button class="xf-tab on" data-v="card" onclick="xfView('card')">הכרטיס</button><button class="xf-tab" data-v="form" onclick="xfView('form')">מילוי עם הלקוח</button></div>
+      <div id="xfCard"></div>
+      <div id="xfForm" style="display:none"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="sendExpectLink()">📲 שלח ללקוח למילוי</button>
+      <button class="btn btn-primary" id="xfSave" style="display:none" onclick="saveExpect()">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="deleteModal">
   <div class="modal modal-sm">
     <div class="modal-head">
@@ -1564,6 +1612,7 @@ function renderLeadsTable(){
       <td class="editable" onclick="inlineEdit(event,${l.id},'deal_amount','number')" title="לחץ לעריכה" dir="ltr" style="color:var(--gold)">${l.deal_amount!=null?'₪'+fmt(l.deal_amount):'<span style="opacity:.35">—</span>'}</td>
       <td class="editable" onclick="inlineEdit(event,${l.id},'payment_type','select-payment')" title="לחץ לעריכה">${l.payment_type?`<span class="badge ${l.payment_type==='אשראי'?'b-credit':'b-transfer'}">${esc(l.payment_type)}</span>`:'<span style="opacity:.35">—</span>'}</td>
       <td class="action-cell">
+        <button class="btn-icon xf-btn${l.expect_by?' filled':''}" onclick="openExpectModal(${l.id})" title="${l.expect_by?'המבחן של הלקוח מולא':'תיאום ציפיות לניסיון'}">🎯</button>
         <button class="btn-icon" onclick="openEditModal(${l.id})" title="עריכה מלאה">✏️</button>
         <button class="btn-icon" onclick="openDeleteModal(${l.id})" title="מחק">🗑</button>
       </td>
@@ -2168,6 +2217,44 @@ startClock();
 loadLeads();
 initNotifications();
 initTips();
+</script>
+<script src="/expect-form.js"></script>
+<script>
+// ─── TRIAL EXPECTATIONS ("המבחן שלי") ────────────
+let xfQ = null, xfLead = null, xfData = null;
+async function openExpectModal(id){
+  xfLead = allLeads.find(x=>x.id===id); if(!xfLead) return;
+  if(!xfQ) xfQ = (await (await fetch('/api/expect-questions')).json()).questions;
+  xfData = await (await fetch(`/api/leads/${id}/expectations`)).json();
+  document.getElementById('xfTitle').textContent = '🎯 המבחן של ' + xfLead.full_name;
+  document.getElementById('xfCard').innerHTML = ExpectForm.card(xfQ, xfData.answers, xfData);
+  ExpectForm.render(document.getElementById('xfForm'), xfQ, xfData.answers);
+  xfView(Object.keys(xfData.answers||{}).length ? 'card' : 'form');
+  openOverlay('expectModal');
+}
+function xfView(v){
+  document.querySelectorAll('.xf-tab').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  document.getElementById('xfCard').style.display = v==='card' ? '' : 'none';
+  document.getElementById('xfForm').style.display = v==='form' ? '' : 'none';
+  document.getElementById('xfSave').style.display = v==='form' ? '' : 'none';
+}
+async function saveExpect(){
+  const answers = ExpectForm.collect(document.getElementById('xfForm'), xfQ);
+  const r = await fetch(`/api/leads/${xfLead.id}/expectations`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({answers})});
+  if(!r.ok){ showToast('שמירה נכשלה', false); return; }
+  xfData = await r.json();
+  document.getElementById('xfCard').innerHTML = ExpectForm.card(xfQ, xfData.answers, xfData);
+  xfView('card'); showToast('המבחן של הלקוח נשמר');
+  await loadLeads();
+}
+function sendExpectLink(){
+  const url = location.origin + xfData.link;
+  const first = (xfLead.full_name||'').split(' ')[0];
+  const msg = `היי ${first}, כדי שנתאים לך את עשרת ימי הניסיון בדיוק למה שחשוב לך, הכנו לך שאלון קצר של דקה 🎯\n${url}`;
+  navigator.clipboard && navigator.clipboard.writeText(msg).catch(()=>{});
+  window.open(waLink(xfLead.phone) + (waLink(xfLead.phone).includes('?') ? '&' : '?') + 'text=' + encodeURIComponent(msg), '_blank');
+  showToast('ההודעה הועתקה ונפתחה בוואטסאפ');
+}
 </script>
 </body>
 </html>

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>המבחן שלי · ALTRIX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0616;--card:rgba(40,22,78,.72);--line:rgba(190,140,255,.28);--neon:#c084fc;--violet:#a855f7;--deep:#6d28d9;--text:#fff;--soft:#ddd6fe;--mute:#a99bd0;--green:#34d399}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Heebo,Arial,sans-serif;color:var(--text);min-height:100vh;
+  background:radial-gradient(700px 500px at 90% -10%,rgba(168,85,247,.35),transparent 60%),radial-gradient(700px 600px at -10% 110%,rgba(76,29,149,.55),transparent 60%),var(--bg)}
+.wrap{max-width:620px;margin:0 auto;padding:28px 16px 60px}
+.brand{font-weight:900;letter-spacing:7px;color:var(--neon);direction:ltr;text-align:center;font-size:15px;margin-bottom:22px}
+h1{font-size:34px;font-weight:900;line-height:1.15;margin-bottom:10px;text-shadow:0 0 30px rgba(168,85,247,.5)}
+.lead{color:var(--soft);font-size:17px;line-height:1.55;margin-bottom:24px}
+.xf-q{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:18px 16px;margin-bottom:14px}
+.xf-qh{font-weight:800;font-size:17px;line-height:1.4;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start}
+.xf-n{flex:0 0 28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--deep));display:flex;align-items:center;justify-content:center;font-size:14px}
+.xf-opts{display:flex;flex-direction:column;gap:8px}
+.xf-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer;font-size:16px;transition:.15s}
+.xf-opt input{accent-color:var(--violet);width:18px;height:18px}
+.xf-opt.on{border-color:var(--neon);background:rgba(168,85,247,.18)}
+.xf-scale{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+.xf-dot{cursor:pointer}.xf-dot input{display:none}
+.xf-dot span{display:flex;align-items:center;justify-content:center;height:40px;border-radius:10px;border:1.5px solid rgba(255,255,255,.12);font-weight:800}
+.xf-dot.on span{background:linear-gradient(135deg,var(--violet),var(--deep));border-color:var(--neon)}
+.xf-in{width:100%;font:inherit;font-size:16px;color:var(--text);background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.14);border-radius:12px;padding:12px;color-scheme:dark}
+.btn{width:100%;margin-top:10px;padding:16px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--violet),var(--deep));color:#fff;font:inherit;font-weight:900;font-size:19px;cursor:pointer;box-shadow:0 10px 30px rgba(109,40,217,.45)}
+.btn:disabled{opacity:.6}
+.note{color:var(--mute);font-size:13px;text-align:center;margin-top:14px;line-height:1.5}
+.done{display:none;text-align:center;padding-top:40px}
+.done .ok{width:90px;height:90px;margin:0 auto 18px;border-radius:50%;background:rgba(52,211,153,.15);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:44px}
+.done h2{font-size:30px;font-weight:900;margin-bottom:10px}.done p{color:var(--soft);font-size:17px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">ALTRIX</div>
+  <div id="formView">
+    <h1>היי {{FIRST_NAME}}, בוא נגדיר יחד את המבחן שלך</h1>
+    <p class="lead">עשרה ימים של ניסיון זה הזדמנות אמיתית להכיר את המערכת. כדי שנדע בדיוק מה חשוב לך ונבנה סביבו את הליווי, ענה על כמה שאלות קצרות. זה לוקח בערך דקה.</p>
+    <div id="xf"></div>
+    <button class="btn" id="send">שליחה</button>
+    <p class="note">התשובות נשמרות אצל הנציג שלך בלבד, ומשמשות רק כדי להתאים לך את הליווי.<br>מסחר כרוך בסיכון · אין התחייבות לתשואה</p>
+  </div>
+  <div class="done" id="doneView">
+    <div class="ok">✓</div>
+    <h2>תודה, קיבלנו!</h2>
+    <p>הנציג שלך כבר רואה את התשובות, ונבנה את הליווי סביב מה שחשוב לך.<br>ניפגש בשיחת הסיכום שבחרת.</p>
+  </div>
+</div>
+<script src="/expect-form.js"></script>
+<script>
+let Q = [];
+fetch('/api/expect-questions').then(r => r.json()).then(d => { Q = d.questions; ExpectForm.render(document.getElementById('xf'), Q, {}); });
+document.getElementById('send').addEventListener('click', async e => {
+  const answers = ExpectForm.collect(document.getElementById('xf'), Q);
+  if (!answers.success && !answers.check.length) { alert('ענה לפחות על השאלה מה חשוב לך לבדוק'); return; }
+  e.target.disabled = true;
+  const r = await fetch(location.pathname, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers }) });
+  if (r.ok) { document.getElementById('formView').style.display = 'none'; document.getElementById('doneView').style.display = 'block'; window.scrollTo(0, 0); }
+  else { e.target.disabled = false; alert('משהו השתבש, נסה שוב'); }
+});
+</script>
+</body>
+</html>

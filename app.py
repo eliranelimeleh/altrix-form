@@ -3,7 +3,7 @@ from flask_cors import CORS
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from datetime import datetime, timedelta
-import os, sqlite3, io, threading, webbrowser, smtplib, time
+import os, sqlite3, io, threading, webbrowser, smtplib, time, json
 import secrets as _sec
 from collections import defaultdict
 from email.mime.multipart import MIMEMultipart
@@ -97,6 +97,17 @@ def init_db():
             conn.execute("ALTER TABLE leads ADD COLUMN rep_id INTEGER DEFAULT NULL")
         except Exception:
             pass
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS trial_expectations (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                lead_id     INTEGER NOT NULL UNIQUE,
+                token       TEXT NOT NULL UNIQUE,
+                answers     TEXT NOT NULL DEFAULT '{}',
+                filled_by   TEXT NOT NULL DEFAULT '',
+                created_at  TEXT NOT NULL,
+                updated_at  TEXT NOT NULL DEFAULT ''
+            )
+        """)
 
 
 def build_excel(rows):
@@ -466,11 +477,13 @@ def api_leads():
     with get_db() as conn:
         if closed_filter is not None:
             rows = conn.execute(
-                "SELECT * FROM leads WHERE agent='sales' AND is_closed=? ORDER BY id DESC",
+                "SELECT *, (SELECT filled_by FROM trial_expectations e WHERE e.lead_id=leads.id) AS expect_by "
+                "FROM leads WHERE agent='sales' AND is_closed=? ORDER BY id DESC",
                 (int(closed_filter),)
             ).fetchall()
         else:
-            rows = conn.execute("SELECT * FROM leads WHERE agent='sales' ORDER BY id DESC").fetchall()
+            rows = conn.execute("SELECT *, (SELECT filled_by FROM trial_expectations e WHERE e.lead_id=leads.id) AS expect_by "
+                                "FROM leads WHERE agent='sales' ORDER BY id DESC").fetchall()
     result = []
     for r in rows:
         d = dict(r)
@@ -800,6 +813,114 @@ def api_manager_stats():
         "conversion": round(len(closed_u) / len(unassigned) * 100, 1) if unassigned else 0
     })
     return jsonify({"stats": stats})
+
+
+# ── Trial expectations ("המבחן שלי") ──────────────────────────────────────────
+# Filled in the lead card by the rep, or by the client through a personal link (/expect/<token>).
+# The summary-call slot the client picks becomes the lead's callback_time when that is still empty.
+
+EXPECT_QUESTIONS = [
+    {"id": "why", "type": "choice", "q": "מה הביא אותך לבדוק את ALTRIX דווקא עכשיו?",
+     "opts": ["הכנסה נוספת בלי לשבת מול מסך", "לנהל את החיסכון שלי בצורה חכמה", "לסחור בהון של חברת מימון (נוסטרו)",
+              "אני סוחר ורוצה אוטומציה", "אחר"]},
+    {"id": "system", "type": "multi", "q": "איזו מערכת הכי מעניינת אותך?",
+     "opts": ["NOSTRO · הון של חברת מימון", "LIVE · תיק מסחר פרטי", "STRIKE · מהירה ודינמית", "עוד לא יודע, רוצה להבין"]},
+    {"id": "check", "type": "multi", "q": "מה הכי חשוב לך לבדוק בעשרת ימי הניסיון?",
+     "opts": ["לראות את המערכת עובדת יציב על המחשב שלי", "לראות עסקאות ותוצאות בזמן אמת", "ללמוד לבדוק לבד שהכול תקין",
+              "להבין איך עובד נוסטרו ומשיכות", "להבין כמה זמן זה דורש ממני", "להרגיש ביטחון ואמון בצוות"]},
+    {"id": "success", "type": "text", "q": "בסוף עשרת הימים, מה יגרום לך להגיד \"זה בשבילי\"?",
+     "ph": "במילים שלך, למשל: לראות שהמערכת עבדה כל יום בלי שנגעתי"},
+    {"id": "budget", "type": "choice", "q": "עם איזה סכום אתה חושב להתחיל?",
+     "opts": ["עד 1,000 $", "1,000 $ עד 5,000 $", "5,000 $ עד 20,000 $", "מעל 20,000 $", "דמי מבחן נוסטרו בלבד", "מעדיף לא לומר"]},
+    {"id": "concern", "type": "multi", "q": "מה החשש הכי גדול שלך?",
+     "opts": ["לאבד כסף", "שזה לא אמיתי", "שאסתבך בצד הטכני", "שזה ייקח לי זמן", "שאין לי מספיק הון", "אין לי חשש מיוחד"]},
+    {"id": "decide", "type": "choice", "q": "מי עוד שותף להחלטה?",
+     "opts": ["רק אני", "בן / בת זוג", "שותף עסקי", "בן משפחה"]},
+    {"id": "partner_join", "type": "choice", "q": "אם יש שותף להחלטה, הוא יוכל להצטרף לשיחת הסיכום?",
+     "opts": ["כן", "לא", "לא רלוונטי"]},
+    {"id": "readiness", "type": "scale", "q": "אם הניסיון יעמוד בציפיות שלך, כמה אתה מוכן להתחיל? (1 עד 10)"},
+    {"id": "summary_call", "type": "datetime", "q": "מתי נוח לך לשיחת הסיכום (בסוף הניסיון)?"},
+    {"id": "contact", "type": "choice", "q": "איך הכי נוח לך שנעדכן אותך במהלך הניסיון?",
+     "opts": ["וואטסאפ", "שיחת טלפון", "גם וגם"]},
+]
+EXPECT_IDS = {q["id"] for q in EXPECT_QUESTIONS}
+
+
+def _clean_answers(raw):
+    """Keep only known questions; strings are trimmed and capped so a public form can't flood the DB."""
+    out = {}
+    for k, v in (raw or {}).items():
+        if k not in EXPECT_IDS:
+            continue
+        if isinstance(v, list):
+            out[k] = [str(x)[:120] for x in v][:10]
+        else:
+            out[k] = str(v)[:600].strip()
+    return out
+
+
+def _save_expectations(conn, lead_id, answers, filled_by):
+    ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
+    conn.execute("UPDATE trial_expectations SET answers=?, filled_by=?, updated_at=? WHERE lead_id=?",
+                 (json.dumps(answers, ensure_ascii=False), filled_by, ts, lead_id))
+    slot = answers.get("summary_call", "")
+    if slot and "T" in slot:  # "2026-11-02T18:00" -> the CRM's "02/11/2026 18:00", only if no callback is set yet
+        d, t = slot.split("T")
+        y, m, dd = d.split("-")
+        conn.execute("""UPDATE leads SET callback_time=?, next_task=CASE WHEN next_task='' OR next_task IS NULL
+                        THEN 'שיחת סיכום ניסיון' ELSE next_task END, updated_at=?
+                        WHERE id=? AND (callback_time='' OR callback_time IS NULL)""",
+                     (f"{dd}/{m}/{y} {t[:5]}", ts, lead_id))
+
+
+def _expect_row(conn, lead_id, create=False):
+    row = conn.execute("SELECT * FROM trial_expectations WHERE lead_id=?", (lead_id,)).fetchone()
+    if row is None and create:
+        ts = datetime.now(ISRAEL_TZ).strftime("%d/%m/%Y %H:%M:%S")
+        conn.execute("INSERT INTO trial_expectations (lead_id, token, created_at) VALUES (?,?,?)",
+                     (lead_id, _sec.token_urlsafe(16), ts))
+        row = conn.execute("SELECT * FROM trial_expectations WHERE lead_id=?", (lead_id,)).fetchone()
+    return row
+
+
+@app.route("/api/expect-questions")
+def api_expect_questions():
+    return jsonify({"questions": EXPECT_QUESTIONS})
+
+
+@app.route("/expect-form.js")
+def expect_form_js():
+    return send_from_directory(BASE_DIR, "expect-form.js", mimetype="application/javascript")
+
+
+@app.route("/api/leads/<int:lead_id>/expectations", methods=["GET", "POST"])
+def api_lead_expectations(lead_id):
+    denied = require_auth()
+    if denied: return denied
+    with get_db() as conn:
+        if not conn.execute("SELECT 1 FROM leads WHERE id=? AND agent='sales'", (lead_id,)).fetchone():
+            return jsonify({"error": "not found"}), 404
+        row = _expect_row(conn, lead_id, create=True)
+        if request.method == "POST":
+            _save_expectations(conn, lead_id, _clean_answers(request.get_json(force=True).get("answers")), "rep")
+            row = _expect_row(conn, lead_id)
+    return jsonify({"answers": json.loads(row["answers"] or "{}"), "filled_by": row["filled_by"],
+                    "updated_at": row["updated_at"], "link": f"/expect/{row['token']}"})
+
+
+@app.route("/expect/<token>", methods=["GET", "POST"])
+def expect_public(token):
+    with get_db() as conn:
+        row = conn.execute("SELECT * FROM trial_expectations WHERE token=?", (token,)).fetchone()
+        if row is None:
+            return "הקישור לא נמצא", 404
+        if request.method == "POST":
+            _save_expectations(conn, row["lead_id"], _clean_answers(request.get_json(force=True).get("answers")), "client")
+            return jsonify({"ok": True})
+        lead = conn.execute("SELECT full_name FROM leads WHERE id=?", (row["lead_id"],)).fetchone()
+    first = (lead["full_name"].split() or [""])[0] if lead else ""
+    html = open(os.path.join(BASE_DIR, "expect.html"), encoding="utf-8").read()
+    return html.replace("{{FIRST_NAME}}", first.replace("<", "").replace(">", "").replace("&", ""))
 
 
 # ── Startup ───────────────────────────────────────────────────────────────────
