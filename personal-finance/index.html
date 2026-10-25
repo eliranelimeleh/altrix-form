@@ -313,6 +313,51 @@ tr.colhead th.n .colw{justify-content:flex-end}
 tr.colhead .grip{height:22px;width:18px}
 table.t col.c-grip{width:26px} td.w-grip{padding:0 2px!important}
 .ynm{overflow:hidden;text-overflow:ellipsis}
+/* calendar */
+.cal{padding:0;overflow:hidden;margin-top:18px}
+.cal-top{display:flex;gap:10px;align-items:center;padding:12px 14px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.cal-top h3{font-size:16px;display:flex;gap:6px;align-items:center}
+.cal-body{height:640px;overflow:auto;position:relative;overscroll-behavior:contain}
+.cal-sticky{position:sticky;top:0;z-index:6;background:var(--surface);box-shadow:0 1px 0 var(--border)}
+.cal-row{display:grid;grid-template-columns:54px repeat(var(--cols),minmax(0,1fr))}
+.ch{text-align:center;padding:6px 2px;border-inline-start:1px solid var(--border-soft);cursor:pointer}
+.ch:hover{background:var(--surface-2)}
+.ch b{display:block;font-size:12.5px} .ch span{font-size:12px;color:var(--muted)}
+.ch.today b,.ch.today span{color:var(--accent)}
+.ch.today span{background:var(--accent);color:#fff;border-radius:99px;padding:0 6px}
+.gut{font-size:10.5px;color:var(--muted);text-align:center;padding-top:6px}
+.ad{min-height:30px;padding:3px;border-inline-start:1px solid var(--border-soft);border-top:1px solid var(--border-soft);display:flex;flex-direction:column;gap:2px;cursor:copy}
+.cal-inner{height:calc(24 * var(--hpx))}
+.cal-hours{position:relative}
+.cal-hours span{position:absolute;right:0;left:0;text-align:center;font-size:10.5px;color:var(--muted);transform:translateY(-50%)}
+.cal-col{position:relative;border-inline-start:1px solid var(--border-soft);cursor:copy;touch-action:pan-y;
+  background-image:linear-gradient(to bottom,var(--grid) 1px,transparent 1px),linear-gradient(to bottom,transparent calc(var(--hpx) / 2),color-mix(in srgb,var(--grid) 50%,transparent) calc(var(--hpx) / 2),color-mix(in srgb,var(--grid) 50%,transparent) calc(var(--hpx) / 2 + 1px),transparent calc(var(--hpx) / 2 + 1px));background-size:100% var(--hpx)}
+.cal-col.today{background-color:color-mix(in srgb,var(--accent) 4%,transparent)}
+.cb{position:absolute;border-radius:7px;background:color-mix(in srgb,var(--g) 22%,var(--surface));border-inline-start:3px solid var(--g);padding:2px 5px;font-size:11.5px;overflow:hidden;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.1);touch-action:none;user-select:none;z-index:2}
+.cb:hover{z-index:3;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.cb-t{display:flex;gap:4px;align-items:center;color:var(--text-2);font-size:10.5px}
+.cb-t .chk{width:13px;height:13px}
+.cb-n{font-weight:600;line-height:1.25;word-break:break-word}
+.cb.done,.cchip.done{opacity:.5} .cb.done .cb-n,.cchip.done{text-decoration:line-through}
+.rz{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize}
+.rz::after{content:"";position:absolute;left:40%;right:40%;bottom:2px;height:2px;border-radius:2px;background:color-mix(in srgb,var(--g) 60%,transparent);opacity:0}
+.cb:hover .rz::after{opacity:1}
+.cchip{background:color-mix(in srgb,var(--g) 18%,var(--surface));border-inline-start:3px solid var(--g);border-radius:6px;padding:2px 6px;font-size:11.5px;cursor:grab;touch-action:none;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-now{position:absolute;left:0;right:0;height:2px;background:var(--neg);z-index:4;pointer-events:none}
+.cal-now::before{content:"";position:absolute;right:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--neg)}
+.cal-prev{position:absolute;left:2px;right:2px;border:2px dashed var(--accent);border-radius:7px;background:color-mix(in srgb,var(--accent) 12%,transparent);pointer-events:none;z-index:5;font-size:11px;font-weight:700;color:var(--accent);padding:1px 5px}
+.cal .drop-on{background:var(--accent-soft)!important;outline:2px dashed var(--accent);outline-offset:-2px}
+.cal-month .mh{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));font-size:12px;color:var(--muted);text-align:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.cal-month .mg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-mday{min-height:108px;border-inline-start:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);padding:4px;display:flex;flex-direction:column;gap:2px;cursor:copy;min-width:0}
+.cal-mday.other{background:var(--surface-2)} .cal-mday.other .dn{opacity:.45}
+.cal-mday .dn{font-size:12px;font-weight:700;color:var(--text-2)}
+.cal-mday.today .dn{background:var(--accent);color:#fff;border-radius:99px;padding:0 6px;align-self:flex-start}
+.cal-mday .more{border:0;background:transparent;color:var(--accent);font-size:11px;cursor:pointer;text-align:start;padding:0}
+.cal-unsched{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:44px}
+.cal-unsched .cchip{max-width:220px}
+tbody.done-sec tr.gh td{background:color-mix(in srgb,var(--c5) 8%,var(--surface))}
+@media (max-width:700px){ .cal-body{height:520px} .cal-row{grid-template-columns:40px repeat(var(--cols),minmax(0,1fr))} .cal-mday{min-height:72px} .cal-mday .cchip{font-size:10px;padding:1px 3px} }
 /* vault */
 .tabs{overflow-x:auto;max-width:100%;scrollbar-width:none}
 .tabs .sh{display:none}
@@ -929,16 +974,23 @@ function catAddRow(cid) {
 function tasksByCat() {
   const u = tui(), filtered = u.f !== 'all' || ui.tq;
   return db.taskCats.map((c, ci) => {
-    const all = db.tasks.filter(t => t.catId === c.id), list = sortTasks(all.filter(taskPass));
+    const all = db.tasks.filter(t => t.catId === c.id), list = sortTasks(all.filter(t => !t.done && taskPass(t)));
     if (!list.length && filtered) return '';
-    const open = list.filter(t => !t.done), openN = all.filter(t => !t.done).length, doneN = all.length - openN;
+    const openN = all.filter(t => !t.done).length, doneN = all.length - openN;
     const rows = c.collapsed ? '' : list.map(t => taskRow(t, {mv: true})).join('') + catAddRow(c.id);
     return `<tbody class="${c.collapsed ? 'collapsed' : ''}" style="--g:${gColor(c)}" data-dnd="tcat" data-did="${c.id}">
       <tr class="gh" data-act="toggleTcat" data-id="${c.id}" data-drop="task" data-cont="${c.id}" data-pos="start"><td colspan="5"><div class="gname">${grip('tcat', c.id, 'tcat')}<span class="car">${ico('down', 14)}</span>${c.icon || ''} ${esc(c.name)} <small>${openN} פתוחות${doneN ? ` · ${doneN} בוצעו` : ''}</small>
         ${all.length ? `<span class="mini"><span style="width:${doneN / all.length * 100}%"></span></span>` : ''}</div></td>
         <td><div class="acts"><button class="ib" data-act="tcatForm" data-id="${c.id}" tabindex="-1" title="עריכת קטגוריה">${ico('edit', 14)}</button></div></td></tr>
       ${rows}</tbody>`;
-  }).join('') || `<tbody><tr><td colspan="6" class="hint" style="text-align:center;padding:24px">אין משימות שמתאימות לסינון</td></tr></tbody>`;
+  }).join('') + doneSection() || `<tbody><tr><td colspan="6" class="hint" style="text-align:center;padding:24px">אין משימות שמתאימות לסינון</td></tr></tbody>`;
+}
+// משימות שבוצעו — יוצאות מהקטגוריה שלהן ומרוכזות בתחתית (ביטול הסימון מחזיר אותן)
+function doneSection() {
+  const u = tui(), done = db.tasks.filter(t => t.done && taskPass(t)).sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || ''));
+  if (!done.length) return '';
+  return `<tbody class="done-sec ${u.doneCollapsed ? 'collapsed' : ''}" style="--g:var(--c5)"><tr class="gh" data-act="toggleDoneSec"><td colspan="5"><div class="gname"><span class="car">${ico('down', 14)}</span>${ico('check', 15)} בוצעו <small>${done.length} · ביטול הסימון מחזיר לקטגוריה</small></div></td><td></td></tr>
+    ${u.doneCollapsed ? '' : done.map(t => taskRow(t, {showCat: true})).join('')}</tbody>`;
 }
 function tasksByDate() {
   const td = todayISO(), tm = addDays(td, 1), we = addDays(td, 6);
@@ -998,8 +1050,9 @@ function viewTasks() {
       <label class="check"><input type="checkbox" class="chk" data-tshowdone ${u.showDone ? 'checked' : ''}> הצג שבוצעו</label></div>
     <section class="sheet tasks"><table class="t">${taskCols()}${u.view === 'date' ? tasksByDate() : tasksByCat()}</table>
       ${u.view === 'cat' ? `<div class="add-group"><button class="btn ghost sm" data-act="tcatForm">${ico('plus', 14)} קטגוריית משימות חדשה</button></div>` : ''}</section>`}
-    <div class="hint" style="margin-top:10px">סימון ✓ מעביר את המשימה לתחתית הרשימה · משימה חוזרת יוצרת לבד את המופע הבא · גרירה עם ☰ משנה סדר ומעבירה בין קטגוריות</div>`;
-  return {html};
+    ${calSection()}
+    <div class="hint" style="margin-top:10px">סימון ✓ מעביר את המשימה ל"בוצעו" בתחתית · משימה חוזרת יוצרת לבד את המופע הבא · גרירה עם ⋮⋮ משנה סדר ומעבירה בין קטגוריות · ביומן: גרירה משנה יום ושעה</div>`;
+  return {html, after: calAfter};
 }
 function addTask(rec) {
   const t = {id: 't' + uid(), title: '', catId: db.taskCats[0]?.id, date: '', time: '', dur: 0, prio: 0, repeat: 'none', notes: '', done: false, doneAt: null, created: new Date().toISOString(), ...rec};
@@ -1393,6 +1446,144 @@ function dndEnd(apply) {
 document.addEventListener('pointerup', () => dndEnd(true));
 document.addEventListener('pointercancel', () => dndEnd(false));
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && DR) dndEnd(false); }, true);
+/* ================= יומן — לוח שנה של המשימות ================= */
+const HPX = 48;                                   // גובה שעה בפיקסלים
+const toMin = hm => (+hm.slice(0, 2)) * 60 + (+hm.slice(3, 5));
+const fromMin = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+const snap = (m, s = 15) => Math.round(m / s) * s;
+const calMode = () => { const m = tui().calMode || 'week'; return m === 'week' && innerWidth < 700 ? '3day' : m; };
+function calDays() {
+  const a = ui.calAnchor || todayISO(), m = calMode();
+  if (m === 'day') return [a];
+  if (m === '3day') return [0, 1, 2].map(i => addDays(a, i));
+  const ws = weekStart(a); return [...Array(7)].map((_, i) => addDays(ws, i));
+}
+function calLayout(ts) {
+  const it = ts.map(t => ({t, s: toMin(t.time), e: toMin(t.time) + (+t.dur || 60)})).sort((a, b) => a.s - b.s || b.e - a.e);
+  const out = {}; let cl = [], lanes = [], end = -1;
+  const flush = () => { const n = lanes.length; cl.forEach(x => out[x.t.id] = {...x, lane: x.lane, n}); cl = []; lanes = []; };
+  for (const x of it) {
+    if (x.s >= end) { flush(); end = -1; }
+    let l = lanes.findIndex(e => e <= x.s); if (l < 0) { l = lanes.length; lanes.push(0); }
+    lanes[l] = x.e; x.lane = l; cl.push(x); end = Math.max(end, x.e);
+  }
+  flush(); return out;
+}
+const calShown = t => tui().showDone || !t.done;
+function calChip(t) {
+  return `<div class="cchip ${t.done ? 'done' : ''}" data-ctask="${t.id}" style="--g:${gColor(tcat(t.catId))}" title="${esc(t.title)}">${t.time ? `<b class="num">${t.time}</b> ` : ''}${t.prio ? `<span class="pdot p${t.prio}"></span> ` : ''}${esc(t.title)}</div>`;
+}
+function calSection() {
+  const m = calMode(), td = todayISO(), a = ui.calAnchor || td;
+  let label, body;
+  if (m === 'month') {
+    const [y, mo] = [+a.slice(0, 4), +a.slice(5, 7) - 1], first = `${y}-${pad(mo + 1)}-01`, gs = weekStart(first);
+    label = `${MONTHS[mo]} ${y}`;
+    const cells = [...Array(42)].map((_, i) => addDays(gs, i));
+    body = `<div class="cal-month"><div class="mh">${DAYS.map(d => `<div>${d}</div>`).join('')}</div><div class="mg">${cells.map(d => {
+      const ts = db.tasks.filter(t => t.date === d && calShown(t)).sort((x, z) => (x.time || '99').localeCompare(z.time || '99'));
+      return `<div class="cal-mday ${d.slice(5, 7) !== first.slice(5, 7) ? 'other' : ''} ${d === td ? 'today' : ''}" data-mdate="${d}"><span class="dn">${+d.slice(8)}</span>${ts.slice(0, 4).map(calChip).join('')}${ts.length > 4 ? `<button class="more" data-act="calDay" data-id="${d}">+${ts.length - 4} נוספות</button>` : ''}</div>`;
+    }).join('')}</div></div>`;
+  } else {
+    const days = calDays();
+    label = days.length === 1 ? `${DAYS[new Date(days[0] + 'T12:00').getDay()]} ${dShort(days[0])}` : `${dShort(days[0])} – ${dShort(days.at(-1))}`;
+    const nowM = new Date().getHours() * 60 + new Date().getMinutes();
+    body = `<div class="cal-body" id="calBody" style="--cols:${days.length};--hpx:${HPX}px">
+      <div class="cal-sticky">
+        <div class="cal-row"><div class="gut"></div>${days.map(d => `<div class="ch ${d === td ? 'today' : ''}" data-act="calDay" data-id="${d}"><b>${DAYS[new Date(d + 'T12:00').getDay()]}</b><span>${dShort(d)}</span></div>`).join('')}</div>
+        <div class="cal-row"><div class="gut ad-l">ללא שעה</div>${days.map(d => `<div class="ad" data-adate="${d}">${db.tasks.filter(t => t.date === d && !t.time && calShown(t)).map(calChip).join('')}</div>`).join('')}</div>
+      </div>
+      <div class="cal-row cal-inner"><div class="cal-hours">${[...Array(24)].map((_, h) => h ? `<span style="top:${h * HPX}px">${pad(h)}:00</span>` : '').join('')}</div>
+        ${days.map(d => {
+          const ts = db.tasks.filter(t => t.date === d && t.time && calShown(t)), L = calLayout(ts);
+          return `<div class="cal-col ${d === td ? 'today' : ''}" data-cdate="${d}">${ts.map(t => { const x = L[t.id], w = 100 / x.n;
+            return `<div class="cb ${t.done ? 'done' : ''}" data-ctask="${t.id}" data-ckind="block" style="top:${x.s / 60 * HPX}px;height:${Math.max(18, (x.e - x.s) / 60 * HPX - 2)}px;right:${x.lane * w}%;width:calc(${w}% - 2px);--g:${gColor(tcat(t.catId))}">
+              <div class="cb-t"><input type="checkbox" class="chk" data-taskdone="${t.id}" ${t.done ? 'checked' : ''}><span class="num">${t.time}–${fromMin(Math.min(1439, x.e))}</span></div><div class="cb-n">${t.prio ? `<span class="pdot p${t.prio}"></span> ` : ''}${esc(t.title)}</div><div class="rz" title="גרור לשינוי משך"></div></div>`; }).join('')}
+            ${d === td ? `<div class="cal-now" style="top:${nowM / 60 * HPX}px"></div>` : ''}</div>`;
+        }).join('')}</div></div>`;
+  }
+  const uns = db.tasks.filter(t => !t.done && !t.date);
+  return `<section class="panel cal" id="cal">
+    <div class="cal-top"><h3>${ico('cal', 17)} יומן</h3>
+      <div class="period"><button data-act="calShift" data-id="-1" title="הקודם">${ico('right')}</button><b style="padding:0 8px;min-width:110px;text-align:center">${label}</b><button data-act="calShift" data-id="1" title="הבא">${ico('left')}</button></div>
+      <button class="btn ghost sm" data-act="calToday">היום</button><span class="sp"></span>
+      <div class="tabs sm">${[['day', 'יום'], ['3day', '3 ימים'], ['week', 'שבוע'], ['month', 'חודש']].map(([k, l]) => `<button class="${calMode() === k ? 'on' : ''}" data-act="calMode" data-id="${k}">${l}</button>`).join('')}</div></div>
+    ${body}
+    <div class="cal-unsched" data-uns="1"><span class="hint">${uns.length ? 'משימות בלי תאריך — גרור ליומן כדי לשבץ:' : 'לחיצה על משבצת ריקה יוצרת משימה · גרירת משימה משנה יום ושעה · גרירת הקצה התחתון משנה משך'}</span>${uns.map(calChip).join('')}</div>
+  </section>`;
+}
+function calAfter() {
+  const b = $('#calBody'); if (!b) return;
+  b.scrollTop = ui.calScroll ?? 7 * HPX;
+  b.addEventListener('scroll', () => { ui.calScroll = b.scrollTop; });
+}
+// גרירה ביומן: הזזת משימה (יום/שעה), שינוי משך, יצירה בלחיצה
+let CD = null, calSwallow = false;
+document.addEventListener('pointerdown', e => {
+  if (e.button > 0 || !e.target.closest('#cal') || e.target.closest('.chk,button,input,select')) return;
+  const el = e.target.closest('[data-ctask]');
+  if (el) { e.preventDefault(); const r = el.getBoundingClientRect(); CD = {mode: e.target.closest('.rz') ? 'resize' : 'move', id: el.dataset.ctask, el, x0: e.clientX, y0: e.clientY, grab: el.dataset.ckind === 'block' ? e.clientY - r.top : 8, started: false}; return; }
+  const col = e.target.closest('.cal-col'), day = e.target.closest('.ad,.cal-mday');
+  if (col || day) CD = {mode: col ? 'new' : 'newday', col, day, x0: e.clientX, y0: e.clientY, started: false};
+});
+function calTarget(x, y) {
+  const el = document.elementFromPoint(x, y); if (!el) return null;
+  const t = taskById(CD.id), dur = +t.dur || 60;
+  const col = el.closest('.cal-col');
+  if (col) { const top = col.getBoundingClientRect().top; let m = snap((y - top - CD.grab) / HPX * 60); m = Math.max(0, Math.min(1440 - Math.min(dur, 60), m)); return {date: col.dataset.cdate, time: fromMin(m), col, m, dur}; }
+  const ad = el.closest('.ad'); if (ad) return {date: ad.dataset.adate, time: '', box: ad};
+  const md = el.closest('.cal-mday'); if (md) return {date: md.dataset.mdate, time: t.time || '', box: md};
+  const un = el.closest('[data-uns]'); if (un) return {date: '', time: '', box: un};
+  return null;
+}
+let calPrev = null;
+function calShowPrev(tg) {
+  $$('.cal .drop-on').forEach(x => x.classList.remove('drop-on'));
+  calPrev?.remove(); calPrev = null;
+  if (!tg) return;
+  if (tg.col) { calPrev = Object.assign(document.createElement('div'), {className: 'cal-prev', textContent: tg.time}); calPrev.style.cssText = `top:${tg.m / 60 * HPX}px;height:${Math.max(18, tg.dur / 60 * HPX - 2)}px`; tg.col.appendChild(calPrev); }
+  else tg.box.classList.add('drop-on');
+}
+document.addEventListener('pointermove', e => {
+  if (!CD) return;
+  if (!CD.started) {
+    if (Math.hypot(e.clientX - CD.x0, e.clientY - CD.y0) < 5) return;
+    if (CD.mode === 'new' || CD.mode === 'newday') { CD = null; return; }   // גלילה רגילה
+    CD.started = true; CD.el.classList.add('dragging'); document.body.classList.add('dnd');
+    if (CD.mode === 'move') { CD.ghost = Object.assign(document.createElement('div'), {className: 'dnd-ghost', textContent: taskById(CD.id).title}); document.body.appendChild(CD.ghost); }
+  }
+  e.preventDefault();
+  if (CD.mode === 'resize') {
+    const t = taskById(CD.id), top = CD.el.getBoundingClientRect().top, d = Math.max(15, snap((e.clientY - top) / HPX * 60));
+    CD.dur = Math.min(d, 1440 - toMin(t.time)); CD.el.style.height = (CD.dur / 60 * HPX - 2) + 'px';
+    CD.el.querySelector('.cb-t span').textContent = `${t.time}–${fromMin(Math.min(1439, toMin(t.time) + CD.dur))}`;
+    return;
+  }
+  CD.ghost.style.left = e.clientX + 12 + 'px'; CD.ghost.style.top = e.clientY + 8 + 'px';
+  CD.tg = calTarget(e.clientX, e.clientY); calShowPrev(CD.tg);
+  if (CD.tg?.time) CD.ghost.textContent = `${CD.tg.time} · ${taskById(CD.id).title}`;
+  const b = $('#calBody'); clearInterval(CD.scr);
+  if (b) { const r = b.getBoundingClientRect(); if (e.clientY > r.top && e.clientY < r.top + 90) CD.scr = setInterval(() => b.scrollTop -= 10, 16); else if (e.clientY > r.bottom - 50 && e.clientY < r.bottom) CD.scr = setInterval(() => b.scrollTop += 10, 16); }
+}, {passive: false});
+document.addEventListener('pointerup', e => {
+  if (!CD) return;
+  const c = CD; CD = null; clearInterval(c.scr);
+  if (!c.started) {
+    if (c.mode === 'move' || c.mode === 'resize') return taskForm(c.id);
+    if (c.mode === 'new') { const top = c.col.getBoundingClientRect().top, m = Math.max(0, Math.min(1410, Math.floor((e.clientY - top) / HPX * 2) * 30)); return taskForm(null, {date: c.col.dataset.cdate, time: fromMin(m), dur: 60}); }
+    if (c.mode === 'newday') return taskForm(null, {date: c.day.dataset.adate || c.day.dataset.mdate});
+    return;
+  }
+  calSwallow = true; setTimeout(() => calSwallow = false, 60);
+  c.ghost?.remove(); c.el.classList.remove('dragging'); document.body.classList.remove('dnd'); calShowPrev(null);
+  const t = taskById(c.id);
+  if (c.mode === 'resize') { t.dur = c.dur; save(`✓ משך: ${durLabel(t.dur)}`); return render(); }
+  if (!c.tg) return render();
+  const was = `${t.date}|${t.time}`; t.date = c.tg.date; t.time = c.tg.time;
+  if (was !== `${t.date}|${t.time}`) save(t.date ? `✓ ${dLabel(t.date)}${t.time ? ' ב-' + t.time : ''}` : 'הוסר מהיומן');
+  render();
+});
+document.addEventListener('pointercancel', () => { if (!CD) return; CD.ghost?.remove(); CD.el?.classList.remove('dragging'); document.body.classList.remove('dnd'); calShowPrev(null); clearInterval(CD.scr); CD = null; });
 const VIEWS = {month: viewMonth, year: viewYear, tasks: viewTasks, vault: viewVault, settings: viewSettings};
 
 /* ================= EDITING ================= */
@@ -1557,6 +1748,11 @@ const ACTIONS = {
     onSubmit: fd => { if (fd.c.trim() !== 'מחק') { toast('יש להקליד "מחק" לאישור'); return false; } localStorage.removeItem(VKEY); V.key = null; V.data = null; toast('הכספת נמחקה'); render(); }}),
   toggleTcat: id => { const c = db.taskCats.find(x => x.id === id); c.collapsed = !c.collapsed; save(); render(); },
   tView: id => { tui().view = id; save(); render(); },
+  toggleDoneSec: () => { tui().doneCollapsed = !tui().doneCollapsed; save(); render(); },
+  calMode: m => { tui().calMode = m; if (m === 'month') ui.calAnchor = (ui.calAnchor || todayISO()).slice(0, 8) + '01'; save(); render(); },
+  calShift: d => { const m = calMode(), a = ui.calAnchor || todayISO(); ui.calAnchor = m === 'month' ? addMonthsISO(a.slice(0, 8) + '01', +d) : addDays(m === 'week' ? weekStart(a) : a, +d * (m === 'day' ? 1 : m === '3day' ? 3 : 7)); render(); },
+  calToday: () => { ui.calAnchor = null; ui.calScroll = Math.max(0, (new Date().getHours() - 2) * HPX); render(); },
+  calDay: d => { ui.calAnchor = d; tui().calMode = 'day'; save(); render(); $('#cal')?.scrollIntoView({block: 'start'}); },
   tFilter: id => { const u = tui(); u.f = id; if (u.view === 'week') u.view = 'date'; save(); render(); },
   wkShift: d => { ui.wk = +d ? addDays(ui.wk || weekStart(todayISO()), 7 * +d) : null; render(); },
   taskForm: id => taskForm(id),
@@ -1628,7 +1824,7 @@ const ACTIONS = {
 
 /* ---------- events ---------- */
 document.addEventListener('click', e => {
-  if (dndSwallowClick || e.target.closest('.grip')) { e.preventDefault(); e.stopPropagation(); return; }
+  if (dndSwallowClick || calSwallow || e.target.closest('.grip')) { e.preventDefault(); e.stopPropagation(); return; }
   const a = e.target.closest('[data-act]'); if (!a) return;
   if (e.target.closest('input,select')) return;
   e.preventDefault();
