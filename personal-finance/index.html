@@ -97,13 +97,20 @@ h1,h2,h3{margin:0}
 /* sheets */
 .sheets{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
 .sheet{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
-.sheet-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
-.sheet-h h2{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
-.sheet-h h2 i{width:10px;height:10px;border-radius:3px;display:inline-block}
-.sheet-h .tot{font-size:20px;font-weight:800}
+.sheet-h{display:flex;align-items:center;gap:12px;padding:16px 18px;background:color-mix(in srgb,var(--sc) 13%,var(--surface));border-bottom:3px solid var(--sc)}
+.sheet-h h2{font-size:19px;font-weight:800;display:flex;align-items:center;gap:10px}
+.sheet-h h2 i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--sc);color:#fff;font-style:normal}
+.sheet-h .tot{text-align:left;line-height:1.15}
+.sheet-h .tot small{display:block;font-size:11.5px;font-weight:600;color:var(--text-2)}
+.sheet-h .tot b{font-size:23px;font-weight:800}
+.sheet-gap{height:10px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+.sheet.exp{--sc:var(--exp)} .sheet.inc{--sc:var(--inc)} .sheet.owe{--sc:var(--c6)}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+tr.paid td{opacity:.55} tr.paid input.cell{text-decoration:line-through}
+input.chk{width:17px;height:17px;accent-color:var(--pos);cursor:pointer;vertical-align:middle}
 table.t{width:100%;border-collapse:collapse}
 table.t td{padding:0 8px;height:38px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
-table.t col.c-kind{width:96px} table.t col.c-amt{width:132px} table.t col.c-act{width:66px}
+table.t col.c-kind{width:96px} table.t col.c-amt{width:126px} table.t col.c-act{width:118px}
 table.t tr.gh td{background:color-mix(in srgb,var(--g) 9%,var(--surface));border-bottom:1px solid color-mix(in srgb,var(--g) 22%,var(--border));height:42px;cursor:pointer;user-select:none}
 table.t tr.gh td:first-child{box-shadow:inset -4px 0 0 var(--g)}
 .gname{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14.5px}
@@ -245,10 +252,12 @@ table.y tr.sum td.nm{text-align:right;background:var(--surface-2)}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .kpi{padding:12px}
   .kpi b{font-size:19px}
-  table.t col.c-kind{width:66px} table.t col.c-amt{width:100px} table.t col.c-act{width:32px}
+  table.t col.c-kind{width:62px} table.t col.c-amt{width:92px} table.t col.c-act{width:52px}
+  .ib.mv{width:24px}
   table.t td{padding:0 4px}
   tr.it td:first-child{padding-right:10px}
-  tr.it .acts .ib:not(:last-child){display:none}
+  tr.it .acts .ib:not(.mv){display:none}
+  tr.it .acts{opacity:.8}
   tr.gh .acts .ib:not(:first-child){display:none}
   .kind{padding:1px 5px}
   .donut-wrap{flex-direction:column;align-items:stretch}
@@ -293,6 +302,7 @@ const I = {
   lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   alert:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>',
   up:'<path d="M12 19V5M5 12l7-7 7 7"/>', dn:'<path d="M12 5v14M19 12l-7 7-7-7"/>',
+  arrUp:'<path d="m18 15-6-6-6 6"/>', arrDn:'<path d="m6 9 6 6 6-6"/>',
   bulb:'<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>',
 };
 const ico = (n, s = 16) => `<svg class="ico" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n] || ''}</svg>`;
@@ -339,7 +349,7 @@ function seedDB() {
   G('expense', 'שונות', '📦', 7, 'once', []);
   G('income', 'משכורות', '💼', 2, 'fixed', [['משכורת']]);
   G('income', 'הכנסות נוספות', '➕', 0, 'once', []);
-  return {version: 2, settings: {currency: '₪', openingBalance: 0, openingYM: ym, theme: 'auto', lastBackup: null}, groups, items, values: {}};
+  return {version: 2, settings: {currency: '₪', openingBalance: 0, openingYM: ym, theme: 'auto', lastBackup: null}, groups, items, values: {}, owed: []};
 }
 let storageOK = true;
 function load() {
@@ -348,7 +358,7 @@ function load() {
 }
 function normalize(d) {
   d.settings = {...seedDB().settings, ...(d.settings || {})};
-  d.groups = d.groups || []; d.items = d.items || []; d.values = d.values || {};
+  d.groups = d.groups || []; d.items = d.items || []; d.values = d.values || {}; d.owed = d.owed || [];
   return d;
 }
 let db = load();
@@ -534,12 +544,12 @@ function sheet(type, ym) {
   const body = groups.map(g => {
     const items = db.items.filter(i => i.groupId === g.id && isActive(i, ym));
     const gt = md.g[g.id] || 0;
-    const rows = g.collapsed ? '' : items.map(it => {
+    const rows = g.collapsed ? '' : items.map((it, ix) => {
       const v = cellVal(it, ym), est = isEst(it, ym) && v, pi = payInfo(it, ym);
       return `<tr class="it"><td><input class="cell" data-k="n|${it.id}" data-col="nm-${type}" data-name="${it.id}" value="${esc(it.name)}"></td>
         <td><button class="kind ${it.kind}" data-act="itemForm" data-id="${it.id}" tabindex="-1" title="${KINDS[it.kind][1]}">${it.kind === 'fixed' ? ico('repeat', 10) : ''}${KINDS[it.kind][0]}${pi ? ` ${pi}` : ''}</button></td>
         <td><input class="cell amt ${est ? 'est' : ''}" data-k="a|${it.id}|${ym}" data-col="${col}" data-cell="${it.id}|${ym}" data-raw="${v || ''}" value="${fmtIn(v)}" placeholder="—" inputmode="decimal" ${est ? 'title="הערכה — הקלד את הסכום בפועל"' : ''}></td>
-        <td><div class="acts"><button class="ib" data-act="itemForm" data-id="${it.id}" tabindex="-1" title="עריכה">${ico('edit', 14)}</button><button class="ib del" data-act="removeItem" data-id="${it.id}" tabindex="-1" title="הסרה">${ico('trash', 14)}</button></div></td></tr>`;
+        <td><div class="acts"><button class="ib mv" data-act="moveItem" data-id="${it.id}" data-dir="-1" tabindex="-1" title="הזז למעלה" ${ix ? '' : 'disabled'}>${ico('arrUp', 15)}</button><button class="ib mv" data-act="moveItem" data-id="${it.id}" data-dir="1" tabindex="-1" title="הזז למטה" ${ix < items.length - 1 ? '' : 'disabled'}>${ico('arrDn', 15)}</button><button class="ib" data-act="itemForm" data-id="${it.id}" tabindex="-1" title="עריכה">${ico('edit', 14)}</button><button class="ib del" data-act="removeItem" data-id="${it.id}" tabindex="-1" title="הסרה">${ico('trash', 14)}</button></div></td></tr>`;
     }).join('') + `<tr class="add"><td><input class="cell" data-k="add|${g.id}" data-add="${g.id}" placeholder="+ שורה חדשה"></td>
         <td><select data-k="kind|${g.id}" data-addkind="${g.id}" aria-label="סוג">${Object.entries(KINDS).map(([k, [l]]) => `<option value="${k}" ${k === g.defKind ? 'selected' : ''}>${l}</option>`).join('')}</select></td>
         <td><input class="cell amt" data-k="addv|${g.id}" data-addv="${g.id}" placeholder="סכום" inputmode="decimal"></td>
@@ -551,12 +561,38 @@ function sheet(type, ym) {
       ${rows}</tbody>`;
   }).join('');
   const lbl = type === 'income' ? 'הכנסות' : 'הוצאות';
-  return `<section class="sheet">
-    <div class="sheet-h"><h2><i style="background:var(--${type === 'income' ? 'inc' : 'exp'})"></i>${lbl}</h2><span class="sp"></span><span class="tot ${type === 'income' ? 'pos' : ''}">${money(total)}</span></div>
+  return `<section class="sheet ${type === 'income' ? 'inc' : 'exp'}">
+    <div class="sheet-h"><h2><i>${ico(type === 'income' ? 'up' : 'dn', 17)}</i>${lbl}</h2><span class="sp"></span><span class="tot"><small>סה״כ ${lbl} ב${MONTHS[ymM(ym)]}</small><b>${money(total)}</b></span></div>
+    <div class="sheet-gap"></div>
     <table class="t"><colgroup><col><col class="c-kind"><col class="c-amt"><col class="c-act"></colgroup>
       ${body}
       <tfoot><tr><td colspan="2">סה״כ ${lbl} — ${MONTHS[ymM(ym)]}</td><td style="text-align:left">${money(total)}</td><td></td></tr></tfoot></table>
     <div class="add-group"><button class="btn ghost sm" data-act="groupForm" data-type="${type}">${ico('plus', 14)} קטגוריית ${lbl} חדשה</button></div></section>`;
+}
+/* ---------- "חייב ל" — רשימת חובות נפרדת, לא נכנסת לסיכומי החודש ---------- */
+function owedSheet() {
+  const list = db.owed, open = list.filter(o => !o.paid), showPaid = ui.showPaid;
+  const rows = list.filter(o => showPaid || !o.paid);
+  const tr = (o) => { const ix = rows.indexOf(o); return `<tr class="it ${o.paid ? 'paid' : ''}">
+    <td style="width:34px;padding-right:12px"><input type="checkbox" class="chk" data-owedpaid="${o.id}" ${o.paid ? 'checked' : ''} title="${o.paid ? 'שולם' : 'סמן כשולם'}"></td>
+    <td><input class="cell" data-k="on|${o.id}" data-col="owe-n" data-owed="${o.id}" data-f="name" value="${esc(o.name)}" placeholder="למי"></td>
+    <td><input class="cell" data-k="ot|${o.id}" data-col="owe-t" data-owed="${o.id}" data-f="note" value="${esc(o.note || '')}" placeholder="הערה / תאריך"></td>
+    <td><input class="cell amt" data-k="oa|${o.id}" data-col="owe-a" data-owed="${o.id}" data-f="amount" value="${fmtIn(o.amount)}" placeholder="סכום" inputmode="decimal"></td>
+    <td><div class="acts"><button class="ib mv" data-act="moveOwed" data-id="${o.id}" data-dir="-1" tabindex="-1" title="למעלה" ${ix ? '' : 'disabled'}>${ico('arrUp', 15)}</button><button class="ib mv" data-act="moveOwed" data-id="${o.id}" data-dir="1" tabindex="-1" title="למטה" ${ix < rows.length - 1 ? '' : 'disabled'}>${ico('arrDn', 15)}</button><button class="ib del" data-act="delOwed" data-id="${o.id}" tabindex="-1" title="מחיקה">${ico('trash', 14)}</button></div></td></tr>`; };
+  return `<section class="sheet owe">
+    <div class="sheet-h"><h2><i>${ico('alert', 16)}</i>חייב ל</h2><span class="sp"></span><span class="tot"><small>נשאר לשלם · ${open.length} פתוחים</small><b>${money(sum(open, o => o.amount))}</b></span></div>
+    <div class="sheet-gap"></div>
+    <table class="t"><colgroup><col style="width:40px"><col><col style="width:34%"><col class="c-amt"><col style="width:96px"></colgroup>
+      <tbody>${rows.map(tr).join('') || `<tr><td colspan="5" class="hint" style="text-align:center">${list.length ? 'כל החובות שולמו ✓' : 'אין חובות רשומים'}</td></tr>`}
+      <tr class="add"><td></td><td><input class="cell" data-k="owadd" data-oweadd="name" placeholder="+ למי"></td><td><input class="cell" data-k="owaddt" data-oweadd="note" placeholder="הערה"></td><td><input class="cell amt" data-k="owadda" data-oweadd="amount" placeholder="סכום" inputmode="decimal"></td><td><button class="ib ok" data-act="addOwed" tabindex="-1" title="הוסף">${ico('check', 15)}</button></td></tr></tbody>
+      <tfoot><tr><td></td><td colspan="2">${list.some(o => o.paid) ? `<button class="btn ghost sm" data-act="togglePaid">${showPaid ? 'הסתר ששולמו' : `הצג ששולמו (${list.filter(o => o.paid).length} · ${plain(sum(list.filter(o => o.paid), o => o.amount))})`}</button>` : 'סה״כ פתוח'}</td><td style="text-align:left">${money(sum(open, o => o.amount))}</td><td></td></tr></tfoot></table>
+    <div class="hint" style="padding:8px 16px 12px">רשימה כללית שמוצגת בכל חודש ולא נכללת בסיכום ההכנסות וההוצאות.</div></section>`;
+}
+function addOwed() {
+  const g = k => $(`[data-oweadd="${k}"]`)?.value.trim() || '';
+  const name = g('name'); if (!name) { $('[data-oweadd="name"]')?.focus(); return toast('הקלד למי החוב'); }
+  db.owed.push({id: 'o' + uid(), name, note: g('note'), amount: parseNum(g('amount')) ?? 0, paid: false, created: curYM()});
+  pendingFocus = 'owadd'; save('✓ נוסף לרשימת "חייב ל"'); render();
 }
 function viewMonth() {
   const ym = ui.ym, md = monthData(ym), prev = monthData(ymAdd(ym, -1)), y = ymY(ym);
@@ -575,12 +611,11 @@ function viewMonth() {
       <button class="btn sm" data-act="copyPrev" title="ממלא סכומים בפועל של הוצאות משתנות לפי ${MONTHS[ymM(prevYM)]}">${ico('copy', 14)} העתק משתנות מ${MONTHS[ymM(prevYM)]}</button>
       <button class="btn primary sm" data-act="addItem">${ico('plus', 14)} שורה חדשה</button></div>
     ${kp}
-    <div class="sheets">${sheet('expense', ym)}${sheet('income', ym)}</div>
-    <div class="row r3">
+    <div class="sheets">${sheet('expense', ym)}<div class="col">${sheet('income', ym)}
       <div class="panel"><div class="ph"><h3>הכנסות מול הוצאות — ${y}</h3><span class="sp"></span><div class="legend"><span><i style="background:var(--inc)"></i>הכנסות</span><span><i style="background:var(--exp)"></i>הוצאות</span></div></div><div class="chart" id="chY"></div><div class="hint">לחיצה על חודש פותחת אותו · עמודות בהירות = תחזית</div></div>
       <div class="panel"><div class="ph"><h3>חלוקת ההוצאות</h3><span class="sub">לפי קטגוריות</span></div>${groupSplit(ym)}</div>
-      <div class="panel"><div class="ph"><h3>לפי סוג הוצאה</h3></div>${kindSplit(md)}<div class="ph" style="margin:20px 0 10px"><h3>מקורות הכנסה</h3></div>${incomeList(ym)}</div>
-    </div>`;
+      <div class="panel"><div class="ph"><h3>לפי סוג הוצאה</h3></div>${kindSplit(md)}</div>
+      ${owedSheet()}</div></div>`;
   return {html, after: () => {
     const S = MONTHS.map((_, i) => monthData(ymOf(y, i))), cy = curYM(), dim = MONTHS.map((_, i) => ymOf(y, i) > cy);
     barsChart($('#chY'), SHORT, [{color: 'var(--inc)', values: S.map(s => s.inc), dim}, {color: 'var(--exp)', values: S.map(s => s.exp), dim}], {sel: ymM(ym),
@@ -605,12 +640,6 @@ function kindSplit(md) {
   const parts = [['fixed', 'קבועות', 'var(--c0)'], ['variable', 'משתנות', 'var(--c3)'], ['once', 'חד־פעמיות', 'var(--c6)']].filter(([id]) => k[id] > 0);
   return `<div class="track" style="height:12px">${parts.map(([id, , c]) => `<div style="width:${k[id] / tot * 100}%;background:${c}" title="${KINDS[id][0]}"></div>`).join('')}</div>
     <div class="glist" style="margin-top:12px">${parts.map(([id, l, c]) => `<div class="gl-row"><i style="background:${c}"></i><span class="nm">${l}</span><b>${money(k[id])}</b><span class="pc">${pct(k[id] / tot)}</span></div>`).join('')}</div>`;
-}
-function incomeList(ym) {
-  const md = monthData(ym), gs = db.groups.filter(g => g.type === 'income' && md.g[g.id] > 0);
-  if (!gs.length) return '<div class="hint">אין הכנסות רשומות</div>';
-  const mx = Math.max(...gs.map(g => md.g[g.id]));
-  return `<div class="bars">${gs.map(g => `<div><div class="bar-h"><span class="nm">${g.icon || ''} ${esc(g.name)}</span><b>${money(md.g[g.id])}</b></div><div class="track"><div style="width:${md.g[g.id] / mx * 100}%;background:var(--inc)"></div></div></div>`).join('')}</div>`;
 }
 
 /* ================= YEAR VIEW ================= */
@@ -885,6 +914,20 @@ const ACTIONS = {
         closeModal(); save('✓ הוסר'); render();
       }))});
   },
+  moveItem: (id, el) => {
+    const it = itemById(id), ym = ui.ym, dir = +el.dataset.dir;
+    const vis = db.items.filter(i => i.groupId === it.groupId && (ui.tab !== 'month' || isActive(i, ym)));
+    const nb = vis[vis.indexOf(it) + dir]; if (!nb) return;
+    const a = db.items.indexOf(it), b = db.items.indexOf(nb); [db.items[a], db.items[b]] = [db.items[b], db.items[a]];
+    save(); render();
+  },
+  addOwed: () => addOwed(),
+  delOwed: id => { const o = db.owed.find(x => x.id === id); confirmBox(`למחוק את "${esc(o.name)}" מהרשימה?`, 'מחיקה', () => { db.owed = db.owed.filter(x => x.id !== id); save('נמחק'); render(); }); },
+  moveOwed: (id, el) => {
+    const rows = db.owed.filter(o => ui.showPaid || !o.paid), o = db.owed.find(x => x.id === id), nb = rows[rows.indexOf(o) + +el.dataset.dir]; if (!nb) return;
+    const a = db.owed.indexOf(o), b = db.owed.indexOf(nb); [db.owed[a], db.owed[b]] = [db.owed[b], db.owed[a]]; save(); render();
+  },
+  togglePaid: () => { ui.showPaid = !ui.showPaid; render(); },
   copyPrev: () => {
     const ym = ui.ym, p = ymAdd(ym, -1); let n = 0;
     for (const it of db.items) {
@@ -916,13 +959,15 @@ document.addEventListener('click', e => {
   if ($('#modal').contains(a)) closeModal();
   ACTIONS[a.dataset.act]?.(a.dataset.id, a);
 });
-document.addEventListener('focusin', e => { const el = e.target; if (el.matches?.('input.amt[data-cell]')) { el.value = +el.dataset.raw ? el.dataset.raw : ''; el.select(); } });
+document.addEventListener('focusin', e => { const el = e.target; if (el.matches?.('input.amt[data-cell]')) { el.value = +el.dataset.raw ? el.dataset.raw : ''; el.select(); } else if (el.matches?.('input[data-f=amount]')) { const v = parseNum(el.value); el.value = v ?? ''; el.defaultValue = el.value; el.select(); } });
 document.addEventListener('focusout', e => { const el = e.target; if (el.matches?.('input.amt[data-cell]') && el.value === (+el.dataset.raw ? el.dataset.raw : '')) el.value = fmtIn(+el.dataset.raw || 0); });
 document.addEventListener('change', e => {
   const el = e.target;
   if (el.id === 'selM') { ui.ym = ymOf(ymY(ui.ym), +el.value); return render(); }
   if (el.id === 'selY') { if (ui.tab === 'year') ui.y = +el.value; else ui.ym = ymOf(+el.value, ymM(ui.ym)); return render(); }
   if (el.dataset.cell) { const [id, ym] = el.dataset.cell.split('|'); return setCell(id, ym, el.value); }
+  if (el.dataset.owedpaid) { const o = db.owed.find(x => x.id === el.dataset.owedpaid); o.paid = el.checked; o.paidAt = el.checked ? new Date().toISOString().slice(0, 10) : null; save(el.checked ? '✓ סומן כשולם' : 'סומן כלא שולם'); return render(); }
+  if (el.dataset.owed) { const o = db.owed.find(x => x.id === el.dataset.owed), f = el.dataset.f; if (!o) return; if (f === 'amount') o.amount = parseNum(el.value) ?? 0; else if (f === 'name' && !el.value.trim()) {} else o[f] = el.value.trim(); save('✓ נשמר'); return render(); }
   if (el.dataset.name) { const it = itemById(el.dataset.name), v = el.value.trim(); if (it && v) { it.name = v; save('✓ נשמר'); } render(); return; }
   if (el.dataset.setting) { const k = el.dataset.setting; db.settings[k] = el.type === 'number' ? (+el.value || 0) : el.value; if (k === 'openingYM' && !el.value) db.settings[k] = curYM(); save('✓ נשמר'); render(); }
 });
@@ -934,6 +979,7 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     const addG = el.dataset.add || el.dataset.addv || el.dataset.addkind;
     if (addG) return quickAdd(addG);
+    if (el.dataset.oweadd) return addOwed();
     const col = list.filter(x => x.dataset.col === el.dataset.col), nx = col[col.indexOf(el) + (e.shiftKey ? -1 : 1)];
     if (nx) { pendingFocus = nx.dataset.k; nx.focus(); } else el.blur();
     setTimeout(() => pendingFocus = null);
@@ -982,6 +1028,7 @@ function demoData() {
   const sal = add('משכורות', 'משכורת', 'fixed', 19400); sal.plan.push({from: ymAdd(cy, -3), v: 20300});
   add('משכורות', 'בונוס שנתי', 'once', 6000, {start: ymAdd(cy, 2)});
   add('הכנסות נוספות', 'החזר מס', 'once', 2300, {start: ymAdd(cy, -5)}); add('הכנסות נוספות', 'פרויקט פרילנס', 'once', 1800, {start: ymAdd(cy, -1)});
+  d.owed = [{id: 'o' + uid(), name: 'אבא', note: 'עזרה בשיפוץ', amount: 3000, paid: false}, {id: 'o' + uid(), name: 'דני (חבר)', note: 'כרטיסים להופעה', amount: 450, paid: false}, {id: 'o' + uid(), name: 'ועד הבית', note: 'תיקון מעלית', amount: 200, paid: true}];
   // בחודש הנוכחי חלק מהמשתנות עוד לא הוזנו — יופיעו כהערכה
   for (const it of d.items) if (it.kind === 'variable' && rnd() > .5) delete d.values[it.id + '|' + cy];
   return d;
