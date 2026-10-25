@@ -317,6 +317,9 @@ table.vtab td.vc-url,table.vtab th.vc-url{min-width:200px} table.vtab td.vc-pass
 table.vtab td.w-act,table.vtab th.w-act{min-width:96px;width:96px}
 .colh{border:0;background:transparent;cursor:pointer;font-weight:700;font-size:12.5px;color:var(--text-2);display:inline-flex;gap:5px;align-items:center;padding:4px 6px;border-radius:6px}
 .colh:hover{background:var(--surface-3);color:var(--text)}
+.colw{display:flex;align-items:center;gap:0}
+.colw .cm{width:22px;height:22px;opacity:.35} th:hover .colw .cm{opacity:1} .colw .cm:disabled{opacity:.12}
+@media (hover:none){ .colw .cm{opacity:.8} }
 .vurl,.vpw,.vtx{display:flex;align-items:center;gap:2px}
 .vtx .cp{opacity:0} tr.it:hover .vtx .cp{opacity:1}
 .vlink{flex:1;color:var(--accent);text-decoration:none;font-weight:600;display:inline-flex;gap:5px;align-items:center;padding:5px 7px;border-radius:7px;direction:ltr;justify-content:flex-end;overflow:hidden;white-space:nowrap}
@@ -1092,7 +1095,7 @@ function vTable(t, ti) {
       <button class="ib" data-act="vMoveTable" data-id="${t.id}" data-dir="-1" title="הזז למעלה" ${ti ? '' : 'disabled'}>${ico('arrUp', 15)}</button><button class="ib" data-act="vMoveTable" data-id="${t.id}" data-dir="1" title="הזז למטה" ${ti < n - 1 ? '' : 'disabled'}>${ico('arrDn', 15)}</button>
       <button class="ib" data-act="vTableForm" data-id="${t.id}" title="עריכת טבלה">${ico('edit', 14)}</button></div>
     <div class="sheet-gap"></div>
-    <div class="vwrap"><table class="t vtab"><thead><tr>${t.cols.map(c => `<th class="vc-${c.type}"><button class="colh" data-act="vColForm" data-id="${t.id}|${c.id}" title="עריכת עמודה">${c.type === 'url' ? ico('link', 12) : c.type === 'password' ? ico('lock', 12) : ''}${esc(c.name)}</button></th>`).join('')}<th class="w-act"></th></tr></thead>
+    <div class="vwrap"><table class="t vtab"><thead><tr>${t.cols.map((c, ci) => `<th class="vc-${c.type}"><div class="colw"><button class="colh" data-act="vColForm" data-id="${t.id}|${c.id}" title="עריכת עמודה">${c.type === 'url' ? ico('link', 12) : c.type === 'password' ? ico('lock', 12) : ''}${esc(c.name)}</button><span class="sp"></span><button class="ib cm" data-act="vColMove" data-id="${t.id}|${c.id}" data-dir="-1" title="הזז עמודה ימינה" ${ci ? '' : 'disabled'}>${ico('right', 14)}</button><button class="ib cm" data-act="vColMove" data-id="${t.id}|${c.id}" data-dir="1" title="הזז עמודה שמאלה" ${ci < t.cols.length - 1 ? '' : 'disabled'}>${ico('left', 14)}</button></div></th>`).join('')}<th class="w-act"></th></tr></thead>
     <tbody>${rows.map((r, ri) => `<tr class="it">${t.cols.map(c => `<td class="vc-${c.type}">${vCell(t, r, c)}</td>`).join('')}
       <td class="w-act"><div class="acts">${q ? '' : `<button class="ib mv" data-act="vMoveRow" data-id="${t.id}|${r.id}" data-dir="-1" tabindex="-1" title="למעלה" ${ri ? '' : 'disabled'}>${ico('arrUp', 15)}</button><button class="ib mv" data-act="vMoveRow" data-id="${t.id}|${r.id}" data-dir="1" tabindex="-1" title="למטה" ${ri < rows.length - 1 ? '' : 'disabled'}>${ico('arrDn', 15)}</button>`}<button class="ib del" data-act="vDelRow" data-id="${t.id}|${r.id}" tabindex="-1" title="מחיקה">${ico('trash', 14)}</button></div></td></tr>`).join('')}
       <tr class="add">${t.cols.map((c, ci) => `<td><input class="cell" data-k="vadd|${t.id}|${c.id}" data-vadd="${t.id}" data-cid="${c.id}" placeholder="${ci ? esc(c.name) : '+ ' + esc(c.name)}" ${c.type === 'password' ? 'type="password" autocomplete="new-password"' : 'autocomplete="off"'} ${c.type !== 'text' ? 'dir="ltr"' : ''}></td>`).join('')}
@@ -1131,7 +1134,7 @@ function viewVault() {
       <button class="ib" data-act="vSettings" title="הגדרות כספת">${ico('cog', 17)}</button>
       <button class="btn primary sm" data-act="vLockNow">${ico('lock', 14)} נעל עכשיו</button></div>
     <div class="col">${d.tables.map(vTable).join('') || `<div class="panel hint" style="text-align:center">אין טבלאות — צור טבלה חדשה</div>`}</div>
-    <div class="hint" style="margin-top:10px">לחיצה על כותרת עמודה: שינוי שם / סוג (טקסט, קישור, סיסמה) / סדר / מחיקה · קישורים נפתחים בלשונית חדשה · ${ico('eye', 11)} מציג סיסמה, ${ico('copy', 11)} מעתיק</div>`;
+    <div class="hint" style="margin-top:10px">החיצים ‹ › בכותרת מזיזים עמודה ימינה / שמאלה · לחיצה על שם העמודה: שינוי שם / סוג / מחיקה · קישורים נפתחים בלשונית חדשה · ${ico('eye', 11)} מציג סיסמה, ${ico('copy', 11)} מעתיק</div>`;
   return {html};
 }
 function vSetupWire() {
@@ -1377,6 +1380,7 @@ const ACTIONS = {
   vMoveRow: (key, el) => { const [tid, rid] = key.split('|'), t = V.data.tables.find(x => x.id === tid), i = t.rows.findIndex(x => x.id === rid), j = i + +el.dataset.dir; if (j < 0 || j >= t.rows.length) return; [t.rows[i], t.rows[j]] = [t.rows[j], t.rows[i]]; vSave(); render(); },
   vMoveTable: (id, el) => { const a = V.data.tables, i = a.findIndex(x => x.id === id), j = i + +el.dataset.dir; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; vSave(); render(); },
   vColForm: id => vColForm(id),
+  vColMove: (id, el) => { const [tid, cid] = id.split('|'), t = V.data.tables.find(x => x.id === tid), i = t.cols.findIndex(c => c.id === cid), j = i + +el.dataset.dir; if (j < 0 || j >= t.cols.length) return; [t.cols[i], t.cols[j]] = [t.cols[j], t.cols[i]]; vSave(); render(); },
   vMoveCol: (id, el) => { const [tid, cid] = id.split('|'), t = V.data.tables.find(x => x.id === tid), i = t.cols.findIndex(c => c.id === cid), j = i + +el.dataset.dir; if (j < 0 || j >= t.cols.length) return; [t.cols[i], t.cols[j]] = [t.cols[j], t.cols[i]]; vSave(); render(); vColForm(id); },
   vDelCol: id => { const [tid, cid] = id.split('|'), t = V.data.tables.find(x => x.id === tid), c = t.cols.find(x => x.id === cid); confirmBox(`למחוק את העמודה "${esc(c.name)}" ואת כל הערכים שבה?`, 'מחיקה', () => { t.cols = t.cols.filter(x => x !== c); t.rows.forEach(r => delete r.cells[cid]); vSave(); render(); }); },
   vTableForm: id => vTableForm(id),
