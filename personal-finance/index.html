@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ניהול אישי</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- אבטחה: הדף לא טוען ולא שולח שום דבר לאינטרנט -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
 <style>
 :root{
   color-scheme:light;
@@ -48,7 +48,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:'Heebo',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body{font-family:'Heebo','Segoe UI',system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
 .num{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;white-space:nowrap}
 .ico{flex:none;vertical-align:middle}
@@ -295,6 +295,34 @@ textarea.inp{resize:vertical;font:inherit}
   .qadd [data-qa=title]{flex-basis:100%}
   .week{grid-template-columns:minmax(0,1fr)} .day{min-height:0}
 }
+/* vault */
+.tabs{overflow-x:auto;max-width:100%;scrollbar-width:none}
+.tabs .sh{display:none}
+.cur-btn{border-color:var(--accent);color:var(--accent)} .cur-btn.is-cur{border-color:var(--border);color:var(--muted);cursor:default;background:var(--surface-2)}
+.vgate{max-width:560px;margin:30px auto;text-align:center;padding:30px}
+.vgate h2{font-size:22px;margin:10px 0 6px}
+.vgate p{color:var(--text-2)}
+.vg-ico{width:64px;height:64px;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin:0 auto}
+.vform{display:flex;flex-direction:column;gap:10px;max-width:360px;margin:18px auto 0;text-align:right}
+.vform .btn{justify-content:center}
+.pwbar{height:5px;border-radius:9px;background:var(--surface-3);overflow:hidden;margin-top:-4px}
+.pwbar span{display:block;height:100%;width:0;transition:all .2s}
+.vsec{margin-top:24px;text-align:right;background:var(--surface-2);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--text-2)}
+.vsec ul{margin:6px 0 0;padding-right:18px} .vsec li{margin:3px 0}
+.vwrap{overflow-x:auto}
+table.vtab{width:max-content;min-width:100%}
+table.vtab th{height:36px;padding:0 6px;text-align:right;border-bottom:1px solid var(--border);background:var(--surface-2)}
+table.vtab td{min-width:150px;padding:0 4px}
+table.vtab td.vc-url,table.vtab th.vc-url{min-width:200px} table.vtab td.vc-password{min-width:170px}
+table.vtab td.w-act,table.vtab th.w-act{min-width:96px;width:96px}
+.colh{border:0;background:transparent;cursor:pointer;font-weight:700;font-size:12.5px;color:var(--text-2);display:inline-flex;gap:5px;align-items:center;padding:4px 6px;border-radius:6px}
+.colh:hover{background:var(--surface-3);color:var(--text)}
+.vurl,.vpw,.vtx{display:flex;align-items:center;gap:2px}
+.vtx .cp{opacity:0} tr.it:hover .vtx .cp{opacity:1}
+.vlink{flex:1;color:var(--accent);text-decoration:none;font-weight:600;display:inline-flex;gap:5px;align-items:center;padding:5px 7px;border-radius:7px;direction:ltr;justify-content:flex-end;overflow:hidden;white-space:nowrap}
+.vlink:hover{background:var(--accent-soft);text-decoration:underline}
+.vt .sheet-h{flex-wrap:wrap}
+@media (max-width:900px){ .tabs .lg{display:none} .tabs .sh{display:inline} .cur-btn{padding:4px 7px;font-size:12px} }
 @media (max-width:1200px){
   .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
   .r3,.r2{grid-template-columns:minmax(0,1fr)}
@@ -360,6 +388,12 @@ const I = {
   up:'<path d="M12 19V5M5 12l7-7 7 7"/>', dn:'<path d="M12 5v14M19 12l-7 7-7-7"/>',
   arrUp:'<path d="m18 15-6-6-6 6"/>', arrDn:'<path d="m6 9 6 6 6-6"/>',
   search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>', clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>', tasks:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff:'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 5c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  ext:'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>',
+  dice:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
+  unlock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
   bulb:'<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>',
 };
 const ico = (n, s = 16) => `<svg class="ico" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n] || ''}</svg>`;
@@ -569,14 +603,14 @@ function renderTop() {
   const dark = document.documentElement.dataset.theme === 'dark';
   $('#top').innerHTML = `
     <div class="brand"><i>₪</i><span>ניהול אישי</span></div>
-    <nav class="tabs">${[['month', 'חודשי', 'table'], ['year', 'שנתי', 'cal'], ['tasks', 'משימות', 'tasks'], ['settings', 'הגדרות', 'cog']].map(([id, l, ic]) => `<button class="${ui.tab === id ? 'on' : ''}" data-act="tab" data-id="${id}">${ico(ic, 15)}${l}</button>`).join('')}</nav>
+    <nav class="tabs">${[['month', 'חודשי', 'table'], ['year', 'שנתי', 'cal'], ['tasks', 'משימות', 'tasks'], ['vault', 'לינקים וסיסמאות', V.data ? 'unlock' : 'lock', 'סיסמאות'], ['settings', 'הגדרות', 'cog']].map(([id, l, ic, sh]) => `<button class="${ui.tab === id ? 'on' : ''}" data-act="tab" data-id="${id}">${ico(ic, 15)}${sh ? `<span class="lg">${l}</span><span class="sh">${sh}</span>` : l}</button>`).join('')}</nav>
     <span class="sp"></span>
-    ${ui.tab === 'settings' || ui.tab === 'tasks' ? '' : `<div class="period">
+    ${['settings', 'tasks', 'vault'].includes(ui.tab) ? '' : `<div class="period">
       <button data-act="shift" data-id="-1" title="הקודם">${ico('right')}</button>
       ${ui.tab === 'month' ? `<select id="selM" aria-label="חודש">${MONTHS.map((n, i) => `<option value="${i}" ${i === m ? 'selected' : ''}>${n}</option>`).join('')}</select>` : ''}
       <select id="selY" aria-label="שנה">${years.map(v => `<option ${v === y ? 'selected' : ''}>${v}</option>`).join('')}</select>
       <button data-act="shift" data-id="1" title="הבא">${ico('left')}</button></div>
-      ${(ui.tab === 'month' ? ui.ym !== curYM() : ui.y !== NOW.getFullYear()) ? `<button class="btn ghost sm" data-act="today">היום</button>` : ''}`}
+      ${(() => { const isCur = ui.tab === 'month' ? ui.ym === curYM() : ui.y === new Date().getFullYear(); return `<button class="btn sm cur-btn ${isCur ? 'is-cur' : ''}" data-act="today" ${isCur ? 'disabled' : ''} title="${ui.tab === 'month' ? ymLabel(curYM()) : new Date().getFullYear()}">${ico('clock', 14)}${isCur ? (ui.tab === 'month' ? 'החודש הנוכחי' : 'השנה הנוכחית') : (ui.tab === 'month' ? 'עבור לחודש הנוכחי' : 'עבור לשנה הנוכחית')}</button>`; })()}`}
     <button class="ib" data-act="theme" title="מצב כהה / בהיר">${ico(dark ? 'sun' : 'moon', 18)}</button>`;
   const days = db.settings.lastBackup ? (Date.now() - new Date(db.settings.lastBackup)) / 864e5 : Infinity;
   const used = Object.keys(db.values).length + db.items.filter(i => i.plan.some(p => p.v)).length;
@@ -777,7 +811,7 @@ function viewSettings() {
         <div class="field"><label>מטבע</label><select class="inp" data-setting="currency">${['₪', '$', '€'].map(c => `<option ${c === st.currency ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
         <div class="field"><label>מצב תצוגה</label><select class="inp" data-setting="theme">${[['auto', 'אוטומטי'], ['light', 'בהיר'], ['dark', 'כהה']].map(([v, l]) => `<option value="${v}" ${st.theme === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div></div>
       <div class="panel"><div class="ph"><h3>גיבוי ופרטיות</h3></div>
-        <p style="margin:0 0 12px;display:flex;gap:8px;color:var(--text-2)">${ico('lock')} <span>הנתונים נשמרים <b>רק בדפדפן הזה במחשב הזה</b> ולא נשלחים לשום מקום. כדי לא לאבד אותם ולהעביר למכשיר אחר — שמור קובץ גיבוי ושחזר ממנו.</span></p>
+        <p style="margin:0 0 12px;display:flex;gap:8px;color:var(--text-2)">${ico('lock')} <span>הנתונים נשמרים <b>רק בדפדפן הזה במחשב הזה</b> ולא נשלחים לשום מקום. כדי לא לאבד אותם ולהעביר למכשיר אחר — שמור קובץ גיבוי ושחזר ממנו. כספת הסיסמאות נכללת בגיבוי <b>מוצפנת בלבד</b>.</span></p>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" data-act="exportJSON">${ico('download', 15)} הורד גיבוי</button><button class="btn" data-act="importJSON">${ico('upload', 15)} שחזור מגיבוי</button><button class="btn" data-act="exportYear">${ico('download', 15)} ייצוא שנה ל-Excel</button></div>
         <div class="hint" style="margin-top:10px">גיבוי אחרון: ${st.lastBackup ? new Date(st.lastBackup).toLocaleString('he-IL') : 'עדיין לא'}</div>
         <hr style="border:0;border-top:1px solid var(--border);margin:14px 0">
@@ -979,7 +1013,216 @@ function quickAddFrom(get, focusKey) {
   addTask({title, catId: get('cat'), date: get('date'), time: get('time'), prio: +get('prio') || 0});
   pendingFocus = focusKey; save('✓ המשימה נוספה'); render();
 }
-const VIEWS = {month: viewMonth, year: viewYear, tasks: viewTasks, settings: viewSettings};
+/* ================= VAULT — לינקים וסיסמאות (מוצפן) =================
+   הנתונים מוצפנים ב-AES-GCM 256 עם מפתח שנגזר מסיסמת האב (PBKDF2-SHA256, 600,000 סבבים).
+   בדפדפן נשמר רק הטקסט המוצפן; סיסמת האב והמפתח לא נשמרים בשום מקום. */
+const VKEY = 'personal-vault-v1';
+const V = {key: null, salt: null, iter: 0, data: null, timer: null};
+const te = new TextEncoder(), tdec = new TextDecoder();
+const b64 = buf => { const a = new Uint8Array(buf); let s = ''; for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const vBlob = () => { try { return JSON.parse(localStorage.getItem(VKEY)); } catch (e) { return null; } };
+const COLT = {text: 'טקסט', url: 'קישור', password: 'סיסמה'};
+async function vDerive(pw, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', te.encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256'}, base, {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']);
+}
+async function vWrite() {
+  if (!V.key || !V.data) return;
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name: 'AES-GCM', iv}, V.key, te.encode(JSON.stringify(V.data)));
+  localStorage.setItem(VKEY, JSON.stringify({v: 1, kdf: 'PBKDF2-SHA256', iter: V.iter, salt: b64(V.salt), iv: b64(iv), ct: b64(ct)}));
+}
+async function vTryKey(pw, blob) {
+  const salt = unb64(blob.salt), key = await vDerive(pw, salt, blob.iter);
+  try { const pt = await crypto.subtle.decrypt({name: 'AES-GCM', iv: unb64(blob.iv)}, key, unb64(blob.ct)); return {key, salt, data: JSON.parse(tdec.decode(pt))}; }
+  catch (e) { return null; }
+}
+let vQ = Promise.resolve();
+function vSave() { vQ = vQ.then(vWrite).catch(() => toast('⚠️ שמירת הכספת נכשלה')); vTouch(); }
+function vTouch() { clearTimeout(V.timer); if (V.data) V.timer = setTimeout(() => vLock('🔒 הכספת ננעלה אוטומטית'), (+V.data.settings?.lockMin || 5) * 60000); }
+function vLock(msg) {
+  vQ = vQ.then(() => { V.key = null; V.data = null; clearTimeout(V.timer); ui.vShown = new Set(); ui.vEdit = null; ui.vq = ''; if (ui.tab === 'vault') render(); else renderTop(); if (msg) toast(msg); });
+}
+function defaultVault() {
+  const T = (name, icon, color, cols) => ({id: 'vt' + uid(), name, icon, color, cols: cols.map(([n, t]) => ({id: 'vc' + uid(), name: n, type: t})), rows: []});
+  return {tables: [
+    T('אתרים וחשבונות', '🌐', 0, [['שם', 'text'], ['קישור', 'url'], ['משתמש / מייל', 'text'], ['סיסמה', 'password'], ['הערות', 'text']]),
+    T('בנקים וכספים', '🏦', 2, [['שם', 'text'], ['קישור', 'url'], ['מספר לקוח / ת.ז.', 'text'], ['משתמש', 'text'], ['סיסמה', 'password'], ['קוד נוסף', 'password'], ['הערות', 'text']]),
+    T('לינקים שימושיים', '🔗', 6, [['שם', 'text'], ['קישור', 'url'], ['תיאור', 'text']]),
+  ], settings: {lockMin: 5}};
+}
+function vSafeUrl(u) { u = (u || '').trim(); if (!u) return ''; if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = (u.includes('@') && !u.includes('/') ? 'mailto:' : 'https://') + u; return /^(https?|mailto|tel):/i.test(u) ? u : ''; }
+function vShortUrl(u) { try { const x = new URL(vSafeUrl(u)); if (!/^https?:/.test(x.protocol)) return u; return (x.hostname.replace(/^www\./, '') + (x.pathname.length > 1 ? x.pathname : '')).slice(0, 38); } catch (e) { return u; } }
+function vGenPass(len = 18, sym = true, num = true) {
+  let cs = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'; if (num) cs += '23456789'; if (sym) cs += '!@#$%^&*-_=+?';
+  const r = crypto.getRandomValues(new Uint32Array(len)); return [...r].map(x => cs[x % cs.length]).join('');
+}
+function pwStrength(p) {
+  let s = 0; if (p.length >= 10) s++; if (p.length >= 14) s++; if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++; if (/\d/.test(p)) s++; if (/[^A-Za-z0-9]/.test(p)) s++;
+  return [[0, 'חלשה מאוד', 'var(--neg)'], [1, 'חלשה', 'var(--neg)'], [2, 'בינונית', 'var(--c3)'], [3, 'טובה', 'var(--c3)'], [4, 'חזקה', 'var(--pos)'], [5, 'חזקה מאוד', 'var(--pos)']][Math.min(5, s)];
+}
+const vFind = key => { const [tid, rid, cid] = key.split('|'), t = V.data.tables.find(x => x.id === tid), r = t?.rows.find(x => x.id === rid); return {t, r, cid}; };
+async function copyText(v) {
+  try { await navigator.clipboard.writeText(v); }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = v; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  toast('✓ הועתק');
+}
+
+function vCell(t, r, c) {
+  const key = `${t.id}|${r.id}|${c.id}`, v = r.cells[c.id] || '', k = 'v|' + key, col = `vc|${t.id}|${c.id}`;
+  if (c.type === 'url') {
+    const href = vSafeUrl(v);
+    if (v && href && ui.vEdit !== key) return `<div class="vurl"><a class="vlink" href="${esc(href)}" target="_blank" rel="noopener noreferrer" title="פתח: ${esc(v)}">${esc(vShortUrl(v))}${ico('ext', 12)}</a><button class="ib" data-act="vEditUrl" data-id="${key}" tabindex="-1" title="עריכת הקישור">${ico('edit', 13)}</button></div>`;
+    return `<input class="cell" dir="ltr" data-k="${k}" data-col="${col}" data-vcell="${key}" value="${esc(v)}" placeholder="www..." autocomplete="off" spellcheck="false">`;
+  }
+  if (c.type === 'password') {
+    const shown = ui.vShown?.has(key);
+    return `<div class="vpw"><input class="cell" dir="ltr" type="${shown ? 'text' : 'password'}" data-k="${k}" data-col="${col}" data-vcell="${key}" value="${esc(v)}" autocomplete="new-password" spellcheck="false">${v ? `<button class="ib" data-act="vShow" data-id="${key}" tabindex="-1" title="${shown ? 'הסתר' : 'הצג'}">${ico(shown ? 'eyeOff' : 'eye', 14)}</button><button class="ib" data-act="vCopy" data-id="${key}" tabindex="-1" title="העתק">${ico('copy', 13)}</button>` : ''}</div>`;
+  }
+  return `<div class="vtx"><input class="cell" data-k="${k}" data-col="${col}" data-vcell="${key}" value="${esc(v)}" autocomplete="off">${v ? `<button class="ib cp" data-act="vCopy" data-id="${key}" tabindex="-1" title="העתק">${ico('copy', 13)}</button>` : ''}</div>`;
+}
+function vTable(t, ti) {
+  const q = (ui.vq || '').trim().toLowerCase(), n = V.data.tables.length;
+  const rows = q ? t.rows.filter(r => t.cols.some(c => c.type !== 'password' && (r.cells[c.id] || '').toLowerCase().includes(q))) : t.rows;
+  if (q && !rows.length) return '';
+  return `<section class="sheet vt" style="--sc:${gColor(t)}">
+    <div class="sheet-h"><h2><i>${t.icon || '🔒'}</i>${esc(t.name)}</h2><span class="hint">${t.rows.length} רשומות</span><span class="sp"></span>
+      <button class="btn sm" data-act="vColForm" data-id="${t.id}">${ico('plus', 13)} עמודה</button>
+      <button class="ib" data-act="vMoveTable" data-id="${t.id}" data-dir="-1" title="הזז למעלה" ${ti ? '' : 'disabled'}>${ico('arrUp', 15)}</button><button class="ib" data-act="vMoveTable" data-id="${t.id}" data-dir="1" title="הזז למטה" ${ti < n - 1 ? '' : 'disabled'}>${ico('arrDn', 15)}</button>
+      <button class="ib" data-act="vTableForm" data-id="${t.id}" title="עריכת טבלה">${ico('edit', 14)}</button></div>
+    <div class="sheet-gap"></div>
+    <div class="vwrap"><table class="t vtab"><thead><tr>${t.cols.map(c => `<th class="vc-${c.type}"><button class="colh" data-act="vColForm" data-id="${t.id}|${c.id}" title="עריכת עמודה">${c.type === 'url' ? ico('link', 12) : c.type === 'password' ? ico('lock', 12) : ''}${esc(c.name)}</button></th>`).join('')}<th class="w-act"></th></tr></thead>
+    <tbody>${rows.map((r, ri) => `<tr class="it">${t.cols.map(c => `<td class="vc-${c.type}">${vCell(t, r, c)}</td>`).join('')}
+      <td class="w-act"><div class="acts">${q ? '' : `<button class="ib mv" data-act="vMoveRow" data-id="${t.id}|${r.id}" data-dir="-1" tabindex="-1" title="למעלה" ${ri ? '' : 'disabled'}>${ico('arrUp', 15)}</button><button class="ib mv" data-act="vMoveRow" data-id="${t.id}|${r.id}" data-dir="1" tabindex="-1" title="למטה" ${ri < rows.length - 1 ? '' : 'disabled'}>${ico('arrDn', 15)}</button>`}<button class="ib del" data-act="vDelRow" data-id="${t.id}|${r.id}" tabindex="-1" title="מחיקה">${ico('trash', 14)}</button></div></td></tr>`).join('')}
+      <tr class="add">${t.cols.map((c, ci) => `<td><input class="cell" data-k="vadd|${t.id}|${c.id}" data-vadd="${t.id}" data-cid="${c.id}" placeholder="${ci ? esc(c.name) : '+ ' + esc(c.name)}" ${c.type === 'password' ? 'type="password" autocomplete="new-password"' : 'autocomplete="off"'} ${c.type !== 'text' ? 'dir="ltr"' : ''}></td>`).join('')}
+      <td class="w-act"><div class="acts" style="opacity:1"><button class="ib ok" data-act="vAddRow" data-id="${t.id}" tabindex="-1" title="הוסף שורה">${ico('check', 15)}</button></div></td></tr>
+    </tbody></table></div></section>`;
+}
+function vGate(inner) {
+  return `<div class="vgate panel"><div class="vg-ico">${ico('lock', 30)}</div>${inner}
+    <div class="vsec"><b>איך הנתונים מוגנים</b><ul>
+      <li>הכול מוצפן <b>AES-256</b> עם מפתח שנגזר מסיסמת האב שלך. בדפדפן נשמר רק טקסט מוצפן.</li>
+      <li>סיסמת האב <b>לא נשמרת בשום מקום</b>. בלעדיה אי אפשר לקרוא את הנתונים, גם לא מקובץ הגיבוי.</li>
+      <li>הדף לא מתחבר לאינטרנט בכלל (חסום ברמת הדפדפן), כך ששום מידע לא יכול לצאת ממנו.</li>
+      <li>הכספת ננעלת אוטומטית אחרי כמה דקות בלי פעילות, ובכל סגירה או רענון של הדף.</li></ul></div></div>`;
+}
+function viewVault() {
+  if (!window.crypto?.subtle) return {html: vGate(`<h2>הדפדפן לא תומך בהצפנה</h2><p class="hint">פתח את הקובץ ב-Chrome, Edge או Firefox עדכניים.</p>`)};
+  const blob = vBlob();
+  if (!blob) return {html: vGate(`<h2>יצירת כספת לינקים וסיסמאות</h2>
+      <p>בחר <b>סיסמת אב</b>. היא תידרש בכל פתיחה של הכספת. <b class="neg">אם תשכח אותה — אין שום דרך לשחזר את הנתונים.</b></p>
+      <form id="vSetupF" class="vform" autocomplete="off">
+        <input class="inp" type="password" name="p1" placeholder="סיסמת אב (לפחות 10 תווים)" autocomplete="new-password" required>
+        <div class="pwbar"><span id="pwb"></span></div><div class="hint" id="pwl">&nbsp;</div>
+        <input class="inp" type="password" name="p2" placeholder="אימות סיסמת האב" autocomplete="new-password" required>
+        <label class="check"><input type="checkbox" class="chk" name="ok"> הבנתי שאם אשכח את סיסמת האב, הנתונים יאבדו</label>
+        <div class="hint neg" id="vErr"></div>
+        <button class="btn primary" type="submit">${ico('lock', 15)} צור כספת מוצפנת</button></form>`), after: vSetupWire};
+  if (!V.data) return {html: vGate(`<h2>הכספת נעולה</h2><p>הזן את סיסמת האב כדי לפתוח.</p>
+      <form id="vUnlockF" class="vform" autocomplete="off"><input class="inp" type="password" name="p" placeholder="סיסמת אב" autocomplete="current-password" required>
+        <div class="hint neg" id="vErr"></div><button class="btn primary" type="submit">${ico('unlock', 15)} פתח כספת</button>
+        <button class="btn ghost sm" type="button" data-act="vForgot">שכחתי את הסיסמה</button></form>`), after: vUnlockWire};
+  const d = V.data, mins = +d.settings?.lockMin || 5;
+  const html = `<div class="toolbar"><h1>לינקים וסיסמאות</h1><span class="chip good">${ico('unlock', 11)} פתוחה · ננעלת אחרי ${mins} דק׳ ללא פעילות</span><span class="sp"></span>
+      <div class="tsearch">${ico('search', 15)}<input class="inp" data-k="vq" data-vsearch data-nosel value="${esc(ui.vq || '')}" placeholder="חיפוש (שם, קישור, משתמש…)"></div>
+      <button class="btn sm" data-act="vGen">${ico('dice', 14)} מחולל סיסמאות</button>
+      <button class="btn sm" data-act="vTableForm">${ico('plus', 14)} טבלה חדשה</button>
+      <button class="ib" data-act="vSettings" title="הגדרות כספת">${ico('cog', 17)}</button>
+      <button class="btn primary sm" data-act="vLockNow">${ico('lock', 14)} נעל עכשיו</button></div>
+    <div class="col">${d.tables.map(vTable).join('') || `<div class="panel hint" style="text-align:center">אין טבלאות — צור טבלה חדשה</div>`}</div>
+    <div class="hint" style="margin-top:10px">לחיצה על כותרת עמודה: שינוי שם / סוג (טקסט, קישור, סיסמה) / סדר / מחיקה · קישורים נפתחים בלשונית חדשה · ${ico('eye', 11)} מציג סיסמה, ${ico('copy', 11)} מעתיק</div>`;
+  return {html};
+}
+function vSetupWire() {
+  const f = $('#vSetupF'); if (!f) return;
+  f.elements.p1.focus();
+  f.elements.p1.addEventListener('input', () => { const [s, l, c] = pwStrength(f.elements.p1.value); $('#pwb').style.cssText = `width:${(s + 1) / 6 * 100}%;background:${c}`; $('#pwl').textContent = f.elements.p1.value ? 'חוזק: ' + l : ' '; });
+  f.addEventListener('submit', async e => {
+    e.preventDefault(); const p1 = f.elements.p1.value, p2 = f.elements.p2.value, err = $('#vErr');
+    if (p1.length < 10) return err.textContent = 'סיסמת האב חייבת להכיל לפחות 10 תווים';
+    if (p1 !== p2) return err.textContent = 'הסיסמאות לא תואמות';
+    if (!f.elements.ok.checked) return err.textContent = 'סמן שהבנת שאין שחזור לסיסמה';
+    f.querySelector('[type=submit]').disabled = true; err.textContent = '';
+    V.salt = crypto.getRandomValues(new Uint8Array(16)); V.iter = 600000; V.key = await vDerive(p1, V.salt, V.iter); V.data = defaultVault();
+    await vWrite(); vTouch(); toast('✓ הכספת נוצרה ומוצפנת'); render();
+  });
+}
+function vUnlockWire() {
+  const f = $('#vUnlockF'); if (!f) return;
+  setTimeout(() => f.elements.p.focus(), 30);
+  f.addEventListener('submit', async e => {
+    e.preventDefault(); const btn = f.querySelector('[type=submit]'), err = $('#vErr');
+    btn.disabled = true; btn.textContent = 'פותח…';
+    const res = await vTryKey(f.elements.p.value, vBlob());
+    if (!res) { btn.disabled = false; btn.innerHTML = `${ico('unlock', 15)} פתח כספת`; err.textContent = 'סיסמה שגויה'; f.elements.p.value = ''; f.elements.p.focus(); return; }
+    Object.assign(V, {key: res.key, salt: res.salt, iter: vBlob().iter, data: res.data}); V.data.settings = V.data.settings || {lockMin: 5};
+    ui.vShown = new Set(); vTouch(); render();
+  });
+}
+function vColForm(id) {
+  const [tid, cid] = id.split('|'), t = V.data.tables.find(x => x.id === tid), c = cid && t.cols.find(x => x.id === cid), ci = c ? t.cols.indexOf(c) : -1;
+  openModal({title: c ? `עמודה: ${esc(c.name)}` : `עמודה חדשה ב"${esc(t.name)}"`, body: `<div class="fg">
+      <div class="field"><label>שם העמודה</label><input class="inp" name="name" value="${esc(c?.name || '')}" placeholder="למשל: קוד סודי, מספר חשבון" autofocus></div>
+      <div class="field"><label>סוג</label><select class="inp" name="type">${Object.entries(COLT).map(([k, l]) => `<option value="${k}" ${k === (c?.type || 'text') ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <div class="full hint">קישור = לחיץ ונפתח בלשונית חדשה · סיסמה = מוסתרת עם כפתור הצגה והעתקה</div></div>`,
+    footExtra: c ? `<button type="button" class="btn danger" data-act="vDelCol" data-id="${id}">${ico('trash', 14)} מחיקה</button><button type="button" class="ib" data-act="vMoveCol" data-id="${id}" data-dir="-1" title="הזז ימינה" ${ci ? '' : 'disabled'}>${ico('right', 16)}</button><button type="button" class="ib" data-act="vMoveCol" data-id="${id}" data-dir="1" title="הזז שמאלה" ${ci < t.cols.length - 1 ? '' : 'disabled'}>${ico('left', 16)}</button>` : '',
+    onSubmit: (fd, f) => {
+      if (!fd.name.trim()) { f.elements.name.focus(); toast('יש להזין שם'); return false; }
+      if (c) Object.assign(c, {name: fd.name.trim(), type: fd.type}); else t.cols.push({id: 'vc' + uid(), name: fd.name.trim(), type: fd.type});
+      vSave(); render();
+    }});
+}
+function vTableForm(id) {
+  const t = id && V.data.tables.find(x => x.id === id);
+  openModal({title: t ? 'עריכת טבלה' : 'טבלה חדשה', body: `<div class="fg">
+      <div class="field"><label>אייקון</label><input class="inp" name="icon" value="${esc(t?.icon || '🔒')}" maxlength="4"></div>
+      <div class="field"><label>שם הטבלה</label><input class="inp" name="name" value="${esc(t?.name || '')}" placeholder="למשל: רשתות חברתיות" autofocus></div>
+      <div class="field full"><label>צבע</label><div class="swatches">${[0, 1, 2, 3, 4, 5, 6, 7].map(n => `<label style="background:var(--c${n})"><input type="radio" name="color" value="${n}" ${n === +(t?.color ?? V.data.tables.length % 8) ? 'checked' : ''}></label>`).join('')}</div></div>
+      ${t ? '' : '<div class="full hint">הטבלה תיווצר עם העמודות: שם, קישור, משתמש, סיסמה, הערות — ואפשר להוסיף, לשנות ולמחוק עמודות.</div>'}</div>`,
+    footExtra: t ? `<button type="button" class="btn danger" data-act="vDelTable" data-id="${t.id}">${ico('trash', 14)} מחיקת הטבלה</button>` : '',
+    onSubmit: (fd, f) => {
+      if (!fd.name.trim()) { f.elements.name.focus(); toast('יש להזין שם'); return false; }
+      const rec = {name: fd.name.trim(), icon: fd.icon.trim(), color: +fd.color || 0};
+      if (t) Object.assign(t, rec);
+      else V.data.tables.push({...rec, id: 'vt' + uid(), rows: [], cols: [['שם', 'text'], ['קישור', 'url'], ['משתמש', 'text'], ['סיסמה', 'password'], ['הערות', 'text']].map(([n, ty]) => ({id: 'vc' + uid(), name: n, type: ty}))});
+      vSave(); render();
+    }});
+}
+function vGenModal() {
+  openModal({title: 'מחולל סיסמאות חזקות', noSubmit: true, body: `<div class="fg">
+      <div class="field full"><label>סיסמה</label><div class="vpw"><input class="inp num" id="gOut" dir="ltr" readonly style="font-size:16px;letter-spacing:.5px"><button type="button" class="ib" id="gCopy" title="העתק">${ico('copy', 16)}</button><button type="button" class="ib" id="gNew" title="חדשה">${ico('dice', 16)}</button></div></div>
+      <div class="field"><label>אורך: <b id="gLenL">18</b></label><input type="range" id="gLen" min="8" max="40" value="18"></div>
+      <div class="field"><label class="check"><input type="checkbox" class="chk" id="gNum" checked> ספרות</label><label class="check"><input type="checkbox" class="chk" id="gSym" checked> סימנים מיוחדים</label></div></div>`,
+    onMount: f => {
+      const gen = () => { $('#gLenL').textContent = $('#gLen').value; $('#gOut').value = vGenPass(+$('#gLen').value, $('#gSym').checked, $('#gNum').checked); };
+      ['gLen', 'gNum', 'gSym'].forEach(i => $('#' + i).addEventListener('input', gen)); $('#gNew').addEventListener('click', gen);
+      $('#gCopy').addEventListener('click', () => copyText($('#gOut').value)); gen();
+    }});
+}
+function vSettingsModal() {
+  openModal({title: 'הגדרות כספת', submitText: 'שמירה', body: `<div class="fg">
+      <div class="field full"><label>נעילה אוטומטית אחרי חוסר פעילות</label><select class="inp" name="lockMin">${[1, 2, 5, 10, 15, 30].map(m => `<option value="${m}" ${m === (+V.data.settings.lockMin || 5) ? 'selected' : ''}>${m} דקות</option>`).join('')}</select></div>
+      <div class="field full"><label>החלפת סיסמת אב (רשות)</label><input class="inp" type="password" name="cur" placeholder="סיסמה נוכחית" autocomplete="current-password"></div>
+      <div class="field"><input class="inp" type="password" name="n1" placeholder="סיסמה חדשה (10+ תווים)" autocomplete="new-password"></div>
+      <div class="field"><input class="inp" type="password" name="n2" placeholder="אימות סיסמה חדשה" autocomplete="new-password"></div>
+      <div class="full hint neg" id="vsErr"></div></div>`,
+    footExtra: `<button type="button" class="btn danger" data-act="vForgot">${ico('trash', 14)} מחיקת הכספת</button>`,
+    onSubmit: (fd) => {
+      V.data.settings.lockMin = +fd.lockMin || 5;
+      if (fd.cur || fd.n1) {
+        const err = $('#vsErr');
+        if (fd.n1.length < 10) { err.textContent = 'הסיסמה החדשה חייבת להכיל לפחות 10 תווים'; return false; }
+        if (fd.n1 !== fd.n2) { err.textContent = 'הסיסמאות החדשות לא תואמות'; return false; }
+        vTryKey(fd.cur, vBlob()).then(async ok => {
+          if (!ok) { toast('⚠️ הסיסמה הנוכחית שגויה — הסיסמה לא הוחלפה'); return; }
+          await vQ; V.salt = crypto.getRandomValues(new Uint8Array(16)); V.key = await vDerive(fd.n1, V.salt, V.iter); await vWrite(); toast('✓ סיסמת האב הוחלפה');
+        });
+      }
+      vSave(); toast('✓ נשמר'); render();
+    }});
+}
+const VIEWS = {month: viewMonth, year: viewYear, tasks: viewTasks, vault: viewVault, settings: viewSettings};
 
 /* ================= EDITING ================= */
 function setCell(itemId, ym, raw) {
@@ -1119,8 +1362,30 @@ const csvCell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${
 const ACTIONS = {
   tab: id => { ui.tab = id; if (id === 'year') ui.y = ymY(ui.ym); render(); scrollTo({top: 0}); },
   shift: d => { if (ui.tab === 'year') ui.y += +d; else ui.ym = ymAdd(ui.ym, +d); render(); },
-  today: () => { ui.ym = curYM(); ui.y = NOW.getFullYear(); render(); },
+  today: () => { ui.ym = curYM(); ui.y = new Date().getFullYear(); render(); scrollTo({top: 0}); },
   theme: () => { db.settings.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; save(); render(); },
+  vEditUrl: key => { ui.vEdit = key; pendingFocus = 'v|' + key; render(); },
+  vShow: key => { ui.vShown = ui.vShown || new Set(); ui.vShown.has(key) ? ui.vShown.delete(key) : ui.vShown.add(key); pendingFocus = null; render(); },
+  vCopy: key => { const {r, cid} = vFind(key); if (r) copyText(r.cells[cid] || ''); },
+  vAddRow: tid => {
+    const t = V.data.tables.find(x => x.id === tid), cells = {};
+    $$(`[data-vadd="${tid}"]`).forEach(el => { if (el.value.trim()) cells[el.dataset.cid] = el.value.trim(); });
+    if (!Object.keys(cells).length) { $(`[data-vadd="${tid}"]`)?.focus(); return toast('מלא לפחות שדה אחד'); }
+    t.rows.push({id: 'vr' + uid(), cells}); pendingFocus = `vadd|${tid}|${t.cols[0]?.id}`; vSave(); toast('✓ נוסף'); render();
+  },
+  vDelRow: key => { const [tid, rid] = key.split('|'), t = V.data.tables.find(x => x.id === tid), r = t.rows.find(x => x.id === rid); confirmBox(`למחוק את השורה "${esc(r.cells[t.cols[0]?.id] || '')}"?`, 'מחיקה', () => { t.rows = t.rows.filter(x => x !== r); vSave(); render(); }); },
+  vMoveRow: (key, el) => { const [tid, rid] = key.split('|'), t = V.data.tables.find(x => x.id === tid), i = t.rows.findIndex(x => x.id === rid), j = i + +el.dataset.dir; if (j < 0 || j >= t.rows.length) return; [t.rows[i], t.rows[j]] = [t.rows[j], t.rows[i]]; vSave(); render(); },
+  vMoveTable: (id, el) => { const a = V.data.tables, i = a.findIndex(x => x.id === id), j = i + +el.dataset.dir; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; vSave(); render(); },
+  vColForm: id => vColForm(id),
+  vMoveCol: (id, el) => { const [tid, cid] = id.split('|'), t = V.data.tables.find(x => x.id === tid), i = t.cols.findIndex(c => c.id === cid), j = i + +el.dataset.dir; if (j < 0 || j >= t.cols.length) return; [t.cols[i], t.cols[j]] = [t.cols[j], t.cols[i]]; vSave(); render(); vColForm(id); },
+  vDelCol: id => { const [tid, cid] = id.split('|'), t = V.data.tables.find(x => x.id === tid), c = t.cols.find(x => x.id === cid); confirmBox(`למחוק את העמודה "${esc(c.name)}" ואת כל הערכים שבה?`, 'מחיקה', () => { t.cols = t.cols.filter(x => x !== c); t.rows.forEach(r => delete r.cells[cid]); vSave(); render(); }); },
+  vTableForm: id => vTableForm(id),
+  vDelTable: id => { const t = V.data.tables.find(x => x.id === id); confirmBox(`למחוק את הטבלה "${esc(t.name)}" עם ${t.rows.length} הרשומות שבה?`, 'מחיקה', () => { V.data.tables = V.data.tables.filter(x => x !== t); vSave(); render(); }); },
+  vGen: () => vGenModal(),
+  vSettings: () => vSettingsModal(),
+  vLockNow: () => vLock('🔒 הכספת ננעלה'),
+  vForgot: () => openModal({title: 'מחיקת הכספת', submitText: 'מחק לצמיתות', danger: true, body: `<p style="margin:0 0 10px">אין דרך לשחזר סיסמת אב — זה מה ששומר על הנתונים. אם שכחת אותה, האפשרות היחידה היא למחוק את הכספת ולהתחיל מחדש (או לשחזר מגיבוי שאתה זוכר את הסיסמה שלו).</p><p class="hint">כדי לאשר, הקלד <b>מחק</b>:</p><input class="inp" name="c" autocomplete="off">`,
+    onSubmit: fd => { if (fd.c.trim() !== 'מחק') { toast('יש להקליד "מחק" לאישור'); return false; } localStorage.removeItem(VKEY); V.key = null; V.data = null; toast('הכספת נמחקה'); render(); }}),
   toggleTcat: id => { const c = db.taskCats.find(x => x.id === id); c.collapsed = !c.collapsed; save(); render(); },
   tView: id => { tui().view = id; save(); render(); },
   tFilter: id => { const u = tui(); u.f = id; if (u.view === 'week') u.view = 'date'; save(); render(); },
@@ -1202,7 +1467,7 @@ const ACTIONS = {
     }
     save(n ? `✓ הועתקו ${n} סכומים` : 'אין סכומים משתנים להעתקה'); render();
   },
-  exportJSON: () => { db.settings.lastBackup = new Date().toISOString(); save(); download(`finance-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(db), 'application/json'); toast('✓ קובץ הגיבוי הורד'); render(); },
+  exportJSON: () => { db.settings.lastBackup = new Date().toISOString(); save(); download(`finance-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({...db, vault: localStorage.getItem(VKEY) || undefined}), 'application/json'); toast('✓ קובץ הגיבוי הורד'); render(); },
   importJSON: () => $('#importFile').click(),
   exportYear: () => {
     const y = ui.tab === 'year' ? ui.y : ymY(ui.ym), yms = MONTHS.map((_, i) => ymOf(y, i)), rows = [['סוג', 'קטגוריה', 'שורה', ...MONTHS, 'סה״כ']];
@@ -1225,7 +1490,9 @@ document.addEventListener('click', e => {
   if ($('#modal').contains(a)) closeModal();
   ACTIONS[a.dataset.act]?.(a.dataset.id, a);
 });
-document.addEventListener('input', e => { if (e.target.dataset.tsearch != null) { ui.tq = e.target.value; render(); } });
+document.addEventListener('input', e => { if (e.target.dataset.tsearch != null) { ui.tq = e.target.value; render(); } if (e.target.dataset.vsearch != null) { ui.vq = e.target.value; render(); } });
+['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (V.data) vTouch(); }, true));
+document.addEventListener('focusout', e => { const k = e.target.dataset?.vcell; if (k && ui.vEdit === k) setTimeout(() => { if (ui.vEdit === k) { ui.vEdit = null; render(); } }, 0); });
 document.addEventListener('focusin', e => { const el = e.target; if (el.matches?.('input.amt[data-cell]')) { el.value = +el.dataset.raw ? el.dataset.raw : ''; el.select(); } else if (el.matches?.('input[data-f=amount]')) { const v = parseNum(el.value); el.value = v ?? ''; el.defaultValue = el.value; el.select(); } });
 document.addEventListener('focusout', e => { const el = e.target; if (el.matches?.('input.amt[data-cell]') && el.value === (+el.dataset.raw ? el.dataset.raw : '')) el.value = fmtIn(+el.dataset.raw || 0); });
 document.addEventListener('change', e => {
@@ -1233,6 +1500,7 @@ document.addEventListener('change', e => {
   if (el.id === 'selM') { ui.ym = ymOf(ymY(ui.ym), +el.value); return render(); }
   if (el.id === 'selY') { if (ui.tab === 'year') ui.y = +el.value; else ui.ym = ymOf(+el.value, ymM(ui.ym)); return render(); }
   if (el.dataset.cell) { const [id, ym] = el.dataset.cell.split('|'); return setCell(id, ym, el.value); }
+  if (el.dataset.vcell && V.data) { const {t, r, cid} = vFind(el.dataset.vcell); if (!r) return; const v = el.value.trim(); if (v) r.cells[cid] = v; else delete r.cells[cid]; vSave(); const c = t.cols.find(x => x.id === cid); if (c?.type === 'url') { ui.vEdit = null; render(); } else { const b = el.parentElement; if (b && !b.querySelector('.ib') && v) render(); } return; }
   if (el.dataset.taskdone) return toggleDone(el.dataset.taskdone, el.checked);
   if (el.dataset.task) { const t = taskById(el.dataset.task), f = el.dataset.f; if (!t) return; if (f === 'title' && !el.value.trim()) return render(); t[f] = el.value.trim(); save('✓ נשמר'); return render(); }
   if (el.dataset.tsort != null) { tui().sort = el.value; save(); return render(); }
@@ -1252,6 +1520,7 @@ document.addEventListener('keydown', e => {
     const addG = el.dataset.add || el.dataset.addv || el.dataset.addkind;
     if (addG) return quickAdd(addG);
     if (el.dataset.oweadd) return addOwed();
+    if (el.dataset.vadd) return ACTIONS.vAddRow(el.dataset.vadd);
     if (el.dataset.qa) return ACTIONS.qaAdd();
     const tc = el.dataset.tadd || el.dataset.taddd || el.dataset.taddt; if (tc) return ACTIONS.taskQuickAdd(tc);
     if (el.dataset.wadd) { const title = el.value.trim(); if (!title) return; addTask({title, catId: ui.tLastCat || db.taskCats[0].id, date: el.dataset.wadd}); pendingFocus = 'wadd|' + el.dataset.wadd; save('✓ נוספה'); return render(); }
@@ -1270,7 +1539,8 @@ $('#importFile').addEventListener('change', e => {
     try {
       const d = JSON.parse(r.result);
       if (!d || !Array.isArray(d.groups) || !Array.isArray(d.items)) throw 0;
-      confirmBox(`לשחזר מהגיבוי? (${d.groups.length} קטגוריות, ${d.items.length} שורות). <b>הנתונים הנוכחיים יוחלפו.</b>`, 'שחזור', () => { db = normalize(d); save('✓ שוחזר'); render(); });
+      const vault = d.vault; delete d.vault;
+      confirmBox(`לשחזר מהגיבוי? (${d.groups.length} קטגוריות, ${d.items.length} שורות${vault ? ', כולל כספת סיסמאות מוצפנת' : ''}). <b>הנתונים הנוכחיים יוחלפו.</b>`, 'שחזור', () => { db = normalize(d); if (vault) { localStorage.setItem(VKEY, vault); V.key = null; V.data = null; } save('✓ שוחזר'); render(); });
     } catch (err) { toast('⚠️ הקובץ אינו גיבוי תקין של המערכת'); }
     e.target.value = '';
   };
