@@ -300,7 +300,7 @@ textarea.inp{resize:vertical;font:inherit}
 .grip:hover{color:var(--text-2);background:var(--surface-3)}
 tr:hover>td .grip,.gl-row:hover .grip,th:hover .grip,.tc:hover .grip,.sheet-h:hover .grip{color:var(--text-2)}
 .gcell{display:flex;align-items:center;gap:2px}
-tr.it td:first-child{padding-right:6px}
+tr.it td:first-child{padding-right:4px}
 body.dnd,body.dnd *{cursor:grabbing!important;user-select:none!important}
 .dragging{opacity:.35}
 .dnd-ghost{position:fixed;z-index:95;pointer-events:none;background:var(--surface);border:1px solid var(--accent);color:var(--text);border-radius:10px;padding:6px 12px;font-size:13px;font-weight:600;box-shadow:0 10px 28px rgba(0,0,0,.22);white-space:nowrap;max-width:300px;overflow:hidden;text-overflow:ellipsis}
@@ -308,6 +308,11 @@ body.dnd,body.dnd *{cursor:grabbing!important;user-select:none!important}
 .drop-on td,.drop-on.day{background:var(--accent-soft)!important}
 .tc .grip{width:16px;height:20px;margin-inline-start:-4px}
 .sheet-h .grip{margin-inline-end:-4px}
+tr.colhead th{height:30px;padding:0 4px;font-size:11.5px;font-weight:600;color:var(--muted);text-align:right;border-bottom:1px solid var(--border);background:var(--surface-2)}
+tr.colhead th.n .colw{justify-content:flex-end}
+tr.colhead .grip{height:22px;width:18px}
+table.t col.c-grip{width:26px} td.w-grip{padding:0 2px!important}
+.ynm{overflow:hidden;text-overflow:ellipsis}
 /* vault */
 .tabs{overflow-x:auto;max-width:100%;scrollbar-width:none}
 .tabs .sh{display:none}
@@ -648,52 +653,73 @@ addEventListener('resize', () => { clearTimeout(render.t); render.t = setTimeout
 /* ================= MONTH VIEW ================= */
 function sheet(type, ym) {
   const groups = db.groups.filter(g => g.type === type), md = monthData(ym), total = type === 'income' ? md.inc : md.exp;
-  const col = type === 'income' ? 'amt-inc' : 'amt-exp';
-  const body = groups.map((g, gi) => {
+  const col = type === 'income' ? 'amt-inc' : 'amt-exp', order = colOrder('fin'), lbl = type === 'income' ? 'הכנסות' : 'הוצאות';
+  const body = groups.map(g => {
     const items = db.items.filter(i => i.groupId === g.id && isActive(i, ym));
     const gt = md.g[g.id] || 0;
-    const rows = g.collapsed ? '' : items.map((it, ix) => {
+    const rows = g.collapsed ? '' : items.map(it => {
       const v = cellVal(it, ym), est = isEst(it, ym) && v, pi = payInfo(it, ym);
-      return `<tr class="it" data-dnd="item-${type}" data-did="${it.id}"><td><div class="gcell">${grip('item', it.id, 'item-' + type)}<input class="cell" data-k="n|${it.id}" data-col="nm-${type}" data-name="${it.id}" value="${esc(it.name)}"></div></td>
-        <td><button class="kind ${it.kind}" data-act="itemForm" data-id="${it.id}" tabindex="-1" title="${KINDS[it.kind][1]}">${it.kind === 'fixed' ? ico('repeat', 10) : ''}${KINDS[it.kind][0]}${pi ? ` ${pi}` : ''}</button></td>
-        <td><input class="cell amt ${est ? 'est' : ''}" data-k="a|${it.id}|${ym}" data-col="${col}" data-cell="${it.id}|${ym}" data-raw="${v || ''}" value="${fmtIn(v)}" placeholder="—" inputmode="decimal" ${est ? 'title="הערכה — הקלד את הסכום בפועל"' : ''}></td>
+      const C = {
+        name: `<td><input class="cell" data-k="n|${it.id}" data-col="nm-${type}" data-name="${it.id}" value="${esc(it.name)}"></td>`,
+        kind: `<td><button class="kind ${it.kind}" data-act="itemForm" data-id="${it.id}" tabindex="-1" title="${KINDS[it.kind][1]}">${it.kind === 'fixed' ? ico('repeat', 10) : ''}${KINDS[it.kind][0]}${pi ? ` ${pi}` : ''}</button></td>`,
+        amt: `<td><input class="cell amt ${est ? 'est' : ''}" data-k="a|${it.id}|${ym}" data-col="${col}" data-cell="${it.id}|${ym}" data-raw="${v || ''}" value="${fmtIn(v)}" placeholder="—" inputmode="decimal" ${est ? 'title="הערכה — הקלד את הסכום בפועל"' : ''}></td>`,
+      };
+      return `<tr class="it" data-dnd="item-${type}" data-did="${it.id}"><td class="w-grip">${grip('item', it.id, 'item-' + type)}</td>${order.map(k => C[k]).join('')}
         <td><div class="acts"><button class="ib" data-act="itemForm" data-id="${it.id}" tabindex="-1" title="עריכה">${ico('edit', 14)}</button><button class="ib del" data-act="removeItem" data-id="${it.id}" tabindex="-1" title="הסרה">${ico('trash', 14)}</button></div></td></tr>`;
-    }).join('') + `<tr class="add" data-drop="item-${type}" data-cont="${g.id}" data-pos="end"><td><input class="cell" data-k="add|${g.id}" data-add="${g.id}" placeholder="+ שורה חדשה"></td>
-        <td><select data-k="kind|${g.id}" data-addkind="${g.id}" aria-label="סוג">${Object.entries(KINDS).map(([k, [l]]) => `<option value="${k}" ${k === g.defKind ? 'selected' : ''}>${l}</option>`).join('')}</select></td>
-        <td><input class="cell amt" data-k="addv|${g.id}" data-addv="${g.id}" placeholder="סכום" inputmode="decimal"></td>
-        <td><button class="ib ok" data-act="quickAdd" data-id="${g.id}" tabindex="-1" title="הוסף">${ico('check', 15)}</button></td></tr>`;
+    }).join('') + (() => {
+      const C = {
+        name: `<td><input class="cell" data-k="add|${g.id}" data-add="${g.id}" placeholder="+ שורה חדשה"></td>`,
+        kind: `<td><select data-k="kind|${g.id}" data-addkind="${g.id}" aria-label="סוג">${Object.entries(KINDS).map(([k, [l]]) => `<option value="${k}" ${k === g.defKind ? 'selected' : ''}>${l}</option>`).join('')}</select></td>`,
+        amt: `<td><input class="cell amt" data-k="addv|${g.id}" data-addv="${g.id}" placeholder="סכום" inputmode="decimal"></td>`,
+      };
+      return `<tr class="add" data-drop="item-${type}" data-cont="${g.id}" data-pos="end"><td></td>${order.map(k => C[k]).join('')}<td><button class="ib ok" data-act="quickAdd" data-id="${g.id}" tabindex="-1" title="הוסף">${ico('check', 15)}</button></td></tr>`;
+    })();
+    const H = {
+      name: `<td><div class="gname"><span class="car">${ico('down', 14)}</span>${g.icon || ''} ${esc(g.name)} <small>${items.length ? items.length + ' שורות' : ''}</small></div></td>`,
+      amt: `<td class="gsum">${money(gt)}<small>${total && gt ? pct(gt / total) : ''}</small></td>`,
+      kind: '<td></td>',
+    };
     return `<tbody class="${g.collapsed ? 'collapsed' : ''}" style="--g:${gColor(g)}" data-dnd="group-${type}" data-did="${g.id}">
-      <tr class="gh" data-act="toggleGroup" data-id="${g.id}" data-drop="item-${type}" data-cont="${g.id}" data-pos="start"><td colspan="2"><div class="gname">${grip('group', g.id, 'group-' + type)}<span class="car">${ico('down', 14)}</span>${g.icon || ''} ${esc(g.name)} <small>${items.length ? items.length + ' שורות' : ''}</small></div></td>
-        <td class="gsum">${money(gt)}<small>${total && gt ? pct(gt / total) : ''}</small></td>
+      <tr class="gh" data-act="toggleGroup" data-id="${g.id}" data-drop="item-${type}" data-cont="${g.id}" data-pos="start"><td class="w-grip">${grip('group', g.id, 'group-' + type)}</td>${order.map(k => H[k]).join('')}
         <td><div class="acts"><button class="ib" data-act="addItem" data-id="${g.id}" tabindex="-1" title="שורה חדשה">${ico('plus', 15)}</button><button class="ib" data-act="groupForm" data-id="${g.id}" tabindex="-1" title="עריכת קטגוריה">${ico('edit', 14)}</button></div></td></tr>
       ${rows}</tbody>`;
   }).join('');
-  const lbl = type === 'income' ? 'הכנסות' : 'הוצאות';
+  const CG = {name: '<col>', kind: '<col class="c-kind">', amt: '<col class="c-amt">'}, TH = {name: 'שם', kind: 'סוג', amt: 'סכום'};
+  const F = {name: `<td>סה״כ ${lbl} — ${MONTHS[ymM(ym)]}</td>`, amt: `<td style="text-align:left">${money(total)}</td>`, kind: '<td></td>'};
   return `<section class="sheet ${type === 'income' ? 'inc' : 'exp'}">
     <div class="sheet-h"><h2><i>${ico(type === 'income' ? 'up' : 'dn', 17)}</i>${lbl}</h2><span class="sp"></span><span class="tot"><small>סה״כ ${lbl} ב${MONTHS[ymM(ym)]}</small><b>${money(total)}</b></span></div>
-    <div class="sheet-gap"></div>
-    <table class="t"><colgroup><col><col class="c-kind"><col class="c-amt"><col class="c-act"></colgroup>
+    <table class="t"><colgroup><col class="c-grip">${order.map(k => CG[k]).join('')}<col class="c-act"></colgroup>
+      <thead><tr class="colhead"><th></th>${order.map(k => colTh('fin', k, TH[k], k === 'amt' ? 'n' : '')).join('')}<th></th></tr></thead>
       ${body}
-      <tfoot><tr><td colspan="2">סה״כ ${lbl} — ${MONTHS[ymM(ym)]}</td><td style="text-align:left">${money(total)}</td><td></td></tr></tfoot></table>
+      <tfoot><tr><td></td>${order.map(k => F[k]).join('')}<td></td></tr></tfoot></table>
     <div class="add-group"><button class="btn ghost sm" data-act="groupForm" data-type="${type}">${ico('plus', 14)} קטגוריית ${lbl} חדשה</button></div></section>`;
 }
 /* ---------- "חייב ל" — רשימת חובות נפרדת, לא נכנסת לסיכומי החודש ---------- */
 function owedSheet() {
-  const list = db.owed, open = list.filter(o => !o.paid), showPaid = ui.showPaid;
+  const list = db.owed, open = list.filter(o => !o.paid), showPaid = ui.showPaid, order = colOrder('owed');
   const rows = list.filter(o => showPaid || !o.paid);
-  const tr = (o) => `<tr class="it ${o.paid ? 'paid' : ''}" data-dnd="owed" data-did="${o.id}">
+  const tr = o => {
+    const C = {
+      name: `<td><input class="cell" data-k="on|${o.id}" data-col="owe-n" data-owed="${o.id}" data-f="name" value="${esc(o.name)}" placeholder="למי"></td>`,
+      note: `<td><input class="cell" data-k="ot|${o.id}" data-col="owe-t" data-owed="${o.id}" data-f="note" value="${esc(o.note || '')}" placeholder="הערה / תאריך"></td>`,
+      amt: `<td><input class="cell amt" data-k="oa|${o.id}" data-col="owe-a" data-owed="${o.id}" data-f="amount" value="${fmtIn(o.amount)}" placeholder="סכום" inputmode="decimal"></td>`,
+    };
+    return `<tr class="it ${o.paid ? 'paid' : ''}" data-dnd="owed" data-did="${o.id}">
     <td style="padding-right:6px"><div class="gcell">${grip('owed', o.id, 'owed')}<input type="checkbox" class="chk" data-owedpaid="${o.id}" ${o.paid ? 'checked' : ''} title="${o.paid ? 'שולם' : 'סמן כשולם'}"></div></td>
-    <td><input class="cell" data-k="on|${o.id}" data-col="owe-n" data-owed="${o.id}" data-f="name" value="${esc(o.name)}" placeholder="למי"></td>
-    <td><input class="cell" data-k="ot|${o.id}" data-col="owe-t" data-owed="${o.id}" data-f="note" value="${esc(o.note || '')}" placeholder="הערה / תאריך"></td>
-    <td><input class="cell amt" data-k="oa|${o.id}" data-col="owe-a" data-owed="${o.id}" data-f="amount" value="${fmtIn(o.amount)}" placeholder="סכום" inputmode="decimal"></td>
+    ${order.map(k => C[k]).join('')}
     <td><div class="acts"><button class="ib del" data-act="delOwed" data-id="${o.id}" tabindex="-1" title="מחיקה">${ico('trash', 14)}</button></div></td></tr>`;
+  };
+  const A = {name: '<td><input class="cell" data-k="owadd" data-oweadd="name" placeholder="+ למי"></td>', note: '<td><input class="cell" data-k="owaddt" data-oweadd="note" placeholder="הערה"></td>', amt: '<td><input class="cell amt" data-k="owadda" data-oweadd="amount" placeholder="סכום" inputmode="decimal"></td>'};
+  const CG = {name: '<col>', note: '<col style="width:34%">', amt: '<col class="c-amt">'}, TH = {name: 'למי', note: 'הערה', amt: 'סכום'};
+  const paidBtn = list.some(o => o.paid) ? `<button class="btn ghost sm" data-act="togglePaid">${showPaid ? 'הסתר ששולמו' : `הצג ששולמו (${list.filter(o => o.paid).length} · ${plain(sum(list.filter(o => o.paid), o => o.amount))})`}</button>` : 'סה״כ פתוח';
+  const F = {name: `<td>${paidBtn}</td>`, note: '<td></td>', amt: `<td style="text-align:left">${money(sum(open, o => o.amount))}</td>`};
   return `<section class="sheet owe">
     <div class="sheet-h"><h2><i>${ico('alert', 16)}</i>חייב ל</h2><span class="sp"></span><span class="tot"><small>נשאר לשלם · ${open.length} פתוחים</small><b>${money(sum(open, o => o.amount))}</b></span></div>
-    <div class="sheet-gap"></div>
-    <table class="t"><colgroup><col style="width:56px"><col><col style="width:34%"><col class="c-amt"><col style="width:40px"></colgroup>
+    <table class="t"><colgroup><col style="width:56px">${order.map(k => CG[k]).join('')}<col style="width:40px"></colgroup>
+      <thead><tr class="colhead"><th></th>${order.map(k => colTh('owed', k, TH[k], k === 'amt' ? 'n' : '')).join('')}<th></th></tr></thead>
       <tbody>${rows.map(tr).join('') || `<tr><td colspan="5" class="hint" style="text-align:center">${list.length ? 'כל החובות שולמו ✓' : 'אין חובות רשומים'}</td></tr>`}
-      <tr class="add"><td></td><td><input class="cell" data-k="owadd" data-oweadd="name" placeholder="+ למי"></td><td><input class="cell" data-k="owaddt" data-oweadd="note" placeholder="הערה"></td><td><input class="cell amt" data-k="owadda" data-oweadd="amount" placeholder="סכום" inputmode="decimal"></td><td><button class="ib ok" data-act="addOwed" tabindex="-1" title="הוסף">${ico('check', 15)}</button></td></tr></tbody>
-      <tfoot><tr><td></td><td colspan="2">${list.some(o => o.paid) ? `<button class="btn ghost sm" data-act="togglePaid">${showPaid ? 'הסתר ששולמו' : `הצג ששולמו (${list.filter(o => o.paid).length} · ${plain(sum(list.filter(o => o.paid), o => o.amount))})`}</button>` : 'סה״כ פתוח'}</td><td style="text-align:left">${money(sum(open, o => o.amount))}</td><td></td></tr></tfoot></table>
+      <tr class="add"><td></td>${order.map(k => A[k]).join('')}<td><button class="ib ok" data-act="addOwed" tabindex="-1" title="הוסף">${ico('check', 15)}</button></td></tr></tbody>
+      <tfoot><tr><td></td>${order.map(k => F[k]).join('')}<td></td></tr></tfoot></table>
     <div class="hint" style="padding:8px 16px 12px">רשימה כללית שמוצגת בכל חודש ולא נכללת בסיכום ההכנסות וההוצאות.</div></section>`;
 }
 function addOwed() {
@@ -758,13 +784,13 @@ function viewYear() {
   const cls = ym => ym > cy ? 'fut' : ym === cy ? 'now' : '';
   const section = type => {
     const gs = db.groups.filter(g => g.type === type);
-    return `<tr class="sec"><td class="nm">${type === 'income' ? 'הכנסות' : 'הוצאות'}</td>${yms.map(() => '<td></td>').join('')}<td></td></tr>` + gs.map(g => {
+    return `<tbody><tr class="sec"><td class="nm">${type === 'income' ? 'הכנסות' : 'הוצאות'}</td>${yms.map(() => '<td></td>').join('')}<td></td></tr></tbody>` + gs.map(g => {
       const items = db.items.filter(i => i.groupId === g.id && yms.some(m => isActive(i, m)));
       const gv = yms.map(m => monthData(m).g[g.id] || 0);
-      return `<tr class="gh" style="--g:${gColor(g)}"><td class="nm">${g.icon || ''} <b>${esc(g.name)}</b></td>${gv.map((v, i) => `<td class="v ${cls(yms[i])}">${v ? nf.format(Math.round(v)) : ''}</td>`).join('')}<td class="tot">${money(sum(gv))}</td></tr>
-        ${items.map(it => `<tr><td class="nm" title="${esc(it.name)} · ${KINDS[it.kind][0]}"><span class="kind ${it.kind}" style="margin-left:6px">${it.kind === 'fixed' ? ico('repeat', 9) : KINDS[it.kind][0].slice(0, 1)}</span>${esc(it.name)}</td>
+      return `<tbody style="--g:${gColor(g)}" data-dnd="group-${type}" data-did="${g.id}"><tr class="gh" data-drop="item-${type}" data-cont="${g.id}" data-pos="start"><td class="nm"><div class="gcell">${grip('group', g.id, 'group-' + type)}${g.icon || ''} <b>${esc(g.name)}</b></div></td>${gv.map((v, i) => `<td class="v ${cls(yms[i])}">${v ? nf.format(Math.round(v)) : ''}</td>`).join('')}<td class="tot">${money(sum(gv))}</td></tr>
+        ${items.map(it => `<tr data-dnd="item-${type}" data-did="${it.id}"><td class="nm" title="${esc(it.name)} · ${KINDS[it.kind][0]}"><div class="gcell">${grip('item', it.id, 'item-' + type)}<span class="kind ${it.kind}" style="margin-left:6px">${it.kind === 'fixed' ? ico('repeat', 9) : KINDS[it.kind][0].slice(0, 1)}</span><span class="ynm">${esc(it.name)}</span></div></td>
           ${yms.map(m => { const v = cellVal(it, m), act = v !== undefined && v !== null, est = act && v && isEst(it, m); return `<td class="${cls(m)}"><input class="cell amt ${est ? 'est' : ''}" data-k="a|${it.id}|${m}" data-col="${m}" data-cell="${it.id}|${m}" data-raw="${act ? v || '' : ''}" value="${act ? fmtIn(v) : ''}" inputmode="decimal"></td>`; }).join('')}
-          <td class="tot">${money(sum(yms, m => cellVal(it, m) || 0))}</td></tr>`).join('')}`;
+          <td class="tot">${money(sum(yms, m => cellVal(it, m) || 0))}</td></tr>`).join('')}</tbody>`;
     }).join('');
   };
   const sumRow = (label, f, c = '') => `<tr class="sum"><td class="nm">${label}</td>${yms.map((m, i) => `<td class="${cls(m)} ${c}">${f(i, m)}</td>`).join('')}`;
@@ -786,14 +812,14 @@ function viewYear() {
       <div class="panel"><div class="ph"><h3>חלוקת ההוצאות השנתית</h3></div><div class="donut-wrap"><div class="chart" id="dnY"></div><div class="glist">${kindYear(S, exp)}</div></div></div>
     </div>
     <div class="panel" style="margin-top:18px;padding:0"><div class="ysheet"><table class="y">
-      <thead><tr><th class="nm">קטגוריה / שורה</th>${yms.map((m, i) => `<th class="${cls(m)}">${SHORT[i]}</th>`).join('')}<th>סה״כ</th></tr></thead><tbody>
-      ${section('expense')}${section('income')}
+      <thead><tr><th class="nm">קטגוריה / שורה</th>${yms.map((m, i) => `<th class="${cls(m)}">${SHORT[i]}</th>`).join('')}<th>סה״כ</th></tr></thead>
+      ${section('expense')}${section('income')}<tbody>
       ${sumRow('סה״כ הכנסות', i => sn(S[i].inc), 'pos')}<td class="pos">${money(inc)}</td></tr>
       ${sumRow('סה״כ הוצאות', i => sn(S[i].exp))}<td>${money(exp)}</td></tr>
       ${sumRow('מאזן חודשי', i => `<span class="${S[i].net < 0 ? '' : 'pos'}">${sn(S[i].net)}</span>`)}<td>${money(net, true)}</td></tr>
       ${sumRow('יתרה מצטברת', (i, m) => { const b = balanceEnd(m); return b == null ? '' : sn(b); })}<td></td></tr>
     </tbody></table></div></div>
-    <div class="hint" style="margin-top:8px">שינוי של הוצאה קבועה ישאל אם לעדכן רק את החודש או מהחודש והלאה. שורות חדשות מוסיפים בתצוגה החודשית.</div>`;
+    <div class="hint" style="margin-top:8px">שינוי של הוצאה קבועה ישאל אם לעדכן רק את החודש או מהחודש והלאה. שורות חדשות מוסיפים בתצוגה החודשית · גרירה עם ⋮⋮ משנה סדר ומעבירה בין קטגוריות.</div>`;
   return {html, after: () => {
     const dim = yms.map(m => m > cy);
     barsChart($('#chY'), SHORT, [{color: 'var(--inc)', values: S.map(s => s.inc), dim}, {color: 'var(--exp)', values: S.map(s => s.exp), dim}], {
@@ -885,18 +911,19 @@ function taskRow(t, {showCat = false, mv = null} = {}) {
   const td = todayISO(), over = !t.done && t.date && t.date < td, c = tcat(t.catId);
   return `<tr class="it task ${t.done ? 'paid' : ''}" ${mv ? `data-dnd="task" data-did="${t.id}"` : ''}>
     <td class="w-chk"><div class="gcell">${mv ? grip('task', t.id, 'task') : ''}<input type="checkbox" class="chk" data-taskdone="${t.id}" ${t.done ? 'checked' : ''} title="${t.done ? 'בוצע' : 'סמן כבוצע'}"></div></td>
-    <td><div class="tt-wrap">${t.prio ? `<span class="pdot p${t.prio}" title="${PRIO[t.prio]}"></span>` : ''}<input class="cell" data-k="tt|${t.id}" data-col="t-title" data-task="${t.id}" data-f="title" value="${esc(t.title)}">${t.repeat && t.repeat !== 'none' ? `<span class="muted" title="${REPEAT[t.repeat]}">${ico('repeat', 12)}</span>` : ''}${t.notes ? `<span class="muted" title="${esc(t.notes)}" style="cursor:help">📝</span>` : ''}</div>
-      ${showCat || t.dur || (t.date && !t.done) ? `<div class="tmeta">${showCat ? `<span><i style="background:${gColor(c)}"></i>${esc(c.name)}</span>` : ''}${t.date ? `<span class="${over ? 'neg' : ''}">${over ? 'באיחור · ' : ''}${dLabel(t.date)}</span>` : ''}${t.dur ? `<span>${ico('clock', 11)} ${durLabel(t.dur)}</span>` : ''}</div>` : ''}</td>
-    <td class="w-date"><input type="date" class="cell dt ${over ? 'over' : ''}" data-k="td|${t.id}" data-task="${t.id}" data-f="date" value="${t.date || ''}"></td>
-    <td class="w-time"><input type="time" class="cell" data-k="tm|${t.id}" data-task="${t.id}" data-f="time" value="${t.time || ''}"></td>
-    <td class="w-prio"><button class="prio p${t.prio || 0}" data-act="cyclePrio" data-id="${t.id}" tabindex="-1" title="לחיצה לשינוי עדיפות">${PRIO[t.prio || 0]}</button></td>
+    ${colOrder('task').map(k => ({title: `<td><div class="tt-wrap">${t.prio ? `<span class="pdot p${t.prio}" title="${PRIO[t.prio]}"></span>` : ''}<input class="cell" data-k="tt|${t.id}" data-col="t-title" data-task="${t.id}" data-f="title" value="${esc(t.title)}">${t.repeat && t.repeat !== 'none' ? `<span class="muted" title="${REPEAT[t.repeat]}">${ico('repeat', 12)}</span>` : ''}${t.notes ? `<span class="muted" title="${esc(t.notes)}" style="cursor:help">📝</span>` : ''}</div>
+      ${showCat || t.dur || (t.date && !t.done) ? `<div class="tmeta">${showCat ? `<span><i style="background:${gColor(c)}"></i>${esc(c.name)}</span>` : ''}${t.date ? `<span class="${over ? 'neg' : ''}">${over ? 'באיחור · ' : ''}${dLabel(t.date)}</span>` : ''}${t.dur ? `<span>${ico('clock', 11)} ${durLabel(t.dur)}</span>` : ''}</div>` : ''}</td>`,
+    date: `<td class="w-date"><input type="date" class="cell dt ${over ? 'over' : ''}" data-k="td|${t.id}" data-task="${t.id}" data-f="date" value="${t.date || ''}"></td>`,
+    time: `<td class="w-time"><input type="time" class="cell" data-k="tm|${t.id}" data-task="${t.id}" data-f="time" value="${t.time || ''}"></td>`,
+    prio: `<td class="w-prio"><button class="prio p${t.prio || 0}" data-act="cyclePrio" data-id="${t.id}" tabindex="-1" title="לחיצה לשינוי עדיפות">${PRIO[t.prio || 0]}</button></td>`})[k]).join('')}
     <td><div class="acts"><button class="ib" data-act="taskForm" data-id="${t.id}" tabindex="-1" title="פרטים ועריכה">${ico('edit', 14)}</button><button class="ib del" data-act="delTask" data-id="${t.id}" tabindex="-1" title="מחיקה">${ico('trash', 14)}</button></div></td></tr>`;
 }
-const taskCols = '<colgroup><col style="width:40px"><col><col class="w-date"><col class="w-time"><col class="w-prio"><col class="c-act"></colgroup>';
+const taskCols = () => { const CG = {title: '<col>', date: '<col class="w-date">', time: '<col class="w-time">', prio: '<col class="w-prio">'}, TH = {title: 'משימה', date: 'תאריך', time: 'שעה', prio: 'עדיפות'}, CL = {title: '', date: 'w-date', time: 'w-time', prio: 'w-prio'}, o = colOrder('task');
+  return `<colgroup><col style="width:40px">${o.map(k => CG[k]).join('')}<col class="c-act"></colgroup><thead><tr class="colhead"><th></th>${o.map(k => colTh('task', k, TH[k], CL[k])).join('')}<th></th></tr></thead>`; };
 function catAddRow(cid) {
   const d = ['today', 'week'].includes(tui().f) ? todayISO() : '';
-  return `<tr class="add" data-drop="task" data-cont="${cid}" data-pos="end"><td></td><td><input class="cell" data-k="tadd|${cid}" data-tadd="${cid}" placeholder="+ משימה חדשה"></td>
-    <td class="w-date"><input type="date" class="cell" data-k="taddd|${cid}" data-taddd="${cid}" value="${d}"></td><td class="w-time"><input type="time" class="cell" data-k="taddt|${cid}" data-taddt="${cid}"></td><td class="w-prio"></td>
+  const C = {title: `<td><input class="cell" data-k="tadd|${cid}" data-tadd="${cid}" placeholder="+ משימה חדשה"></td>`, date: `<td class="w-date"><input type="date" class="cell" data-k="taddd|${cid}" data-taddd="${cid}" value="${d}"></td>`, time: `<td class="w-time"><input type="time" class="cell" data-k="taddt|${cid}" data-taddt="${cid}"></td>`, prio: '<td class="w-prio"></td>'};
+  return `<tr class="add" data-drop="task" data-cont="${cid}" data-pos="end"><td></td>${colOrder('task').map(k => C[k]).join('')}
     <td><button class="ib ok" data-act="taskQuickAdd" data-id="${cid}" tabindex="-1" title="הוסף">${ico('check', 15)}</button></td></tr>`;
 }
 function tasksByCat() {
@@ -969,7 +996,7 @@ function viewTasks() {
       <div class="tsearch">${ico('search', 15)}<input class="inp" data-k="tq" data-tsearch data-nosel value="${esc(ui.tq || '')}" placeholder="חיפוש משימה…"></div><span class="sp"></span>
       ${u.view === 'cat' ? `<select class="inp" style="width:auto" data-tsort>${[['manual', 'סדר ידני'], ['date', 'מיון לפי תאריך'], ['prio', 'מיון לפי עדיפות']].map(([v, l]) => `<option value="${v}" ${u.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select>` : ''}
       <label class="check"><input type="checkbox" class="chk" data-tshowdone ${u.showDone ? 'checked' : ''}> הצג שבוצעו</label></div>
-    <section class="sheet tasks"><table class="t">${taskCols}${u.view === 'date' ? tasksByDate() : tasksByCat()}</table>
+    <section class="sheet tasks"><table class="t">${taskCols()}${u.view === 'date' ? tasksByDate() : tasksByCat()}</table>
       ${u.view === 'cat' ? `<div class="add-group"><button class="btn ghost sm" data-act="tcatForm">${ico('plus', 14)} קטגוריית משימות חדשה</button></div>` : ''}</section>`}
     <div class="hint" style="margin-top:10px">סימון ✓ מעביר את המשימה לתחתית הרשימה · משימה חוזרת יוצרת לבד את המופע הבא · גרירה עם ☰ משנה סדר ומעבירה בין קטגוריות</div>`;
   return {html};
@@ -1260,7 +1287,15 @@ function vRemap(row, from, to) {
   }
   row.cells = out;
 }
+const COLDEF = {fin: ['name', 'amt', 'kind'], owed: ['name', 'note', 'amt'], task: ['title', 'date', 'time', 'prio']};
+function colOrder(k) {
+  const c = db.settings.cols = db.settings.cols || {}, d = COLDEF[k], o = c[k];
+  if (!Array.isArray(o) || o.length !== d.length || !d.every(x => o.includes(x))) c[k] = [...d];
+  return c[k];
+}
+const colTh = (tk, ck, label, cls = '') => `<th class="${cls}" data-dnd="col-${tk}" data-did="${tk}|${ck}"><div class="colw">${grip('col', tk + '|' + ck, 'col-' + tk)}<span>${label}</span></div></th>`;
 const DND = {
+  col: (id, d) => { const [tk, ck] = id.split('|'), a = colOrder(tk); arrMove(a, ck, d.id.split('|')[1], d.before); save('✓ סדר העמודות עודכן'); },
   item: (id, d) => {
     const src = itemById(id), from = src.groupId;
     if (d.id) { const t = itemById(d.id); src.groupId = t.groupId; arrMove(db.items, src, t, d.before); }
@@ -1285,7 +1320,18 @@ const DND = {
   },
   tcat: (id, d) => { arrMove(db.taskCats, db.taskCats.find(x => x.id === id), db.taskCats.find(x => x.id === d.id), d.before); save(); },
   vtable: (id, d) => { const a = V.data.tables; arrMove(a, a.find(x => x.id === id), a.find(x => x.id === d.id), d.before); vSave(); },
-  vcol: (id, d) => { const [tid, cid] = id.split('|'), t = V.data.tables.find(x => x.id === tid); arrMove(t.cols, t.cols.find(c => c.id === cid), t.cols.find(c => c.id === d.id.split('|')[1]), d.before); vSave(); },
+  vcol: (id, d) => {
+    const [tid, cid] = id.split('|'), t = V.data.tables.find(x => x.id === tid), src = t.cols.find(c => c.id === cid), tgt = t.cols.find(c => c.id === d.id.split('|')[1]);
+    arrMove(t.cols, src, tgt, d.before);
+    // אותו שינוי בכל טבלה אחרת שיש בה עמודות באותם שמות
+    let n = 0;
+    for (const o of V.data.tables) {
+      if (o === t) continue;
+      const s2 = o.cols.find(c => c.name.trim() === src.name.trim()), t2 = o.cols.find(c => c.name.trim() === tgt.name.trim());
+      if (s2 && t2 && s2 !== t2) { arrMove(o.cols, s2, t2, d.before); n++; }
+    }
+    vSave(); if (n) toast(`✓ העמודה הוזזה גם ב-${n} טבלאות נוספות`);
+  },
   vrow: (id, d) => {
     const [tid, rid] = id.split('|'), from = V.data.tables.find(x => x.id === tid), row = from.rows.find(x => x.id === rid);
     const [ttid, trid] = d.id ? d.id.split('|') : [d.cont], to = V.data.tables.find(x => x.id === ttid);
