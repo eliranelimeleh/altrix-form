@@ -49,6 +49,7 @@ export type ClipData = {
   id: string; video: string; len: number; raw: string; speakers: [number, number, 'client' | 'host'][];
   joins: number[]; events: Ev[]; sfx: [number, string, number?][]; music: string; dropAt: number; clientName: string;
   tag?: [string, string]; quoteBy?: string; disclaimer?: string; ring?: boolean; noZoom?: boolean;
+  outro?: {title: string; sub?: string}; // replaces the free-trial offer + WhatsApp CTA (e.g. a clip sent privately, not an ad)
 };
 
 export const parseRaw = (raw: string, end: number): Chunk[] => {
@@ -500,9 +501,14 @@ const Outro: React.FC<{d: ClipData}> = ({d}) => {
         <Img src={staticFile('logo.jpg')} style={{width: '100%', height: '100%'}} />
       </div>
       <div style={{position: 'absolute', top: 1160, left: 0, right: 0, textAlign: 'center', direction: 'rtl', fontFamily: FONT, color: '#fff'}}>
+        {d.outro ? <>
+          <div style={{fontWeight: 900, fontSize: 76, opacity: a, transform: `translateY(${(1 - a) * 60}px)`}}>{d.outro.title}</div>
+          {d.outro.sub ? <div style={{marginTop: 24, fontWeight: 800, fontSize: 48, color: GOLD, opacity: b, transform: `translateY(${(1 - b) * 60}px)`}}>{d.outro.sub}</div> : null}
+        </> : <>
         <div style={{fontWeight: 900, fontSize: 82, opacity: a, transform: `translateY(${(1 - a) * 60}px)`}}><E c="1f381" /> <span style={{color: GOLD}}>10 ימי ניסיון בחינם</span></div>
         <div style={{marginTop: 30, display: 'inline-block', fontWeight: 800, fontSize: 56, padding: '18px 46px', borderRadius: 60, background: `linear-gradient(135deg, ${WA}, #128C7E)`,
           boxShadow: `0 0 50px ${WA}88`, opacity: b, transform: `translateY(${(1 - b) * 60}px) scale(${1 + Math.sin(t * 6) * 0.03})`}}>הצטרפו לקבוצת הוואטסאפ <E c="1f447" /></div>
+        </>}
         <div style={{marginTop: 70, fontWeight: 400, fontSize: 26, color: '#9a8fb3', opacity: b, padding: '0 80px', lineHeight: 1.4}}>
           {d.disclaimer ?? 'דברי הלקוח משקפים את ניסיונו האישי. תוצאות עבר אינן מבטיחות תוצאות עתידיות, ומסחר כרוך בסיכון. אין לראות באמור ייעוץ השקעות.'}
         </div>

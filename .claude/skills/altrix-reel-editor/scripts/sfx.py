@@ -59,3 +59,16 @@ for i in range(0, len(n), 512):
     fc = 800 + 7000 * (i / len(n)); b, a = butter(2, [fc * .6 / (SR / 2), min(fc * 1.5, 20000) / (SR / 2)], 'band'); out[i:i + 512] = lfilter(b, a, n[i:i + 512])
 save('swish', out * np.sin(np.pi * t / 0.3), 0.6)
 print('wrote extended kit')
+
+# ---- testimonial clips: cash (register "ka-ching" for money events), coins (falling coin jingle), hud (soft blip) ----
+t = t_(0.9); n = rng.standard_normal(len(t))
+mech = hp(n, 1500) * (np.exp(-t * 60) + 0.6 * np.exp(-np.maximum(t - 0.07, 0) * 70) * (t > 0.07))
+bell = sum(a * np.sin(2 * np.pi * f * t) * np.exp(-np.maximum(t - 0.12, 0) * k) * (t > 0.12) for f, a, k in [(2637, 1, 5), (3951, .5, 6), (5274, .25, 8), (1976, .4, 4)])
+save('cash', mech * 0.8 + bell, 0.75)
+t = t_(1.1); s = np.zeros_like(t); r2 = np.random.default_rng(11)
+for k in range(14):
+    at = 0.03 + k * 0.06 + r2.uniform(-0.02, 0.02); f0 = r2.uniform(3800, 6200); m = t >= at; tt = t[m] - at
+    s[m] += (np.sin(2 * np.pi * f0 * tt) + 0.5 * np.sin(2 * np.pi * f0 * 1.51 * tt)) * np.exp(-tt * r2.uniform(18, 30)) * (1 - k / 18)
+save('coins', s, 0.5)
+t = t_(0.25); save('hud', np.sin(2 * np.pi * 1200 * t) * np.exp(-t * 18) + np.sin(2 * np.pi * 2400 * t) * np.exp(-t * 30) * 0.4, 0.4)
+print('wrote cash, coins, hud')

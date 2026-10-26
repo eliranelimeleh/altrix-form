@@ -213,11 +213,23 @@ a switch.
 When the user says the clips feel like "small pieces" and wants to hear the client: build 75-100s
 clips from long continuous stretches (story → numbers → recommendation), keep the host's questions,
 and loosen the pause cut (`MAXGAP=0.55, PRE=0.12, POST=0.18` in `tighten_ranges.py`).
+**Full interview cut (~2 min, sent on WhatsApp to prospects, not an ad)** - `clipdata.interview.example.ts`:
+one long clip in the same split-screen style. Start on the hottest numbers (no self-intro, no name), then the
+story in order: why he looked, scepticism -> trial -> joined, risk/reward, "don't know trading?", no hassle,
+service, the host's "what would you tell people", ROI. Pick whole sentences (`scripts/snap_ranges.py`,
+MAXGAP 0.45) - the user asked not to cut mid-sentence so it doesn't look over-edited. Set
+`outro: {title: 'ריאיון אמיתי עם לקוח Altrix'}` to drop the "10 ימי ניסיון" + WhatsApp CTA; the disclaimer stays.
+Joins (swish + flash) only where the story jumps, not on every pause cut. Before building the base, scan the
+host tile for Meet's hover toolbar (low-saturation box at the tile centre) and swap the host footage there
+(4th field in segs.json). The base re-transcription can drop words (VAD) - re-run the gaps with
+`vad_filter=False` and map source -> base times from segs.json.
 **No AI look when the user asks for it:** set `noZoom: true` and use no `focus`/`scan` events
 (the HUD "AI FOCUS" lock and zoom were rejected). Hooks, money, stat/range, compare, quote, stamp,
 shield are fine.
 
 ## Gotchas learned the hard way
+- faster-whisper `transcribe(path)` broke on this PyAV (`metadata_errors`): pass a float32 numpy array
+  (`scipy.io.wavfile.read`, /32768). `/usr/local/bin/python3` may be a different Python than pip's - use `/usr/bin/python3`.
 - Headless Chromium can't paint color-emoji fonts - emoji render as nothing. Use the `<E c="1f4b0"/>`
   Twemoji component (codepoint file names in `public/emoji/`).
 - Fonts load through `delayRender` in `Root.tsx`; keep it or the first frames render in a fallback font.
