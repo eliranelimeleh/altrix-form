@@ -68,7 +68,7 @@ const ebase = {
     {type: 'compare', at: 104.6, to: 109.6, a: {title: 'המבחנים', value: '4–6 חודשים', sub: 'עד שעוברים'}, b: {title: 'אחרי זה', value: 'פחות מחודש', sub: 'מחזירים את ההשקעה'}},
     {type: 'stamp', at: 112.6, to: 113.7, text: 'רווחים נקיים', x: 540, y: 1155, rot: -3, size: 96, bg: '#E0A800', color: '#1a0b33'},
     {type: 'money', at: 112.9},
-    {type: 'multi', at: 115.4, to: 118.9, steps: [[115.9, 'ההשקעה חזרה'], [117.0, 'פי 2'], [117.8, 'פי 3']], sub: 'חודש אחרי חודש'},
+    {type: 'multi', at: 115.4, to: 118.9, steps: [[115.9, 'פי 1'], [117.0, 'פי 2'], [117.8, 'פי 3']], sub: 'ההשקעה חוזרת · חודש אחרי חודש'},
     {type: 'money', at: 117.1}, {type: 'money', at: 117.85}, {type: 'shake', at: 117.85, amp: 22},
     {type: 'stamp', at: 121.1, to: 122.0, text: 'פצצה!', x: 540, y: 1155, rot: -4, size: 120, bg: '#E0A800', color: '#1a0b33'},
     {type: 'money', at: 121.7},
