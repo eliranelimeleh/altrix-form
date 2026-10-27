@@ -72,3 +72,5 @@ for k in range(14):
 save('coins', s, 0.5)
 t = t_(0.25); save('hud', np.sin(2 * np.pi * 1200 * t) * np.exp(-t * 18) + np.sin(2 * np.pi * 2400 * t) * np.exp(-t * 30) * 0.4, 0.4)
 print('wrote cash, coins, hud')
+t = t_(0.07); save('type', hp(rng.standard_normal(len(t)), 2500) * np.exp(-t * 90) + 0.5 * np.sin(2 * np.pi * 900 * t) * np.exp(-t * 120), 0.6)
+print('wrote type (keyboard tick for question scenes)')
