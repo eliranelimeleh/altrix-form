@@ -11,7 +11,8 @@ for i in range(1,len(S)):
     if S[i][0]<S[i-1][1] and S[i-1][1]-S[i][0]<0.2: S[i][0]=S[i-1][1]
 json.dump(S,open('segs.json','w'))
 HOSTSRC='../elk/src.mp4'
-HOST={0:214.0,1:98.0,2:343.0,3:231.6,4:101.3,5:290.0,6:249.4,7:164.7,8:52.4}
+# host footage only where the host tile has NO active-speaker border in the earlier call (elk/host_active.json, +-1s)
+HOST={0:211.7,1:229.4,2:294.3,3:149.6,4:240.0,5:100.8,6:167.5,7:308.3,8:46.8}
 ranges=sorted(set(q[2] for q in S),key=lambda r:[q[2] for q in S].index(r))
 parts=[]
 for r in ranges:

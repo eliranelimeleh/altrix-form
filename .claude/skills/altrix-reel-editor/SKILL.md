@@ -238,6 +238,16 @@ with rings pulsing to his voice, "השאלה", and the question as big word-by-w
 typing box. Clean the audio first (chain in the script header) - whisper on the cleaned audio needs 16 kHz input.
 Base re-transcription with VAD dropped most words on this audio: map the source transcript (vad_filter=False)
 through segs.json instead. Show the user a mock still (`MOCK` composition) before building.
+**Never show the host's mouth moving without his voice, or his voice without his face** (user called it fake):
+- Host footage = only stretches where the host tile has NO active-speaker border in the source call. Detect it:
+  `ffmpeg -i elk.mp4 -vf "fps=10,crop=600:2:300:61" -f rawvideo -pix_fmt gray -` -> row mean > 80 = host speaking
+  (Meet draws a light border at the tile's top edge, y~61 in a 1080p recording). Keep >= 1 s margin, and
+  verify every pool window against it before building.
+- Host interjections inside the client's answers ("עובדות", "כן") must be cut out: `scripts/diar_frames.py`
+  (MFCC GMMs trained on known host/client stretches) lists host-voice regions inside segs.json; cut them in the
+  client's pause, re-transcribe the join, then run it again on the whole base - host voice must remain only in
+  the question windows.
+- In a normal two-camera interview this is not an issue (both are real, synced footage).
 
 ## Gotchas learned the hard way
 - faster-whisper `transcribe(path)` broke on this PyAV (`metadata_errors`): pass a float32 numpy array
