@@ -227,6 +227,18 @@ host tile for Meet's hover toolbar (low-saturation box at the tile centre) and s
 (the HUD "AI FOCUS" lock and zoom were rejected). Hooks, money, stat/range, compare, quote, stamp,
 shield are fine.
 
+**Audio-only call (client camera off)** - `clipdata.audiocall.example.ts`, `scripts/audio_call_base.py`:
+the user only has the call audio. Same split screen: the client panel is drawn as a Meet "camera off" tile
+(`camOff: {levels}` - per-frame voice level 0..1 from the base wav, avatar ring + bars pulse with it), the host
+panel is the user's REAL listening footage from an earlier Meet call (only stretches where the client talked, so
+his mouth is closed; one continuous clip per range). Nothing is generated or lip-synced. While the host speaks
+(`hostCover: true` + `speakers` host intervals) a full-screen `AskScene` covers everything: speech-bubble badge
+with rings pulsing to his voice, "השאלה", and the question as big word-by-word captions (typing ticks from
+`type.wav`) - the user asked for the questions to look like the Elkana scenes (stat/phone/shield), not a
+typing box. Clean the audio first (chain in the script header) - whisper on the cleaned audio needs 16 kHz input.
+Base re-transcription with VAD dropped most words on this audio: map the source transcript (vad_filter=False)
+through segs.json instead. Show the user a mock still (`MOCK` composition) before building.
+
 ## Gotchas learned the hard way
 - faster-whisper `transcribe(path)` broke on this PyAV (`metadata_errors`): pass a float32 numpy array
   (`scipy.io.wavfile.read`, /32768). `/usr/local/bin/python3` may be a different Python than pip's - use `/usr/bin/python3`.

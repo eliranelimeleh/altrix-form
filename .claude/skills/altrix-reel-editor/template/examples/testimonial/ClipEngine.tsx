@@ -50,6 +50,10 @@ export type ClipData = {
   joins: number[]; events: Ev[]; sfx: [number, string, number?][]; music: string; dropAt: number; clientName: string;
   tag?: [string, string]; quoteBy?: string; disclaimer?: string; ring?: boolean; noZoom?: boolean;
   outro?: {title: string; sub?: string}; // replaces the free-trial offer + WhatsApp CTA (e.g. a clip sent privately, not an ad)
+  // audio-only interview: client tile drawn as a Meet "camera off" tile; levels = client voice level per frame (0..1)
+  camOff?: {levels: number[]; hostLevels?: number[]};
+  // host panel footage is not lip-synced to this audio: while the host speaks, cover it (blur + speaking card)
+  hostCover?: boolean;
 };
 
 export const parseRaw = (raw: string, end: number): Chunk[] => {
@@ -147,9 +151,109 @@ const Frames: React.FC<{d: ClipData}> = ({d}) => {
   );
 };
 
+
+// ---------- audio-only interview: camera-off client tile + host speaking cover ----------
+const lvl = (a: number[] | undefined, f: number) => (a && a.length ? a[Math.max(0, Math.min(a.length - 1, f))] : 0);
+const Person: React.FC<{size: number}> = ({size}) => (
+  <svg width={size} height={size} viewBox="0 0 100 100">
+    <circle cx="50" cy="38" r="18" fill="#ffffffd9" />
+    <path d="M18 86c2-18 16-28 32-28s30 10 32 28" fill="#ffffffd9" />
+  </svg>
+);
+const CamOffTile: React.FC<{d: ClipData}> = ({d}) => {
+  const f = useCurrentFrame(); const t = f / FPS;
+  if (!d.camOff || t > d.len) return null;
+  const p = PANELS.client;
+  const who = d.speakers.find(([a, b]) => t >= a && t < b)?.[2] ?? 'client';
+  const v = who === 'client' ? Math.min(1, lvl(d.camOff.levels, f) * 1.4) : lvl(d.camOff.levels, f) * 0.3;
+  const R = 150;
+  return (
+    <div style={{position: 'absolute', left: 0, top: p.y, width: W, height: p.h, overflow: 'hidden',
+      background: 'radial-gradient(circle at 50% 45%, #2b2140 0%, #17121f 60%, #0f0b16 100%)'}}>
+      {/* soft drifting light so the tile is never a dead still */}
+      <div style={{position: 'absolute', left: 540 - 420 + Math.sin(t * 0.4) * 60, top: 450 - 420 + Math.cos(t * 0.33) * 40, width: 840, height: 840, borderRadius: 420,
+        background: `radial-gradient(circle, ${PURPLE}33 0%, transparent 65%)`}} />
+      {[0, 1, 2].map((k) => {
+        const ph = (t * 0.9 + k / 3) % 1;
+        return <div key={k} style={{position: 'absolute', left: 540 - R * (1 + ph * 0.9 * (0.4 + v)), top: 430 - R * (1 + ph * 0.9 * (0.4 + v)),
+          width: 2 * R * (1 + ph * 0.9 * (0.4 + v)), height: 2 * R * (1 + ph * 0.9 * (0.4 + v)), borderRadius: '50%',
+          border: `3px solid ${PURPLE_LIGHT}`, opacity: (1 - ph) * (0.15 + v * 0.7)}} />;
+      })}
+      <div style={{position: 'absolute', left: 540 - R - 10 - v * 14, top: 430 - R - 10 - v * 14, width: 2 * (R + 10 + v * 14), height: 2 * (R + 10 + v * 14), borderRadius: '50%',
+        background: `conic-gradient(from ${t * 90}deg, ${PURPLE}, ${GOLD}, ${PURPLE_LIGHT}, ${PURPLE})`, opacity: 0.35 + v * 0.65,
+        boxShadow: `0 0 ${30 + v * 60}px ${PURPLE}`}} />
+      <div style={{position: 'absolute', left: 540 - R, top: 430 - R, width: 2 * R, height: 2 * R, borderRadius: '50%',
+        background: 'linear-gradient(145deg, #7b3fe4, #3a1a75)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '4px solid #0f0b16'}}>
+        <Person size={190} />
+      </div>
+      {/* voice bars */}
+      <div style={{position: 'absolute', left: 0, right: 0, top: 430 + R + 46, display: 'flex', justifyContent: 'center', gap: 9, height: 70, alignItems: 'center'}}>
+        {new Array(13).fill(0).map((_, i) => {
+          const h = 8 + 60 * v * (0.45 + 0.55 * Math.abs(Math.sin(t * 9 + i * 1.7))) * (1 - Math.abs(i - 6) / 9);
+          return <div key={i} style={{width: 10, height: h, borderRadius: 5, background: i % 2 ? PURPLE_LIGHT : GOLD, opacity: 0.85}} />;
+        })}
+      </div>
+      {/* Meet-style chips: speaking indicator + camera off */}
+      <div style={{position: 'absolute', top: 24, left: 24, width: 58, height: 58, borderRadius: 29, background: 'rgba(155,77,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4}}>
+        {[0, 1, 2].map((i) => <div key={i} style={{width: 6, height: 8 + (i === 1 ? 22 : 14) * Math.max(0.15, v) * (0.6 + 0.4 * Math.abs(Math.sin(t * 11 + i))), borderRadius: 3, background: '#fff'}} />)}
+      </div>
+      <div style={{position: 'absolute', bottom: 26, left: 24, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 18px', borderRadius: 26, background: 'rgba(12,6,24,0.72)',
+        fontFamily: FONT, fontWeight: 700, fontSize: 28, color: '#cfc6e6', direction: 'rtl'}}>
+        <svg width="34" height="34" viewBox="0 0 24 24"><path d="M3 7h11v10H3z M14 10l6-3v10l-6-3" fill="none" stroke="#cfc6e6" strokeWidth="2" /><path d="M2 3l20 18" stroke="#FF5C7A" strokeWidth="2.4" /></svg>
+        מצלמה כבויה
+      </div>
+    </div>
+  );
+};
+// host questions: full-screen scene in the same family as shield/phone/stat (the host footage is never
+// lip-synced to this audio, so the host is heard but not seen): glowing question badge + rings that pulse with
+// the voice, title, and the question itself as big word-by-word captions under it.
+const AskScene: React.FC<{d: ClipData; chunks: Chunk[]; a: number; b: number}> = ({d, chunks, a, b}) => {
+  const f = useCurrentFrame(); const t = f / FPS;
+  if (t < a - 0.1 || t > b + 0.35) return null;
+  const v = Math.min(1, lvl(d.camOff?.hostLevels, f) * 1.3);
+  const s = pop(f, a + 0.05, {damping: 10, stiffness: 140, mass: 0.7});
+  const qs = chunks.filter((c) => c.start >= a - 0.05 && c.start < b);
+  const cur = [...qs].reverse().find((c) => t >= c.start) ?? qs[0];
+  return (
+    <SceneShell at={a - 0.1} to={b} tint="#7b3fe4">
+      {[0, 1, 2].map((k) => {
+        const ph = (t * 0.8 + k / 3) % 1; const r = 230 + ph * (180 + v * 120);
+        return <div key={k} style={{position: 'absolute', left: W / 2 - r, top: 470 - r, width: 2 * r, height: 2 * r, borderRadius: '50%',
+          border: `3px solid ${PURPLE_LIGHT}`, opacity: (1 - ph) * (0.25 + v * 0.5)}} />;
+      })}
+      <div style={{position: 'absolute', left: W / 2 - 260, top: 210, width: 520, height: 520, borderRadius: '50%', opacity: s,
+        background: `radial-gradient(circle, ${PURPLE}${v > 0.5 ? 'aa' : '77'} 0%, transparent 65%)`}} />
+      <div style={{position: 'absolute', left: W / 2 - 200, top: 270, width: 400, height: 400, transform: `scale(${s * (1 + v * 0.05)})`}}>
+        <svg width="400" height="400" viewBox="0 0 400 400">
+          <defs><linearGradient id="qg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#c9a2ff" /><stop offset="1" stopColor="#6d28d9" /></linearGradient></defs>
+          <path d="M70 60h260a40 40 0 0 1 40 40v150a40 40 0 0 1-40 40H190l-80 60v-60H70a40 40 0 0 1-40-40V100a40 40 0 0 1 40-40z" fill="url(#qg)" stroke="#fff" strokeWidth="8" />
+          {[0, 1, 2].map((k) => <circle key={k} cx={135 + k * 65} cy={175} r={20 + 8 * Math.max(0, Math.sin(t * 9 - k * 0.9)) * (0.4 + v)} fill="#fff" />)}
+        </svg>
+      </div>
+      <div style={{position: 'absolute', top: 760, left: 0, right: 0, fontWeight: 900, fontSize: 100, opacity: Math.min(1, s * 1.5)}}>השאלה</div>
+      <div style={{position: 'absolute', top: 885, left: 0, right: 0, fontWeight: 800, fontSize: 40, color: '#cdb8ff', opacity: Math.min(1, s * 1.5)}}>
+        <span style={{color: GOLD}}>Altrix</span> · המראיין שואל
+      </div>
+      {cur ? <div style={{position: 'absolute', top: 1110, left: 50, right: 50, minHeight: 260, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignContent: 'center'}}>
+        {cur.words.map((w, i) => {
+          if (t < w.start) return null;
+          const k = pop(f, w.start, {damping: 12, stiffness: 220, mass: 0.5});
+          const on = t < w.end;
+          return <span key={i} style={{display: 'inline-block', margin: '0 14px', fontWeight: 900, fontSize: 108, lineHeight: 1.15,
+            color: w.hi || on ? GOLD : '#fff', textShadow: w.hi || on ? `0 0 28px ${GOLD}aa` : `0 0 20px ${PURPLE}aa`,
+            transform: `translateY(${(1 - k) * 30}px) scale(${0.8 + 0.2 * k})`, opacity: Math.min(1, k * 2)}}>{w.text}</span>;
+        })}
+      </div> : null}
+    </SceneShell>
+  );
+};
+const hostRuns = (d: ClipData) => d.speakers.filter(([, , w]) => w === 'host').map(([a, b]) => [a, b] as [number, number]);
+
 // ---------- captions (middle band) ----------
 const Captions: React.FC<{chunks: Chunk[]; d: ClipData}> = ({chunks, d}) => {
   const f = useCurrentFrame(); const t = f / FPS;
+  if (d.hostCover && hostRuns(d).some(([a, b]) => t >= a - 0.3 && t < b + 0.3)) return null;
   if (d.events.some((e) => (e.type === 'hook' || e.type === 'quote' || e.type === 'stat' || e.type === 'compare' || e.type === 'multi' || e.type === 'range' || (e.type === 'stamp' && e.y > BAND.y && e.y < BAND.y + BAND.h)) && t >= e.at && t < e.to + 0.1)) return null;
   const c = chunks.find((x) => t >= x.start && t < x.end);
   if (!c) return null;
@@ -535,6 +639,7 @@ export const ClipComp: React.FC<{d: ClipData; chunks: Chunk[]}> = ({d, chunks}) 
       <Bg />
       <AbsoluteFill style={{transform: `translate(${sx}px, ${sy}px)`}}>
       <Footage d={d} />
+      <CamOffTile d={d} />
       <Frames d={d} />
       {d.events.map((e, i) => e.type === 'scan' ? <Scan key={i} e={e} /> : e.type === 'focus' ? <Focus key={i} e={e} /> : null)}
       {d.events.map((e, i) => e.type === 'quote' ? <Quote key={i} e={e} who={d.quoteBy ?? (d.clientName ? `${d.clientName}, לקוח Altrix` : 'לקוח Altrix')} /> : e.type === 'stat' ? <Stat key={i} e={e} />
@@ -544,6 +649,7 @@ export const ClipComp: React.FC<{d: ClipData; chunks: Chunk[]}> = ({d, chunks}) 
       <Captions chunks={chunks} d={d} />
       {d.events.map((e, i) => e.type === 'hook' ? <Hook key={i} e={e} /> : e.type === 'stamp' ? <Stamp key={i} e={e} /> : null)}
       </AbsoluteFill>
+      {d.hostCover ? hostRuns(d).map(([a, b], i) => <AskScene key={'ask' + i} d={d} chunks={chunks} a={a} b={b} />) : null}
       <JoinFx d={d} />
       <Top d={d} />
       <Outro d={d} />
