@@ -227,6 +227,12 @@ host tile for Meet's hover toolbar (low-saturation box at the tile centre) and s
 (the HUD "AI FOCUS" lock and zoom were rejected). Hooks, money, stat/range, compare, quote, stamp,
 shield are fine.
 
+**What the user cut from interview edits (apply by default):** anything about the host himself ("הוא הראש
+מאחורי זה", "כל עוד אתה בראש אני רגוע"), host questions that stumble or run long (keep only short clean ones),
+talk about WhatsApp groups/communities, the client's background story (army, past losses). Keep the client being
+satisfied: results, numbers, "different from other bots", broker proof, recommendation. Better ~1:55 of strong
+material than 2:00 padded.
+
 **Audio-only call (client camera off)** - `clipdata.audiocall.example.ts`, `scripts/audio_call_base.py`:
 the user only has the call audio. Same split screen: the client panel is drawn as a Meet "camera off" tile
 (`camOff: {levels}` - per-frame voice level 0..1 from the base wav, avatar ring + bars pulse with it), the host
