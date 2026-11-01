@@ -12,3 +12,5 @@ Edit in `template.html`: day name + date, both profits, both % (pill + meta box)
 Render: `NODE_PATH=$(npm root -g) node shot.js $PWD/template.html $PWD/altrix-daily-DD.MM.YY.png`
 
 WhatsApp caption: fill `post-template.txt` with the same numbers (no disclaimer line – it is in the image).
+
+Weekly (royal gold design): `weekly-template.html` → `altrix-weekly-<range>.png`. Weekly % = weekly profit / portfolio.

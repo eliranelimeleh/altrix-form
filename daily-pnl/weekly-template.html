@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Cinzel:wght@600;700;900&family=Heebo:wght@400;500;700;800&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--g1:#fff6d8;--g2:#f5d27a;--g3:#d4a440;--g4:#9c6b1c;--gold:linear-gradient(180deg,#fff6d8 0%,#f7d983 28%,#d4a440 55%,#f3cf75 75%,#a8741f 100%)}
+body{width:1080px;height:1350px;overflow:hidden;background:#07030f;font-family:Heebo,sans-serif;color:#fff}
+.stage{position:relative;width:1080px;height:1350px;overflow:hidden}
+.bg{position:absolute;inset:-40px;background:url(bg.jpg) center 70%/cover;filter:blur(6px) brightness(.35) saturate(1.1)}
+.glow{position:absolute;inset:0;background:
+ radial-gradient(ellipse 60% 38% at 50% 8%,rgba(245,200,110,.22),transparent 70%),
+ radial-gradient(ellipse 80% 50% at 50% 60%,rgba(90,30,160,.45),transparent 70%),
+ linear-gradient(180deg,rgba(7,3,15,.95),rgba(7,3,15,.9) 20%,rgba(7,3,15,.35) 42%,rgba(7,3,15,.9))}
+.pattern{position:absolute;inset:0;opacity:.07;background-image:
+ linear-gradient(45deg,#f5d27a 1px,transparent 1px),linear-gradient(-45deg,#f5d27a 1px,transparent 1px);background-size:46px 46px;
+ mask-image:radial-gradient(ellipse at 50% 50%,#000 20%,transparent 70%)}
+/* ornate double frame */
+.frame{position:absolute;inset:22px;border:2px solid rgba(232,190,100,.75);border-radius:6px;box-shadow:0 0 30px rgba(232,190,100,.25),inset 0 0 30px rgba(232,190,100,.12)}
+.frame::after{content:"";position:absolute;inset:10px;border:1px solid rgba(232,190,100,.35);border-radius:3px}
+.corner{position:absolute;width:74px;height:74px}
+.corner svg{width:100%;height:100%}
+.c1{top:10px;right:10px}.c2{top:10px;left:10px;transform:scaleX(-1)}.c3{bottom:10px;right:10px;transform:scaleY(-1)}.c4{bottom:10px;left:10px;transform:scale(-1,-1)}
+
+.content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:62px 70px 0}
+.crown{width:120px;height:78px;filter:drop-shadow(0 0 18px rgba(245,200,110,.7))}
+.eyebrow{font-family:Cinzel;font-weight:700;font-size:19px;letter-spacing:9px;margin-top:10px;direction:ltr;
+ background:var(--gold);-webkit-background-clip:text;color:transparent}
+.rule{display:flex;align-items:center;gap:14px;margin-top:10px}
+.rule i{width:150px;height:1.5px;background:linear-gradient(90deg,transparent,#e8be64)}
+.rule i:last-child{transform:scaleX(-1)}
+.rule b{width:10px;height:10px;transform:rotate(45deg);background:#f5d27a;box-shadow:0 0 10px #f5d27a}
+h1{font-family:"Frank Ruhl Libre";font-weight:900;font-size:122px;line-height:1.05;margin-top:6px;
+ background:var(--gold);-webkit-background-clip:text;color:transparent;
+ filter:drop-shadow(0 2px 0 #5a3a08) drop-shadow(0 0 22px rgba(245,200,110,.45))}
+.range{margin-top:14px;display:flex;align-items:center;gap:18px;padding:12px 34px;border-radius:50px;
+ border:1.5px solid rgba(232,190,100,.7);background:linear-gradient(90deg,rgba(60,25,110,.6),rgba(30,10,60,.6));box-shadow:0 0 26px rgba(232,190,100,.25)}
+.range span{font-size:24px;color:#e9d9b4;font-weight:500}
+.range b{font-family:Cinzel;font-weight:900;font-size:32px;letter-spacing:2px;direction:ltr;color:#fff6d8}
+
+.hero{position:relative;margin-top:50px;width:100%;text-align:center;padding:30px 0 34px;border-radius:28px;
+ background:radial-gradient(ellipse at 50% 0%,rgba(245,200,110,.18),transparent 70%),linear-gradient(180deg,rgba(40,15,80,.85),rgba(14,5,30,.9));
+ border:1.5px solid rgba(232,190,100,.6);box-shadow:0 0 50px rgba(160,90,255,.25),0 20px 60px rgba(0,0,0,.6)}
+.hero .lbl{font-family:"Frank Ruhl Libre";font-weight:700;font-size:30px;color:#e9d9b4}
+.hero .v{display:flex;align-items:center;justify-content:center;gap:26px;margin-top:4px}
+.hero .num{font-family:Cinzel;font-weight:900;font-size:120px;line-height:1.05;direction:ltr;
+ background:var(--gold);-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(245,200,110,.55))}
+.laurel{width:70px;height:120px}
+.hero .sub{font-family:Cinzel;font-size:16px;letter-spacing:5px;color:#c9a96a;direction:ltr;margin-top:2px}
+
+.cards{display:flex;gap:28px;margin-top:44px;width:100%}
+.card{flex:1;position:relative;border-radius:24px;padding:26px 28px 24px;
+ background:linear-gradient(165deg,rgba(38,14,76,.92),rgba(12,4,26,.94));
+ border:1.5px solid rgba(232,190,100,.5);box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.card::before{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:120px;height:3px;background:var(--acc);box-shadow:0 0 16px var(--acc);border-radius:3px}
+.strike{--acc:#f5c94a}.live{--acc:#3dffa8}
+.head{display:flex;justify-content:space-between;align-items:center;direction:ltr}
+.name{font-family:Cinzel;font-weight:900;font-size:27px;letter-spacing:2px;color:#fff6d8}
+.badge{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #e8be64;background:radial-gradient(circle at 35% 30%,#4a2390,#1a0838)}
+.badge svg{width:26px;height:26px}
+.tag{font-size:17px;color:#bfa880;margin-top:6px}
+.amt{font-family:Cinzel;font-weight:900;font-size:58px;direction:ltr;text-align:right;margin-top:14px;color:#fff;
+ text-shadow:0 0 18px color-mix(in srgb,var(--acc) 55%,transparent)}
+.row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,190,100,.25)}
+.row span{font-size:18px;color:#c8b48c}
+.row b{font-family:Cinzel;font-weight:700;font-size:20px;direction:ltr;color:#f2e6c8}
+.pct{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:7px 16px;border-radius:12px;font-family:Cinzel;font-weight:900;font-size:26px;direction:ltr;color:#0b0420;background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 60%,#fff))}
+.pct small{font-family:Heebo;font-weight:800;font-size:16px}
+
+.logo{position:absolute;bottom:92px;left:0;right:0;display:flex;flex-direction:column;align-items:center}
+.logo .w{display:flex;align-items:center;gap:14px;font-family:Cinzel;font-weight:900;font-size:40px;letter-spacing:8px;direction:ltr;background:var(--gold);-webkit-background-clip:text;color:transparent}
+.logo svg{width:40px;height:34px}
+.logo .t{font-family:Cinzel;font-size:12px;letter-spacing:6px;color:#c9a96a;margin-top:4px;direction:ltr}
+.disc{position:absolute;bottom:50px;left:0;right:0;text-align:center;font-size:18px;color:#cdbb98}
+</style></head><body>
+<div class="stage">
+ <div class="bg"></div><div class="glow"></div><div class="pattern"></div>
+ <div class="frame">
+  <div class="corner c1"><svg viewBox="0 0 74 74" fill="none" stroke="#f0c873" stroke-width="2"><path d="M70 4H40M70 4v30M70 4 50 24"/><circle cx="46" cy="28" r="5" fill="#f0c873"/><path d="M62 4c0 14-8 22-22 22M70 12c-14 0-22 8-22 22" stroke-width="1.2"/></svg></div>
+  <div class="corner c2"><svg viewBox="0 0 74 74" fill="none" stroke="#f0c873" stroke-width="2"><path d="M70 4H40M70 4v30M70 4 50 24"/><circle cx="46" cy="28" r="5" fill="#f0c873"/><path d="M62 4c0 14-8 22-22 22M70 12c-14 0-22 8-22 22" stroke-width="1.2"/></svg></div>
+  <div class="corner c3"><svg viewBox="0 0 74 74" fill="none" stroke="#f0c873" stroke-width="2"><path d="M70 4H40M70 4v30M70 4 50 24"/><circle cx="46" cy="28" r="5" fill="#f0c873"/><path d="M62 4c0 14-8 22-22 22M70 12c-14 0-22 8-22 22" stroke-width="1.2"/></svg></div>
+  <div class="corner c4"><svg viewBox="0 0 74 74" fill="none" stroke="#f0c873" stroke-width="2"><path d="M70 4H40M70 4v30M70 4 50 24"/><circle cx="46" cy="28" r="5" fill="#f0c873"/><path d="M62 4c0 14-8 22-22 22M70 12c-14 0-22 8-22 22" stroke-width="1.2"/></svg></div>
+ </div>
+
+ <svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d8"/><stop offset=".35" stop-color="#f5d27a"/><stop offset=".65" stop-color="#d4a440"/><stop offset="1" stop-color="#9c6b1c"/></linearGradient>
+  <g id="leaf"><ellipse cx="0" cy="0" rx="6" ry="13" fill="url(#gold)"/></g>
+ </defs></svg>
+
+ <div class="content">
+  <svg class="crown" viewBox="0 0 120 78">
+   <path d="M8 26 30 46 46 14 60 40 74 14 90 46 112 26 102 66H18z" fill="url(#gold)" stroke="#fff3c4" stroke-width="1.5" stroke-linejoin="round"/>
+   <rect x="16" y="64" width="88" height="10" rx="3" fill="url(#gold)" stroke="#fff3c4" stroke-width="1.2"/>
+   <circle cx="8" cy="24" r="6" fill="url(#gold)"/><circle cx="46" cy="11" r="6" fill="url(#gold)"/><circle cx="74" cy="11" r="6" fill="url(#gold)"/><circle cx="112" cy="24" r="6" fill="url(#gold)"/>
+   <circle cx="60" cy="52" r="7" fill="#8a2be2" stroke="#fff3c4" stroke-width="1.5"/><circle cx="34" cy="56" r="4" fill="#3dffa8"/><circle cx="86" cy="56" r="4" fill="#3dffa8"/>
+  </svg>
+  <div class="eyebrow">ALTRIX · WEEKLY REPORT</div>
+  <div class="rule"><i></i><b></b><i></i></div>
+  <h1>הרווח השבועי</h1>
+  <div class="range"><span>שבוע מסחר</span><b>25.10 – 31.10.26</b></div>
+
+  <div class="hero">
+   <div class="lbl">סה״כ רווח שבועי</div>
+   <div class="v">
+    <svg class="laurel" viewBox="0 0 70 120" style="transform:scaleX(-1)"><path d="M55 115C20 95 12 55 30 10" fill="none" stroke="url(#gold)" stroke-width="3"/>
+     <use href="#leaf" transform="translate(44 100) rotate(-60)"/><use href="#leaf" transform="translate(30 84) rotate(-45)"/><use href="#leaf" transform="translate(22 66) rotate(-25)"/><use href="#leaf" transform="translate(20 47) rotate(-10)"/><use href="#leaf" transform="translate(24 28) rotate(10)"/>
+     <use href="#leaf" transform="translate(42 80) rotate(-110)"/><use href="#leaf" transform="translate(34 60) rotate(-100)"/><use href="#leaf" transform="translate(34 40) rotate(-80)"/></svg>
+    <div class="num">+$118.34</div>
+    <svg class="laurel" viewBox="0 0 70 120"><path d="M55 115C20 95 12 55 30 10" fill="none" stroke="url(#gold)" stroke-width="3"/>
+     <use href="#leaf" transform="translate(44 100) rotate(-60)"/><use href="#leaf" transform="translate(30 84) rotate(-45)"/><use href="#leaf" transform="translate(22 66) rotate(-25)"/><use href="#leaf" transform="translate(20 47) rotate(-10)"/><use href="#leaf" transform="translate(24 28) rotate(10)"/>
+     <use href="#leaf" transform="translate(42 80) rotate(-110)"/><use href="#leaf" transform="translate(34 60) rotate(-100)"/><use href="#leaf" transform="translate(34 40) rotate(-80)"/></svg>
+   </div>
+   <div class="sub">STRIKE BOT + ALTRIX LIVE</div>
+  </div>
+
+  <div class="cards">
+   <div class="card strike">
+    <div class="head"><div class="name">STRIKE BOT</div><div class="badge"><svg viewBox="0 0 24 24" fill="#f5c94a"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></div></div>
+    <div class="tag">מערכת אוטומטית</div>
+    <div class="amt">+$58.34</div>
+    <div class="pct">▲ 5.83% <small>תשואה שבועית</small></div>
+    <div class="row"><span>גודל תיק</span><b>$1,000</b></div>
+   </div>
+   <div class="card live">
+    <div class="head"><div class="name">ALTRIX LIVE</div><div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="#3dffa8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-9"/><path d="M15 6h5v5"/></svg></div></div>
+    <div class="tag">חשבון לייב</div>
+    <div class="amt">+$60.00</div>
+    <div class="pct">▲ 0.15% <small>תשואה שבועית</small></div>
+    <div class="row"><span>גודל תיק · סיכון</span><b>$40,000 · 3X</b></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="logo">
+  <div class="w"><svg viewBox="0 0 40 34"><path d="M20 1 39 33H30L20 15 10 33H1z" fill="url(#gold)"/></svg>ALTRIX</div>
+  <div class="t">THE TECH BEHIND TRADING</div>
+ </div>
+ <div class="disc">ביצועי העבר אינם מעידים על ביצועי העתיד · מסחר כרוך בסיכון</div>
+</div>
+</body></html>
