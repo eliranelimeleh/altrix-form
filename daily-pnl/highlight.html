@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="he"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;700;800;900&display=block" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1678px;height:742px;overflow:hidden;font-family:Heebo,sans-serif}
+.wrap{position:relative;width:1678px;height:742px;background:url(stats-04.11.26.png) 0 0/1678px 742px}
+svg.dim{position:absolute;inset:0}
+.box{position:absolute;border:4px solid #7c3aed;border-radius:10px;box-shadow:0 0 0 3px rgba(255,255,255,.9),0 0 26px 6px rgba(124,58,237,.75)}
+.call{position:absolute;width:128px;transform:translateX(-50%);text-align:center;direction:rtl}
+.call .arrow{width:0;height:0;margin:0 auto;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:14px solid #4c1d95}
+.call .pill{background:linear-gradient(160deg,#5b21b6,#2e1065);border:2px solid #c4b5fd;border-radius:14px;padding:7px 4px 9px;box-shadow:0 8px 24px rgba(46,16,101,.5)}
+.call .d{font-size:14px;font-weight:700;color:#e9d5ff}
+.call .v{font-size:27px;font-weight:900;color:#4ade80;direction:ltr;line-height:1.1;text-shadow:0 0 10px rgba(74,222,128,.5)}
+.tot{position:absolute;direction:rtl;background:linear-gradient(90deg,#16a34a,#15803d);color:#fff;font-weight:800;font-size:17px;padding:6px 14px;border-radius:10px;box-shadow:0 6px 18px rgba(21,128,61,.45)}
+</style></head><body>
+<div class="wrap">
+ <svg class="dim" width="1678" height="742"><defs><mask id="m"><rect width="1678" height="742" fill="#fff"/>
+  <rect x="708" y="465" width="414" height="93" rx="8" fill="#000"/>
+  <rect x="1546" y="465" width="104" height="90" rx="8" fill="#000"/>
+  <rect x="8" y="3" width="323" height="84" rx="8" fill="#000"/>
+ </mask></defs><rect width="1678" height="742" fill="rgba(15,5,35,.45)" mask="url(#m)"/></svg>
+
+ <div class="box" style="left:708px;top:465px;width:139px;height:93px"></div>
+ <div class="box" style="left:845px;top:465px;width:139px;height:93px"></div>
+ <div class="box" style="left:983px;top:465px;width:139px;height:93px"></div>
+ <div class="box" style="left:1546px;top:465px;width:104px;height:90px"></div>
+ <div class="box" style="left:8px;top:3px;width:323px;height:84px"></div>
+
+ <div class="call" style="left:777px;top:562px"><div class="arrow"></div><div class="pill"><div class="d">יום שני 02.11</div><div class="v">+$159</div></div></div>
+ <div class="call" style="left:915px;top:562px"><div class="arrow"></div><div class="pill"><div class="d">יום שלישי 03.11</div><div class="v">+$96.6</div></div></div>
+ <div class="call" style="left:1052px;top:562px"><div class="arrow"></div><div class="pill"><div class="d">יום רביעי 04.11</div><div class="v">+$302</div></div></div>
+
+ <div class="tot" style="left:150px;top:40px">סה״כ 3 ימים</div>
+</div>
+</body></html>
